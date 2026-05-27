@@ -1,0 +1,180 @@
+{
+  "pipeline_run": {
+    "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+    "started_at": "2026-05-27T16:31:11.575306+00:00",
+    "finished_at": "2026-05-27T16:31:27.297818+00:00",
+    "status": "success",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:31:12.166090+00:00",
+      "completed_at": "2026-05-27T16:31:12.537926+00:00",
+      "error_message": "'6. volume'",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:31:12.537965+00:00",
+      "completed_at": "2026-05-27T16:31:13.013606+00:00",
+      "error_message": "Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to lift the free key rate limit (25 requests per day), raise the per-second burst limit, and instantly unlock all premium endpoints",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:31:13.013628+00:00",
+      "completed_at": "2026-05-27T16:31:13.770637+00:00",
+      "error_message": "'6. volume'",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "MU",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:31:13.770679+00:00",
+      "completed_at": "2026-05-27T16:31:14.456098+00:00",
+      "error_message": "Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to lift the free key rate limit (25 requests per day), raise the per-second burst limit, and instantly unlock all premium endpoints",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:31:14.456134+00:00",
+      "completed_at": "2026-05-27T16:31:15.344094+00:00",
+      "error_message": "'6. volume'",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:31:15.344164+00:00",
+      "completed_at": "2026-05-27T16:31:15.533766+00:00",
+      "error_message": "Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to lift the free key rate limit (25 requests per day), raise the per-second burst limit, and instantly unlock all premium endpoints",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:31:15.533795+00:00",
+      "completed_at": "2026-05-27T16:31:15.723498+00:00",
+      "error_message": "Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to lift the free key rate limit (25 requests per day), raise the per-second burst limit, and instantly unlock all premium endpoints",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:31:15.723549+00:00",
+      "completed_at": "2026-05-27T16:31:17.350237+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:31:17.350302+00:00",
+      "completed_at": "2026-05-27T16:31:19.017733+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:31:19.017752+00:00",
+      "completed_at": "2026-05-27T16:31:20.719858+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "MU",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:31:20.719879+00:00",
+      "completed_at": "2026-05-27T16:31:22.311829+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:31:22.311846+00:00",
+      "completed_at": "2026-05-27T16:31:23.931462+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:31:23.931492+00:00",
+      "completed_at": "2026-05-27T16:31:25.472766+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "0d33fb87-94eb-4c25-a87e-61bc8de2a63e",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:31:25.472789+00:00",
+      "completed_at": "2026-05-27T16:31:27.297764+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    }
+  ]
+}

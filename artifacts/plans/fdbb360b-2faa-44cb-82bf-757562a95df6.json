@@ -1,0 +1,96 @@
+{
+  "pipeline_run": {
+    "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+    "started_at": "2026-05-27T16:33:55.594187+00:00",
+    "finished_at": "2026-05-27T16:34:17.061110+00:00",
+    "status": "success",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:33:56.244199+00:00",
+      "completed_at": "2026-05-27T16:33:57.930334+00:00",
+      "error_message": null,
+      "fetched_bar_count": 100,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:33:59.130682+00:00",
+      "completed_at": "2026-05-27T16:34:00.866358+00:00",
+      "error_message": null,
+      "fetched_bar_count": 100,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:34:02.066988+00:00",
+      "completed_at": "2026-05-27T16:34:03.966443+00:00",
+      "error_message": null,
+      "fetched_bar_count": 100,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+      "symbol": "MU",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:34:05.166790+00:00",
+      "completed_at": "2026-05-27T16:34:06.954822+00:00",
+      "error_message": null,
+      "fetched_bar_count": 100,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:34:08.155340+00:00",
+      "completed_at": "2026-05-27T16:34:09.970120+00:00",
+      "error_message": null,
+      "fetched_bar_count": 100,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:34:11.170809+00:00",
+      "completed_at": "2026-05-27T16:34:13.105924+00:00",
+      "error_message": null,
+      "fetched_bar_count": 100,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "fdbb360b-2faa-44cb-82bf-757562a95df6",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:34:14.306469+00:00",
+      "completed_at": "2026-05-27T16:34:17.060994+00:00",
+      "error_message": null,
+      "fetched_bar_count": 100,
+      "provider_error_code": null
+    }
+  ]
+}

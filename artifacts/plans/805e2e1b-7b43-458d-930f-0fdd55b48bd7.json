@@ -1,0 +1,120 @@
+{
+  "pipeline_run": {
+    "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+    "started_at": "2026-05-27T16:12:46.852304+00:00",
+    "finished_at": "2026-05-27T16:12:50.694837+00:00",
+    "status": "partial",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:12:47.360365+00:00",
+      "completed_at": "2026-05-27T16:12:47.578756+00:00",
+      "error_message": "No daily bars returned for AAPL",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:12:47.578774+00:00",
+      "completed_at": "2026-05-27T16:12:47.754953+00:00",
+      "error_message": "No daily bars returned for MSFT",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:12:47.754979+00:00",
+      "completed_at": "2026-05-27T16:12:47.993163+00:00",
+      "error_message": "No daily bars returned for AMD",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "MU",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:12:47.993180+00:00",
+      "completed_at": "2026-05-27T16:12:48.167939+00:00",
+      "error_message": "No daily bars returned for MU",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:12:48.167955+00:00",
+      "completed_at": "2026-05-27T16:12:48.356652+00:00",
+      "error_message": "No daily bars returned for NVDA",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:12:48.356680+00:00",
+      "completed_at": "2026-05-27T16:12:48.585243+00:00",
+      "error_message": "No daily bars returned for ACMR",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:12:48.585266+00:00",
+      "completed_at": "2026-05-27T16:12:48.847072+00:00",
+      "error_message": "No daily bars returned for INTC",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:12:48.847101+00:00",
+      "completed_at": "2026-05-27T16:12:50.483253+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "805e2e1b-7b43-458d-930f-0fdd55b48bd7",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "rate_limited",
+      "attempted_at": "2026-05-27T16:12:50.483274+00:00",
+      "completed_at": "2026-05-27T16:12:50.694774+00:00",
+      "error_message": "You have run out of API credits for the current minute. 9 API credits were used, with the current limit being 8. Wait for the next minute or consider switching to a higher tier plan at https://twelvedata.com/pricing",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_rate_limit"
+    }
+  ]
+}

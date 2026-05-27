@@ -1,0 +1,132 @@
+{
+  "pipeline_run": {
+    "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+    "started_at": "2026-05-27T15:05:01.323388+00:00",
+    "finished_at": "2026-05-27T15:05:10.089848+00:00",
+    "status": "partial",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:01.788751+00:00",
+      "completed_at": "2026-05-27T15:05:02.026615+00:00",
+      "error_message": "No daily bars returned for AAPL",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:02.026658+00:00",
+      "completed_at": "2026-05-27T15:05:02.455910+00:00",
+      "error_message": "No daily bars returned for MSFT",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:02.455925+00:00",
+      "completed_at": "2026-05-27T15:05:02.884638+00:00",
+      "error_message": "No daily bars returned for NVDA",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:02.884655+00:00",
+      "completed_at": "2026-05-27T15:05:03.066425+00:00",
+      "error_message": "No daily bars returned for AMD",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:03.066445+00:00",
+      "completed_at": "2026-05-27T15:05:03.259689+00:00",
+      "error_message": "No daily bars returned for INTC",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:03.259770+00:00",
+      "completed_at": "2026-05-27T15:05:05.699576+00:00",
+      "error_message": "Failed to persist derived features for AAPL",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:05.699589+00:00",
+      "completed_at": "2026-05-27T15:05:06.952395+00:00",
+      "error_message": "Failed to persist derived features for MSFT",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:06.952419+00:00",
+      "completed_at": "2026-05-27T15:05:08.276840+00:00",
+      "error_message": "Failed to persist derived features for NVDA",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:08.276862+00:00",
+      "completed_at": "2026-05-27T15:05:09.183691+00:00",
+      "error_message": "Failed to persist derived features for AMD",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "113bc02d-c7d7-4a24-b945-a388fb2e4a39",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:05:09.183713+00:00",
+      "completed_at": "2026-05-27T15:05:10.089775+00:00",
+      "error_message": "Failed to persist derived features for INTC",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    }
+  ]
+}

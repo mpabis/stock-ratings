@@ -1,0 +1,180 @@
+{
+  "pipeline_run": {
+    "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+    "started_at": "2026-05-27T16:29:17.651994+00:00",
+    "finished_at": "2026-05-27T16:29:30.981745+00:00",
+    "status": "success",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:29:18.255255+00:00",
+      "completed_at": "2026-05-27T16:29:18.526257+00:00",
+      "error_message": "No daily bars returned for AAPL",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:29:18.526283+00:00",
+      "completed_at": "2026-05-27T16:29:18.807294+00:00",
+      "error_message": "No daily bars returned for MSFT",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:29:18.807321+00:00",
+      "completed_at": "2026-05-27T16:29:19.009355+00:00",
+      "error_message": "No daily bars returned for AMD",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "MU",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:29:19.009377+00:00",
+      "completed_at": "2026-05-27T16:29:19.195300+00:00",
+      "error_message": "No daily bars returned for MU",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:29:19.195320+00:00",
+      "completed_at": "2026-05-27T16:29:19.378888+00:00",
+      "error_message": "No daily bars returned for NVDA",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:29:19.378906+00:00",
+      "completed_at": "2026-05-27T16:29:19.561478+00:00",
+      "error_message": "No daily bars returned for ACMR",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T16:29:19.561505+00:00",
+      "completed_at": "2026-05-27T16:29:19.733310+00:00",
+      "error_message": "No daily bars returned for INTC",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:29:19.733349+00:00",
+      "completed_at": "2026-05-27T16:29:21.354159+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:29:21.354277+00:00",
+      "completed_at": "2026-05-27T16:29:22.942816+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:29:22.942849+00:00",
+      "completed_at": "2026-05-27T16:29:24.554907+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "MU",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:29:24.554936+00:00",
+      "completed_at": "2026-05-27T16:29:26.203329+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:29:26.203368+00:00",
+      "completed_at": "2026-05-27T16:29:27.866232+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:29:27.866257+00:00",
+      "completed_at": "2026-05-27T16:29:29.410286+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "72bf24be-5eb4-4eff-84a6-714b82dcf53d",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T16:29:29.410304+00:00",
+      "completed_at": "2026-05-27T16:29:30.981679+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "pipeline_run": {
+    "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+    "started_at": "2026-05-27T15:01:06.439545+00:00",
+    "finished_at": "2026-05-27T15:01:12.048694+00:00",
+    "status": "partial",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:06.841674+00:00",
+      "completed_at": "2026-05-27T15:01:07.169022+00:00",
+      "error_message": "No daily bars returned for AAPL",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:07.169051+00:00",
+      "completed_at": "2026-05-27T15:01:07.399248+00:00",
+      "error_message": "No daily bars returned for MSFT",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:07.399268+00:00",
+      "completed_at": "2026-05-27T15:01:07.583559+00:00",
+      "error_message": "No daily bars returned for NVDA",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:07.583584+00:00",
+      "completed_at": "2026-05-27T15:01:07.773465+00:00",
+      "error_message": "No daily bars returned for AMD",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:07.773493+00:00",
+      "completed_at": "2026-05-27T15:01:07.954294+00:00",
+      "error_message": "No daily bars returned for INTC",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:07.954337+00:00",
+      "completed_at": "2026-05-27T15:01:09.511590+00:00",
+      "error_message": "Failed to persist price bars for AAPL",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:09.511603+00:00",
+      "completed_at": "2026-05-27T15:01:10.221314+00:00",
+      "error_message": "Failed to persist price bars for MSFT",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:10.221335+00:00",
+      "completed_at": "2026-05-27T15:01:10.770420+00:00",
+      "error_message": "Failed to persist price bars for NVDA",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:10.770443+00:00",
+      "completed_at": "2026-05-27T15:01:11.372443+00:00",
+      "error_message": "Failed to persist price bars for AMD",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "e44285d0-565a-406c-8f2d-6f2bf0f45949",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:01:11.372464+00:00",
+      "completed_at": "2026-05-27T15:01:12.048653+00:00",
+      "error_message": "Failed to persist price bars for INTC",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    }
+  ]
+}

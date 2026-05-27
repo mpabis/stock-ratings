@@ -1,0 +1,72 @@
+{
+  "pipeline_run": {
+    "run_id": "c2455c7d-70f3-4e8b-a17e-71261c3f21a5",
+    "started_at": "2026-05-27T13:19:17.730169+00:00",
+    "finished_at": "2026-05-27T13:19:17.730690+00:00",
+    "status": "planned",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "c2455c7d-70f3-4e8b-a17e-71261c3f21a5",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:19:17.730169+00:00",
+      "completed_at": null,
+      "error_message": null,
+      "fetched_bar_count": null,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "c2455c7d-70f3-4e8b-a17e-71261c3f21a5",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:19:17.730169+00:00",
+      "completed_at": null,
+      "error_message": null,
+      "fetched_bar_count": null,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "c2455c7d-70f3-4e8b-a17e-71261c3f21a5",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:19:17.730169+00:00",
+      "completed_at": null,
+      "error_message": null,
+      "fetched_bar_count": null,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "c2455c7d-70f3-4e8b-a17e-71261c3f21a5",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:19:17.730169+00:00",
+      "completed_at": null,
+      "error_message": null,
+      "fetched_bar_count": null,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "c2455c7d-70f3-4e8b-a17e-71261c3f21a5",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:19:17.730169+00:00",
+      "completed_at": null,
+      "error_message": null,
+      "fetched_bar_count": null,
+      "provider_error_code": null
+    }
+  ]
+}

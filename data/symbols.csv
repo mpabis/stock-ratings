@@ -1,0 +1,8 @@
+symbol,company_name,exchange,refresh_tier,last_price_date,active
+AAPL,Apple Inc.,NASDAQ,1,2026-05-26,true
+MSFT,Microsoft Corporation,NASDAQ,1,2026-05-26,true
+NVDA,NVIDIA Corporation,NASDAQ,2,2026-05-24,true
+AMD,Advanced Micro Devices Inc.,NASDAQ,2,2026-05-25,true
+MU,Micron Technology Inc.,NASDAQ,2,2026-05-23,true
+ACMR,ACM Research Inc.,NASDAQ,3,2026-05-22,true
+INTC,Intel Corporation,NASDAQ,3,2026-05-22,true

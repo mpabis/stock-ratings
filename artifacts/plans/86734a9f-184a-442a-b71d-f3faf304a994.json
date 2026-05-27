@@ -1,0 +1,132 @@
+{
+  "pipeline_run": {
+    "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+    "started_at": "2026-05-27T15:06:42.081458+00:00",
+    "finished_at": "2026-05-27T15:06:53.177801+00:00",
+    "status": "success",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:06:42.792623+00:00",
+      "completed_at": "2026-05-27T15:06:43.112914+00:00",
+      "error_message": "No daily bars returned for AAPL",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:06:43.112934+00:00",
+      "completed_at": "2026-05-27T15:06:43.458127+00:00",
+      "error_message": "No daily bars returned for MSFT",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:06:43.458153+00:00",
+      "completed_at": "2026-05-27T15:06:43.987898+00:00",
+      "error_message": "No daily bars returned for NVDA",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:06:43.987912+00:00",
+      "completed_at": "2026-05-27T15:06:44.640064+00:00",
+      "error_message": "No daily bars returned for AMD",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "failed",
+      "attempted_at": "2026-05-27T15:06:44.640086+00:00",
+      "completed_at": "2026-05-27T15:06:44.839532+00:00",
+      "error_message": "No daily bars returned for INTC",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_error"
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T15:06:44.839563+00:00",
+      "completed_at": "2026-05-27T15:06:46.479219+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T15:06:46.479243+00:00",
+      "completed_at": "2026-05-27T15:06:47.777640+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T15:06:47.777656+00:00",
+      "completed_at": "2026-05-27T15:06:49.318149+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T15:06:49.318171+00:00",
+      "completed_at": "2026-05-27T15:06:51.845811+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "86734a9f-184a-442a-b71d-f3faf304a994",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T15:06:51.845835+00:00",
+      "completed_at": "2026-05-27T15:06:53.177753+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    }
+  ]
+}

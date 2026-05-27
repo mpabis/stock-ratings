@@ -1,0 +1,62 @@
+{
+  "pipeline_run": {
+    "run_id": "fb89d051-31fd-4947-84e0-23067105511f",
+    "started_at": "2026-05-27T13:11:46.335300+00:00",
+    "finished_at": "2026-05-27T13:11:46.335855+00:00",
+    "status": "planned",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "fb89d051-31fd-4947-84e0-23067105511f",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:11:46.335300+00:00",
+      "completed_at": null,
+      "error_message": null
+    },
+    {
+      "run_id": "fb89d051-31fd-4947-84e0-23067105511f",
+      "symbol": "MSFT",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:11:46.335300+00:00",
+      "completed_at": null,
+      "error_message": null
+    },
+    {
+      "run_id": "fb89d051-31fd-4947-84e0-23067105511f",
+      "symbol": "NVDA",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:11:46.335300+00:00",
+      "completed_at": null,
+      "error_message": null
+    },
+    {
+      "run_id": "fb89d051-31fd-4947-84e0-23067105511f",
+      "symbol": "AMD",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:11:46.335300+00:00",
+      "completed_at": null,
+      "error_message": null
+    },
+    {
+      "run_id": "fb89d051-31fd-4947-84e0-23067105511f",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "planned",
+      "attempted_at": "2026-05-27T13:11:46.335300+00:00",
+      "completed_at": null,
+      "error_message": null
+    }
+  ]
+}

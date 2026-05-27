@@ -20,6 +20,9 @@ Hosted daily stock ratings pipeline scaffold for free-only market data sources.
 - Check database connection safely: `python -m stock_rating.pipeline.check_db`
 - Report latest database state and generate HTML dashboard: `python -m stock_rating.pipeline.report`
 
+Optional provider note:
+- `STOOQ_API_KEY` can be configured to enable Stooq as a third fallback provider for symbols that Alpha Vantage or Twelve Data do not cover on your current plan.
+
 ## How to update tracked stocks
 
 The tracked universe lives in [data/symbols.csv](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/data/symbols.csv).

@@ -107,6 +107,55 @@
             line-height: 1.5;
             font-size: 0.95rem;
         }
+        .run-status-chip {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: 1px solid rgba(31, 41, 51, 0.08);
+        }
+        .run-status-success {
+            background: rgba(62, 138, 99, 0.14);
+            color: var(--good);
+        }
+        .run-status-partial {
+            background: rgba(213, 166, 63, 0.16);
+            color: var(--warn);
+        }
+        .run-status-failed {
+            background: rgba(184, 92, 56, 0.16);
+            color: var(--warm);
+        }
+        .run-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .run-metric {
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(13, 92, 99, 0.08);
+        }
+        .run-metric .label {
+            color: var(--muted);
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .run-metric .value {
+            margin-top: 6px;
+            font-size: 1rem;
+            line-height: 1.35;
+            word-break: break-word;
+        }
         .section {
             margin-top: 24px;
             background: var(--panel);
@@ -208,10 +257,6 @@
             color: inherit;
             cursor: pointer;
         }
-        th button::after {
-            content: " 95";
-            opacity: 0.42;
-        }
         tbody tr:hover {
             background: rgba(13, 92, 99, 0.04);
         }
@@ -262,23 +307,20 @@
         .freshness-fresh { color: var(--good); }
         .freshness-aging { color: var(--warn); }
         .freshness-stale { color: var(--warm); }
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 8px;
-            min-width: 420px;
+        .factor-cell {
+            min-width: 82px;
         }
-        .metric {
+        .factor-chip {
             padding: 8px 8px 9px;
             border-radius: 14px;
             border: 1px solid rgba(13, 92, 99, 0.08);
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(242, 238, 230, 0.75));
         }
-        .metric-head {
+        .factor-head {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-        .metric span {
+        .factor-chip span {
             display: block;
             color: var(--muted);
             font-family: "Trebuchet MS", sans-serif;
@@ -286,37 +328,32 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
-        .metric strong {
+        .factor-chip strong {
             display: block;
             margin-top: 4px;
-            font-size: 1rem;
+            font-size: 0.98rem;
             line-height: 1;
             white-space: nowrap;
         }
-        .metric-track {
+        .factor-track {
             width: 100%;
             height: 7px;
             border-radius: 999px;
             background: rgba(31, 41, 51, 0.08);
             overflow: hidden;
         }
-        .metric-fill {
+        .factor-fill {
             height: 100%;
             border-radius: 999px;
         }
-        .metric-fill-low {
+        .factor-fill-low {
             background: linear-gradient(90deg, #db6f51, #e79870);
         }
-        .metric-fill-mid {
+        .factor-fill-mid {
             background: linear-gradient(90deg, #d5a63f, #edd073);
         }
-        .metric-fill-high {
+        .factor-fill-high {
             background: linear-gradient(90deg, #3e8a63, #78bc86);
-        }
-        .metric-caption {
-            margin-top: 5px;
-            color: var(--muted);
-            font-size: 0.68rem;
         }
         .empty {
             text-align: center;
@@ -332,10 +369,7 @@
             .hero-inner, .cards {
                 grid-template-columns: 1fr;
             }
-            .metric-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                min-width: 0;
-            }
+            .factor-cell { min-width: 72px; }
         }
         @media (max-width: 720px) {
             .page { width: min(100vw - 20px, 1180px); padding-top: 20px; }
@@ -344,7 +378,6 @@
             thead { display: none; }
             tbody tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
             td { border-bottom: 0; padding: 8px 0; }
-            .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
         }
     </style>
 </head>
@@ -359,8 +392,27 @@
                 </div>
                 <aside class="hero-panel">
                     <div class="kicker">Latest pipeline run</div>
-                    <div class="value">Success run</div>
-                    <div class="meta">Run fdbb360b-2faa-44cb-82bf-757562a95df6 started 2026-05-27 16:33:55+00:00 and finished 2026-05-27 16:34:17+00:00.</div>
+                    <div class="run-status-chip run-status-partial">partial</div>
+                    <div class="value">Partial update</div>
+                    <div class="meta">Last database-backed refresh attempt for the tracked universe.</div>
+                    <div class="run-grid">
+                        <div class="run-metric">
+                            <div class="label">Finished</div>
+                            <div class="value">2026-05-27 17:07:53+00:00</div>
+                        </div>
+                        <div class="run-metric">
+                            <div class="label">Result</div>
+                            <div class="value">7 succeeded, 4 failed, 2 rate limited</div>
+                        </div>
+                        <div class="run-metric">
+                            <div class="label">Run ID</div>
+                            <div class="value">82f74cbf-ce86-4bd8-9925-c31387ea7c62</div>
+                        </div>
+                        <div class="run-metric">
+                            <div class="label">Started</div>
+                            <div class="value">2026-05-27 17:07:35+00:00</div>
+                        </div>
+                    </div>
                 </aside>
             </div>
         </section>
@@ -370,7 +422,7 @@
                 <h2>Portfolio snapshot</h2>
                 <p>Generated from the live database on demand.</p>
             </div>
-            <div class="cards"><article class="card"><div class="label">Tracked symbols</div><div class="number">7</div><div class="caption">Universe currently configured in the database.</div></article><article class="card"><div class="label">Published ratings</div><div class="number">21</div><div class="caption">All persisted rating rows across runs.</div></article><article class="card"><div class="label">Average score</div><div class="number">46.4</div><div class="caption">Average latest score across the current universe.</div></article><article class="card"><div class="label">Latest input date</div><div class="number">2026-05-27</div><div class="caption">Most recent feature date feeding the displayed ratings.</div></article></div>
+            <div class="cards"><article class="card"><div class="label">Tracked symbols</div><div class="number">30</div><div class="caption">Universe currently configured in the database.</div></article><article class="card"><div class="label">Published ratings</div><div class="number">29</div><div class="caption">All persisted rating rows across runs.</div></article><article class="card"><div class="label">Average score</div><div class="number">47.8</div><div class="caption">Average latest score across the current universe.</div></article><article class="card"><div class="label">Latest input date</div><div class="number">2026-05-27</div><div class="caption">Most recent feature date feeding the displayed ratings.</div></article></div>
         </section>
 
         <section class="section">
@@ -378,9 +430,9 @@
                 <h2>Distribution</h2>
                 <p>How the current universe is spread across labels and freshness buckets.</p>
             </div>
-            <div class="pill-row"><div class="pill"><span>C / Neutral</span><strong>2</strong></div><div class="pill"><span>D / Unattractive</span><strong>5</strong></div></div>
+            <div class="pill-row"><div class="pill"><span>C / Neutral</span><strong>4</strong></div><div class="pill"><span>D / Unattractive</span><strong>9</strong></div></div>
             <div style="height: 12px"></div>
-            <div class="pill-row"><div class="pill"><span>Fresh</span><strong>7</strong></div></div>
+            <div class="pill-row"><div class="pill"><span>Fresh</span><strong>11</strong></div><div class="pill"><span>Stale</span><strong>2</strong></div></div>
         </section>
 
         <section class="section">
@@ -393,14 +445,16 @@
                     <tr>
                                                 <th><button type="button" data-sort-index="0" data-sort-kind="text">Company</button></th>
                                                 <th><button type="button" data-sort-index="1" data-sort-kind="number">Score</button></th>
-                                                <th><button type="button" data-sort-index="2" data-sort-kind="text">Label</button></th>
-                                                <th><button type="button" data-sort-index="3" data-sort-kind="text">Freshness</button></th>
-                                                <th><button type="button" data-sort-index="4" data-sort-kind="date">Inputs</button></th>
-                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Breakdown</button></th>
+                                                <th><button type="button" data-sort-index="2" data-sort-kind="text">Freshness</button></th>
+                                                <th><button type="button" data-sort-index="3" data-sort-kind="number">Val</button></th>
+                                                <th><button type="button" data-sort-index="4" data-sort-kind="number">Qual</button></th>
+                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Growth</button></th>
+                                                <th><button type="button" data-sort-index="6" data-sort-kind="number">Mom</button></th>
+                                                <th><button type="button" data-sort-index="7" data-sort-kind="number">Risk</button></th>
                     </tr>
                 </thead>
                                 <tbody id="ratings-table-body">
-                    <tr><td data-sort="aapl apple inc."><div class="symbol">AAPL</div><div class="company">Apple Inc.</div></td><td data-sort="59"><span class="score-chip score-band-mid"><small>Rating</small><strong>5.9</strong></span></td><td data-sort="c / neutral">C / Neutral</td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td data-sort="2026-05-27">2026-05-27</td><td data-sort="61"><div class="metric-grid"><div class="metric"><div class="metric-head"><span>Valuation</span><strong>3.6</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 36%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Quality</span><strong>5.5</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 55%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Growth</span><strong>8.3</strong></div><div class="metric-track"><div class="metric-fill metric-fill-high" style="width: 83%"></div></div><div class="metric-caption">Strong</div></div><div class="metric"><div class="metric-head"><span>Momentum</span><strong>6.5</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 65%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Risk</span><strong>6.8</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 68%"></div></div><div class="metric-caption">Mixed</div></div></div></td></tr><tr><td data-sort="acmr acm research inc."><div class="symbol">ACMR</div><div class="company">ACM Research Inc.</div></td><td data-sort="57"><span class="score-chip score-band-mid"><small>Rating</small><strong>5.7</strong></span></td><td data-sort="c / neutral">C / Neutral</td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td data-sort="2026-05-27">2026-05-27</td><td data-sort="57"><div class="metric-grid"><div class="metric"><div class="metric-head"><span>Valuation</span><strong>1.9</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 19%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Quality</span><strong>4.6</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 46%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Growth</span><strong>10.0</strong></div><div class="metric-track"><div class="metric-fill metric-fill-high" style="width: 100%"></div></div><div class="metric-caption">Strong</div></div><div class="metric"><div class="metric-head"><span>Momentum</span><strong>8.5</strong></div><div class="metric-track"><div class="metric-fill metric-fill-high" style="width: 85%"></div></div><div class="metric-caption">Strong</div></div><div class="metric"><div class="metric-head"><span>Risk</span><strong>3.6</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 36%"></div></div><div class="metric-caption">Weak</div></div></div></td></tr><tr><td data-sort="msft microsoft corporation"><div class="symbol">MSFT</div><div class="company">Microsoft Corporation</div></td><td data-sort="48"><span class="score-chip score-band-mid"><small>Rating</small><strong>4.8</strong></span></td><td data-sort="d / unattractive">D / Unattractive</td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td data-sort="2026-05-27">2026-05-27</td><td data-sort="51"><div class="metric-grid"><div class="metric"><div class="metric-head"><span>Valuation</span><strong>5.1</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 51%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Quality</span><strong>4.0</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 40%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Growth</span><strong>5.4</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 54%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Momentum</span><strong>3.7</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 37%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Risk</span><strong>7.3</strong></div><div class="metric-track"><div class="metric-fill metric-fill-high" style="width: 73%"></div></div><div class="metric-caption">Strong</div></div></div></td></tr><tr><td data-sort="nvda nvidia corporation"><div class="symbol">NVDA</div><div class="company">NVIDIA Corporation</div></td><td data-sort="45"><span class="score-chip score-band-mid"><small>Rating</small><strong>4.5</strong></span></td><td data-sort="d / unattractive">D / Unattractive</td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td data-sort="2026-05-27">2026-05-27</td><td data-sort="43"><div class="metric-grid"><div class="metric"><div class="metric-head"><span>Valuation</span><strong>7.3</strong></div><div class="metric-track"><div class="metric-fill metric-fill-high" style="width: 73%"></div></div><div class="metric-caption">Strong</div></div><div class="metric"><div class="metric-head"><span>Quality</span><strong>6.1</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 61%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Growth</span><strong>2.6</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 26%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Momentum</span><strong>1.1</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 11%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Risk</span><strong>4.3</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 43%"></div></div><div class="metric-caption">Weak</div></div></div></td></tr><tr><td data-sort="intc intel corporation"><div class="symbol">INTC</div><div class="company">Intel Corporation</div></td><td data-sort="40"><span class="score-chip score-band-low"><small>Rating</small><strong>4.0</strong></span></td><td data-sort="d / unattractive">D / Unattractive</td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td data-sort="2026-05-27">2026-05-27</td><td data-sort="34"><div class="metric-grid"><div class="metric"><div class="metric-head"><span>Valuation</span><strong>8.5</strong></div><div class="metric-track"><div class="metric-fill metric-fill-high" style="width: 85%"></div></div><div class="metric-caption">Strong</div></div><div class="metric"><div class="metric-head"><span>Quality</span><strong>5.0</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 50%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Growth</span><strong>2.5</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 25%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Momentum</span><strong>0.8</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 8%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Risk</span><strong>0.0</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 0%"></div></div><div class="metric-caption">Weak</div></div></div></td></tr><tr><td data-sort="amd advanced micro devices inc."><div class="symbol">AMD</div><div class="company">Advanced Micro Devices Inc.</div></td><td data-sort="38"><span class="score-chip score-band-low"><small>Rating</small><strong>3.8</strong></span></td><td data-sort="d / unattractive">D / Unattractive</td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td data-sort="2026-05-27">2026-05-27</td><td data-sort="36"><div class="metric-grid"><div class="metric"><div class="metric-head"><span>Valuation</span><strong>6.9</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 69%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Quality</span><strong>4.3</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 43%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Growth</span><strong>2.5</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 25%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Momentum</span><strong>0.6</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 6%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Risk</span><strong>3.5</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 35%"></div></div><div class="metric-caption">Weak</div></div></div></td></tr><tr><td data-sort="mu micron technology inc."><div class="symbol">MU</div><div class="company">Micron Technology Inc.</div></td><td data-sort="38"><span class="score-chip score-band-low"><small>Rating</small><strong>3.8</strong></span></td><td data-sort="d / unattractive">D / Unattractive</td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td data-sort="2026-05-27">2026-05-27</td><td data-sort="37"><div class="metric-grid"><div class="metric"><div class="metric-head"><span>Valuation</span><strong>4.1</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 41%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Quality</span><strong>0.0</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 0%"></div></div><div class="metric-caption">Weak</div></div><div class="metric"><div class="metric-head"><span>Growth</span><strong>7.9</strong></div><div class="metric-track"><div class="metric-fill metric-fill-high" style="width: 79%"></div></div><div class="metric-caption">Strong</div></div><div class="metric"><div class="metric-head"><span>Momentum</span><strong>5.3</strong></div><div class="metric-track"><div class="metric-fill metric-fill-mid" style="width: 53%"></div></div><div class="metric-caption">Mixed</div></div><div class="metric"><div class="metric-head"><span>Risk</span><strong>1.4</strong></div><div class="metric-track"><div class="metric-fill metric-fill-low" style="width: 14%"></div></div><div class="metric-caption">Weak</div></div></div></td></tr>
+                    <tr><td data-sort="amzn amazon.com inc."><div class="symbol">AMZN</div><div class="company">Amazon.com Inc.</div></td><td data-sort="60"><span class="score-chip score-band-mid"><small>Rating</small><strong>6.0</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="21"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>2.1</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 21%"></div></div></div></td><td class="factor-cell" data-sort="53"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>5.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 53%"></div></div></div></td><td class="factor-cell" data-sort="100"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>10.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 100%"></div></div></div></td><td class="factor-cell" data-sort="87"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>8.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 87%"></div></div></div></td><td class="factor-cell" data-sort="37"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>3.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 37%"></div></div></div></td></tr><tr><td data-sort="aapl apple inc."><div class="symbol">AAPL</div><div class="company">Apple Inc.</div></td><td data-sort="59"><span class="score-chip score-band-mid"><small>Rating</small><strong>5.9</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="37"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>3.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 37%"></div></div></div></td><td class="factor-cell" data-sort="56"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>5.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 56%"></div></div></div></td><td class="factor-cell" data-sort="82"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>8.2</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 82%"></div></div></div></td><td class="factor-cell" data-sort="64"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>6.4</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 64%"></div></div></div></td><td class="factor-cell" data-sort="69"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>6.9</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 69%"></div></div></div></td></tr><tr><td data-sort="acmr acm research inc."><div class="symbol">ACMR</div><div class="company">ACM Research Inc.</div></td><td data-sort="58"><span class="score-chip score-band-mid"><small>Rating</small><strong>5.8</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="23"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>2.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 23%"></div></div></div></td><td class="factor-cell" data-sort="46"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>4.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 46%"></div></div></div></td><td class="factor-cell" data-sort="100"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>10.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 100%"></div></div></div></td><td class="factor-cell" data-sort="79"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>7.9</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 79%"></div></div></div></td><td class="factor-cell" data-sort="45"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>4.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 45%"></div></div></div></td></tr><tr><td data-sort="aer aercap holdings n.v."><div class="symbol">AER</div><div class="company">AerCap Holdings N.V.</div></td><td data-sort="56"><span class="score-chip score-band-mid"><small>Rating</small><strong>5.6</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="28"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>2.8</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 28%"></div></div></div></td><td class="factor-cell" data-sort="40"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>4.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 40%"></div></div></div></td><td class="factor-cell" data-sort="95"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>9.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 95%"></div></div></div></td><td class="factor-cell" data-sort="72"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>7.2</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 72%"></div></div></div></td><td class="factor-cell" data-sort="57"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>5.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 57%"></div></div></div></td></tr><tr><td data-sort="skyw skywest inc."><div class="symbol">SKYW</div><div class="company">SkyWest Inc.</div></td><td data-sort="51"><span class="score-chip score-band-mid"><small>Rating</small><strong>5.1</strong></span></td><td data-sort="stale" class="freshness-stale">Stale</td><td class="factor-cell" data-sort="40"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>4.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 40%"></div></div></div></td><td class="factor-cell" data-sort="37"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>3.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 37%"></div></div></div></td><td class="factor-cell" data-sort="71"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>7.1</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 71%"></div></div></div></td><td class="factor-cell" data-sort="50"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>5.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 50%"></div></div></div></td><td class="factor-cell" data-sort="73"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>7.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 73%"></div></div></div></td></tr><tr><td data-sort="msft microsoft corporation"><div class="symbol">MSFT</div><div class="company">Microsoft Corporation</div></td><td data-sort="48"><span class="score-chip score-band-mid"><small>Rating</small><strong>4.8</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="51"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>5.1</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 51%"></div></div></div></td><td class="factor-cell" data-sort="40"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>4.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 40%"></div></div></div></td><td class="factor-cell" data-sort="54"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>5.4</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 54%"></div></div></div></td><td class="factor-cell" data-sort="37"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>3.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 37%"></div></div></div></td><td class="factor-cell" data-sort="73"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>7.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 73%"></div></div></div></td></tr><tr><td data-sort="bac bank of america corporation"><div class="symbol">BAC</div><div class="company">Bank of America Corporation</div></td><td data-sort="45"><span class="score-chip score-band-mid"><small>Rating</small><strong>4.5</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="76"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>7.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 76%"></div></div></div></td><td class="factor-cell" data-sort="62"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>6.2</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 62%"></div></div></div></td><td class="factor-cell" data-sort="25"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>2.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 25%"></div></div></div></td><td class="factor-cell" data-sort="10"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>1.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 10%"></div></div></div></td><td class="factor-cell" data-sort="35"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>3.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 35%"></div></div></div></td></tr><tr><td data-sort="nvda nvidia corporation"><div class="symbol">NVDA</div><div class="company">NVIDIA Corporation</div></td><td data-sort="45"><span class="score-chip score-band-mid"><small>Rating</small><strong>4.5</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="73"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>7.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 73%"></div></div></div></td><td class="factor-cell" data-sort="61"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>6.1</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 61%"></div></div></div></td><td class="factor-cell" data-sort="26"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>2.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 26%"></div></div></div></td><td class="factor-cell" data-sort="11"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>1.1</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 11%"></div></div></div></td><td class="factor-cell" data-sort="43"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>4.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 43%"></div></div></div></td></tr><tr><td data-sort="mp mp materials corp."><div class="symbol">MP</div><div class="company">MP Materials Corp.</div></td><td data-sort="44"><span class="score-chip score-band-low"><small>Rating</small><strong>4.4</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="65"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>6.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 65%"></div></div></div></td><td class="factor-cell" data-sort="52"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>5.2</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 52%"></div></div></div></td><td class="factor-cell" data-sort="33"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>3.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 33%"></div></div></div></td><td class="factor-cell" data-sort="16"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>1.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 16%"></div></div></div></td><td class="factor-cell" data-sort="49"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>4.9</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 49%"></div></div></div></td></tr><tr><td data-sort="intc intel corporation"><div class="symbol">INTC</div><div class="company">Intel Corporation</div></td><td data-sort="41"><span class="score-chip score-band-low"><small>Rating</small><strong>4.1</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="85"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>8.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 85%"></div></div></div></td><td class="factor-cell" data-sort="52"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>5.2</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 52%"></div></div></div></td><td class="factor-cell" data-sort="25"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>2.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 25%"></div></div></div></td><td class="factor-cell" data-sort="8"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>0.8</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 8%"></div></div></div></td><td class="factor-cell" data-sort="0"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>0.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 0%"></div></div></div></td></tr><tr><td data-sort="amd advanced micro devices inc."><div class="symbol">AMD</div><div class="company">Advanced Micro Devices Inc.</div></td><td data-sort="38"><span class="score-chip score-band-low"><small>Rating</small><strong>3.8</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="69"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>6.9</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 69%"></div></div></div></td><td class="factor-cell" data-sort="43"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>4.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 43%"></div></div></div></td><td class="factor-cell" data-sort="25"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>2.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 25%"></div></div></div></td><td class="factor-cell" data-sort="6"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>0.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 6%"></div></div></div></td><td class="factor-cell" data-sort="35"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>3.5</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 35%"></div></div></div></td></tr><tr><td data-sort="mu micron technology inc."><div class="symbol">MU</div><div class="company">Micron Technology Inc.</div></td><td data-sort="38"><span class="score-chip score-band-low"><small>Rating</small><strong>3.8</strong></span></td><td data-sort="fresh" class="freshness-fresh">Fresh</td><td class="factor-cell" data-sort="41"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>4.1</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 41%"></div></div></div></td><td class="factor-cell" data-sort="0"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>0.0</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 0%"></div></div></div></td><td class="factor-cell" data-sort="79"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>7.9</strong></div><div class="factor-track"><div class="factor-fill factor-fill-high" style="width: 79%"></div></div></div></td><td class="factor-cell" data-sort="53"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>5.3</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 53%"></div></div></div></td><td class="factor-cell" data-sort="14"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>1.4</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 14%"></div></div></div></td></tr><tr><td data-sort="tln talen energy corporation"><div class="symbol">TLN</div><div class="company">Talen Energy Corporation</div></td><td data-sort="38"><span class="score-chip score-band-low"><small>Rating</small><strong>3.8</strong></span></td><td data-sort="stale" class="freshness-stale">Stale</td><td class="factor-cell" data-sort="67"><div class="factor-chip"><div class="factor-head"><span>Val</span><strong>6.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-mid" style="width: 67%"></div></div></div></td><td class="factor-cell" data-sort="44"><div class="factor-chip"><div class="factor-head"><span>Qual</span><strong>4.4</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 44%"></div></div></div></td><td class="factor-cell" data-sort="26"><div class="factor-chip"><div class="factor-head"><span>Growth</span><strong>2.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 26%"></div></div></div></td><td class="factor-cell" data-sort="6"><div class="factor-chip"><div class="factor-head"><span>Mom</span><strong>0.6</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 6%"></div></div></div></td><td class="factor-cell" data-sort="37"><div class="factor-chip"><div class="factor-head"><span>Risk</span><strong>3.7</strong></div><div class="factor-track"><div class="factor-fill factor-fill-low" style="width: 37%"></div></div></div></td></tr>
                 </tbody>
             </table>
             <div class="footer">File is regenerated by <code>python -m stock_rating.pipeline.report</code> and written to <code>artifacts/reports/ratings-dashboard.html</code>.</div>

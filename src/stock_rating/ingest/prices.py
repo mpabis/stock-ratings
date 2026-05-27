@@ -1,6 +1,8 @@
+from csv import DictReader
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from io import StringIO
 import json
 from urllib.parse import urlencode
 from urllib.request import urlopen
@@ -9,6 +11,11 @@ from stock_rating.db import DatabaseConfig, connect_postgres, is_configured
 
 
 FREE_PRICE_PROVIDERS = ("alpha_vantage", "twelve_data", "stooq")
+
+TWELVE_DATA_EXCHANGE_ALIASES = {
+    "ETR": "XETR",
+    "TSE": "TSX",
+}
 
 
 @dataclass(frozen=True)
@@ -46,11 +53,19 @@ class TwelveDataResponseError(RuntimeError):
     pass
 
 
-def get_price_provider_status(alpha_vantage_api_key: str, twelve_data_api_key: str) -> list[PriceProviderStatus]:
+class StooqResponseError(RuntimeError):
+    pass
+
+
+def get_price_provider_status(
+    alpha_vantage_api_key: str,
+    twelve_data_api_key: str,
+    stooq_api_key: str = "",
+) -> list[PriceProviderStatus]:
     return [
         PriceProviderStatus(provider="alpha_vantage", configured=bool(alpha_vantage_api_key)),
         PriceProviderStatus(provider="twelve_data", configured=bool(twelve_data_api_key)),
-        PriceProviderStatus(provider="stooq", configured=True),
+        PriceProviderStatus(provider="stooq", configured=bool(stooq_api_key)),
     ]
 
 
@@ -85,11 +100,45 @@ def parse_alpha_vantage_daily_adjusted(symbol: str, payload: dict[str, object]) 
     return bars
 
 
+def normalize_symbol_for_alpha_vantage(symbol: str) -> str:
+    if ":" not in symbol:
+        return symbol
+
+    _, raw_symbol = symbol.split(":", 1)
+    return raw_symbol or symbol
+
+
+def normalize_symbol_for_twelve_data(symbol: str) -> str:
+    if ":" not in symbol:
+        return symbol
+
+    exchange, raw_symbol = symbol.split(":", 1)
+    normalized_exchange = TWELVE_DATA_EXCHANGE_ALIASES.get(exchange.upper())
+    if normalized_exchange:
+        return f"{raw_symbol}:{normalized_exchange}"
+    return raw_symbol or symbol
+
+
+def normalize_symbol_for_stooq(symbol: str) -> str:
+    if ":" not in symbol:
+        return f"{symbol.lower()}.us"
+
+    exchange, raw_symbol = symbol.split(":", 1)
+    normalized_symbol = raw_symbol.lower()
+    exchange_code = exchange.upper()
+    if exchange_code == "TSE":
+        return f"{normalized_symbol}.ca"
+    if exchange_code == "ETR":
+        return f"{normalized_symbol}.de"
+    return normalized_symbol
+
+
 def build_alpha_vantage_daily_adjusted_url(symbol: str, api_key: str) -> str:
+    request_symbol = normalize_symbol_for_alpha_vantage(symbol)
     query = urlencode(
         {
             "function": "TIME_SERIES_DAILY",
-            "symbol": symbol,
+            "symbol": request_symbol,
             "outputsize": "compact",
             "apikey": api_key,
         }
@@ -148,15 +197,70 @@ def parse_twelve_data_time_series(symbol: str, payload: dict[str, object]) -> li
 
 
 def build_twelve_data_time_series_url(symbol: str, api_key: str) -> str:
+    request_symbol = normalize_symbol_for_twelve_data(symbol)
     query = urlencode(
         {
-            "symbol": symbol,
+            "symbol": request_symbol,
             "interval": "1day",
             "outputsize": "30",
             "apikey": api_key,
         }
     )
     return f"https://api.twelvedata.com/time_series?{query}"
+
+
+def build_stooq_daily_url(symbol: str, api_key: str) -> str:
+    request_symbol = normalize_symbol_for_stooq(symbol)
+    query = urlencode(
+        {
+            "s": request_symbol,
+            "i": "d",
+            "apikey": api_key,
+        }
+    )
+    return f"https://stooq.com/q/d/l/?{query}"
+
+
+def parse_stooq_daily_csv(symbol: str, payload: str) -> list[DailyPriceBar]:
+    bars: list[DailyPriceBar] = []
+    reader = DictReader(StringIO(payload))
+    for row in reader:
+        if not row:
+            continue
+        trading_date = row.get("Date")
+        close = row.get("Close")
+        if not trading_date or not close or close.lower() == "n/d":
+            continue
+        volume_value = row.get("Volume", "0") or "0"
+        bars.append(
+            DailyPriceBar(
+                symbol=symbol,
+                date=date.fromisoformat(trading_date),
+                open=Decimal(str(row["Open"])),
+                high=Decimal(str(row["High"])),
+                low=Decimal(str(row["Low"])),
+                close=Decimal(str(close)),
+                adjusted_close=Decimal(str(close)),
+                volume=int(str(volume_value)),
+                source="stooq",
+            )
+        )
+    return sorted(bars, key=lambda bar: bar.date, reverse=True)
+
+
+def fetch_stooq_daily(symbol: str, api_key: str, urlopen_fn=urlopen) -> list[DailyPriceBar]:
+    url = build_stooq_daily_url(symbol, api_key)
+    with urlopen_fn(url) as response:
+        payload = response.read().decode("utf-8")
+
+    lowered = payload.lower()
+    if "get your apikey" in lowered:
+        raise StooqResponseError("Stooq API key is invalid or missing")
+
+    bars = parse_stooq_daily_csv(symbol, payload)
+    if not bars:
+        raise StooqResponseError(f"No daily bars returned for {symbol}")
+    return bars
 
 
 def fetch_twelve_data_time_series(symbol: str, api_key: str, urlopen_fn=urlopen) -> list[DailyPriceBar]:

@@ -6,6 +6,7 @@ from stock_rating.pipeline.daily import (
     build_symbol_refresh_run_records,
     execute_alpha_vantage_refresh_plan,
     execute_price_refresh_plan,
+    execute_stooq_refresh_plan,
     execute_twelve_data_refresh_plan,
     plan_price_refreshes,
     pipeline_status_for,
@@ -202,6 +203,83 @@ def test_execute_twelve_data_refresh_plan_marks_success() -> None:
     assert records[0].provider == "twelve_data"
     assert records[0].status == "succeeded"
     assert records[0].fetched_bar_count == 1
+
+
+def test_execute_stooq_refresh_plan_marks_success() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="TSE:FFH", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_stooq_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        api_key="stooq-key",
+        fetch_fn=lambda symbol, api_key: [
+            DailyPriceBar(
+                symbol=symbol,
+                date=as_of,
+                open=Decimal("1"),
+                high=Decimal("2"),
+                low=Decimal("1"),
+                close=Decimal("2"),
+                adjusted_close=Decimal("2"),
+                volume=1,
+                source="stooq",
+            )
+        ],
+        persist_fn=lambda database_url, bars: False,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+    )
+
+    assert records[0].provider == "stooq"
+    assert records[0].status == "succeeded"
+
+
+def test_execute_price_refresh_plan_falls_back_to_stooq_after_twelve_failure() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="TSE:FFH", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+    stooq_symbols: list[str] = []
+
+    records = execute_price_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        alpha_vantage_api_key="",
+        twelve_data_api_key="twelve-key",
+        stooq_api_key="stooq-key",
+        twelve_fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(RuntimeError("paid plan")),
+        stooq_fetch_fn=lambda symbol, api_key: stooq_symbols.append(symbol) or [
+            DailyPriceBar(
+                symbol=symbol,
+                date=as_of,
+                open=Decimal("1"),
+                high=Decimal("2"),
+                low=Decimal("1"),
+                close=Decimal("2"),
+                adjusted_close=Decimal("2"),
+                volume=1,
+                source="stooq",
+            )
+        ],
+        persist_fn=lambda database_url, bars: False,
+        mark_refreshed_fn=lambda database_url, symbol, refreshed_at: True,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+    )
+
+    assert stooq_symbols == ["TSE:FFH"]
+    assert [record.provider for record in records] == ["twelve_data", "stooq"]
+    assert records[-1].status == "succeeded"
+    assert pipeline_status_for(records) == "success"
 
 
 def test_execute_price_refresh_plan_falls_back_to_twelve_data() -> None:

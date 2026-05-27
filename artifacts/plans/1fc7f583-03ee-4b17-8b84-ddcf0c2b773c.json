@@ -1,0 +1,156 @@
+{
+  "pipeline_run": {
+    "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+    "started_at": "2026-05-27T17:04:30.628626+00:00",
+    "finished_at": "2026-05-27T17:04:46.835670+00:00",
+    "status": "partial",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "rate_limited",
+      "attempted_at": "2026-05-27T17:04:31.254224+00:00",
+      "completed_at": "2026-05-27T17:04:31.520382+00:00",
+      "error_message": "We have detected your API key as IQSRNO5U76BA94T7 and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_rate_limit"
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:04:31.520441+00:00",
+      "completed_at": "2026-05-27T17:04:33.213666+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "TSE:IMG",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T17:04:33.213693+00:00",
+      "completed_at": "2026-05-27T17:04:33.396417+00:00",
+      "error_message": "This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:04:33.396440+00:00",
+      "completed_at": "2026-05-27T17:04:34.953471+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "AER",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:04:34.953499+00:00",
+      "completed_at": "2026-05-27T17:04:36.591902+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "AMZN",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:04:36.591931+00:00",
+      "completed_at": "2026-05-27T17:04:39.280555+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "BAC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:04:39.280590+00:00",
+      "completed_at": "2026-05-27T17:04:40.860944+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:04:40.860961+00:00",
+      "completed_at": "2026-05-27T17:04:42.597305+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "MP",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:04:42.597329+00:00",
+      "completed_at": "2026-05-27T17:04:46.092844+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "SKYW",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "rate_limited",
+      "attempted_at": "2026-05-27T17:04:46.092884+00:00",
+      "completed_at": "2026-05-27T17:04:46.443151+00:00",
+      "error_message": "You have run out of API credits for the current minute. 9 API credits were used, with the current limit being 8. Wait for the next minute or consider switching to a higher tier plan at https://twelvedata.com/pricing",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_rate_limit"
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "TSE:IMG",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "failed",
+      "attempted_at": "2026-05-27T17:04:46.443317+00:00",
+      "completed_at": "2026-05-27T17:04:46.688271+00:00",
+      "error_message": "No daily bars returned for TSE:IMG",
+      "fetched_bar_count": null,
+      "provider_error_code": "stooq_error"
+    },
+    {
+      "run_id": "1fc7f583-03ee-4b17-8b84-ddcf0c2b773c",
+      "symbol": "SKYW",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "failed",
+      "attempted_at": "2026-05-27T17:04:46.688317+00:00",
+      "completed_at": "2026-05-27T17:04:46.835622+00:00",
+      "error_message": "No daily bars returned for SKYW",
+      "fetched_bar_count": null,
+      "provider_error_code": "stooq_error"
+    }
+  ]
+}

@@ -30,29 +30,30 @@ class RatingSnapshot:
 
 
 def main() -> None:
-        settings = get_settings()
-        connection = connect_postgres(settings.database_url)
-        cursor = connection.cursor()
+    settings = get_settings()
+    connection = connect_postgres(settings.database_url)
+    cursor = connection.cursor()
 
-        try:
-                latest_run = fetch_latest_run(cursor)
-                table_counts = fetch_table_counts(cursor)
-                ratings = fetch_latest_ratings(cursor)
+    try:
+        latest_run = fetch_latest_run(cursor)
+        latest_run_counts = fetch_run_status_counts(cursor, latest_run[0] if latest_run else None)
+        table_counts = fetch_table_counts(cursor)
+        ratings = fetch_latest_ratings(cursor)
 
-                if latest_run:
-                        print(f"Latest run: {latest_run[0]}")
-                        print(f"Status: {latest_run[1]}")
-                        print(f"Started: {latest_run[2]}")
-                        print(f"Finished: {latest_run[3]}")
+        if latest_run:
+            print(f"Latest run: {latest_run[0]}")
+            print(f"Status: {latest_run[1]}")
+            print(f"Started: {latest_run[2]}")
+            print(f"Finished: {latest_run[3]}")
 
-                for table_name in TABLE_NAMES:
-                        print(f"{table_name}: {table_counts[table_name]}")
+        for table_name in TABLE_NAMES:
+            print(f"{table_name}: {table_counts[table_name]}")
 
-                output_path = write_dashboard(ratings, latest_run, table_counts)
-                print(f"Dashboard: {output_path}")
-        finally:
-                cursor.close()
-                connection.close()
+        output_path = write_dashboard(ratings, latest_run, latest_run_counts, table_counts)
+        print(f"Dashboard: {output_path}")
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def fetch_latest_run(cursor: Any) -> tuple[str, str, datetime, datetime | None] | None:
@@ -73,6 +74,22 @@ def fetch_table_counts(cursor: Any) -> dict[str, int]:
                 cursor.execute(f"select count(*) from {table_name}")
                 counts[table_name] = cursor.fetchone()[0]
         return counts
+
+
+def fetch_run_status_counts(cursor: Any, run_id: str | None) -> dict[str, int]:
+    if not run_id:
+        return {}
+
+    cursor.execute(
+        """
+        select status, count(*)
+        from symbol_refresh_runs
+        where run_id = %s
+        group by status
+        """,
+        (run_id,),
+    )
+    return {status: count for status, count in cursor.fetchall()}
 
 
 def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
@@ -143,18 +160,20 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
 def write_dashboard(
         ratings: list[RatingSnapshot],
         latest_run: tuple[str, str, datetime, datetime | None] | None,
+    latest_run_counts: dict[str, int],
         table_counts: dict[str, int],
 ) -> Path:
         output_dir = Path("artifacts") / "reports"
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / "ratings-dashboard.html"
-        output_path.write_text(render_dashboard_html(ratings, latest_run, table_counts), encoding="utf-8")
+        output_path.write_text(render_dashboard_html(ratings, latest_run, latest_run_counts, table_counts), encoding="utf-8")
         return output_path.resolve()
 
 
 def render_dashboard_html(
         ratings: list[RatingSnapshot],
         latest_run: tuple[str, str, datetime, datetime | None] | None,
+    latest_run_counts: dict[str, int],
         table_counts: dict[str, int],
 ) -> str:
         label_counts = Counter(rating.rating_label for rating in ratings)
@@ -182,10 +201,10 @@ def render_dashboard_html(
         ) or '<div class="pill"><span>No freshness data</span><strong>0</strong></div>'
 
         rows_html = "".join(render_rating_row(rating) for rating in ratings) or (
-                '<tr><td colspan="7" class="empty">No ratings found in ratings_daily.</td></tr>'
+            '<tr><td colspan="8" class="empty">No ratings found in ratings_daily.</td></tr>'
         )
 
-        run_summary = render_run_summary(latest_run)
+        run_summary = render_run_summary(latest_run, latest_run_counts)
 
         return f"""<!doctype html>
 <html lang="en">
@@ -296,6 +315,55 @@ def render_dashboard_html(
             line-height: 1.5;
             font-size: 0.95rem;
         }}
+        .run-status-chip {{
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: 1px solid rgba(31, 41, 51, 0.08);
+        }}
+        .run-status-success {{
+            background: rgba(62, 138, 99, 0.14);
+            color: var(--good);
+        }}
+        .run-status-partial {{
+            background: rgba(213, 166, 63, 0.16);
+            color: var(--warn);
+        }}
+        .run-status-failed {{
+            background: rgba(184, 92, 56, 0.16);
+            color: var(--warm);
+        }}
+        .run-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 4px;
+        }}
+        .run-metric {{
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(13, 92, 99, 0.08);
+        }}
+        .run-metric .label {{
+            color: var(--muted);
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }}
+        .run-metric .value {{
+            margin-top: 6px;
+            font-size: 1rem;
+            line-height: 1.35;
+            word-break: break-word;
+        }}
         .section {{
             margin-top: 24px;
             background: var(--panel);
@@ -397,10 +465,6 @@ def render_dashboard_html(
             color: inherit;
             cursor: pointer;
         }}
-        th button::after {{
-            content: " \2195";
-            opacity: 0.42;
-        }}
         tbody tr:hover {{
             background: rgba(13, 92, 99, 0.04);
         }}
@@ -451,23 +515,20 @@ def render_dashboard_html(
         .freshness-fresh {{ color: var(--good); }}
         .freshness-aging {{ color: var(--warn); }}
         .freshness-stale {{ color: var(--warm); }}
-        .metric-grid {{
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 8px;
-            min-width: 420px;
+        .factor-cell {{
+            min-width: 82px;
         }}
-        .metric {{
+        .factor-chip {{
             padding: 8px 8px 9px;
             border-radius: 14px;
             border: 1px solid rgba(13, 92, 99, 0.08);
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(242, 238, 230, 0.75));
         }}
-        .metric-head {{
+        .factor-head {{
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }}
-        .metric span {{
+        .factor-chip span {{
             display: block;
             color: var(--muted);
             font-family: "Trebuchet MS", sans-serif;
@@ -475,37 +536,32 @@ def render_dashboard_html(
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }}
-        .metric strong {{
+        .factor-chip strong {{
             display: block;
             margin-top: 4px;
-            font-size: 1rem;
+            font-size: 0.98rem;
             line-height: 1;
             white-space: nowrap;
         }}
-        .metric-track {{
+        .factor-track {{
             width: 100%;
             height: 7px;
             border-radius: 999px;
             background: rgba(31, 41, 51, 0.08);
             overflow: hidden;
         }}
-        .metric-fill {{
+        .factor-fill {{
             height: 100%;
             border-radius: 999px;
         }}
-        .metric-fill-low {{
+        .factor-fill-low {{
             background: linear-gradient(90deg, #db6f51, #e79870);
         }}
-        .metric-fill-mid {{
+        .factor-fill-mid {{
             background: linear-gradient(90deg, #d5a63f, #edd073);
         }}
-        .metric-fill-high {{
+        .factor-fill-high {{
             background: linear-gradient(90deg, #3e8a63, #78bc86);
-        }}
-        .metric-caption {{
-            margin-top: 5px;
-            color: var(--muted);
-            font-size: 0.68rem;
         }}
         .empty {{
             text-align: center;
@@ -521,10 +577,7 @@ def render_dashboard_html(
             .hero-inner, .cards {{
                 grid-template-columns: 1fr;
             }}
-            .metric-grid {{
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                min-width: 0;
-            }}
+            .factor-cell {{ min-width: 72px; }}
         }}
         @media (max-width: 720px) {{
             .page {{ width: min(100vw - 20px, 1180px); padding-top: 20px; }}
@@ -533,7 +586,6 @@ def render_dashboard_html(
             thead {{ display: none; }}
             tbody tr {{ padding: 12px 0; border-bottom: 1px solid var(--line); }}
             td {{ border-bottom: 0; padding: 8px 0; }}
-            .metric-grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }}
         }}
     </style>
 </head>
@@ -548,8 +600,27 @@ def render_dashboard_html(
                 </div>
                 <aside class="hero-panel">
                     <div class="kicker">Latest pipeline run</div>
+                    <div class="run-status-chip {escape(run_summary['status_class'])}">{escape(run_summary['status_text'])}</div>
                     <div class="value">{escape(run_summary['headline'])}</div>
                     <div class="meta">{escape(run_summary['detail'])}</div>
+                    <div class="run-grid">
+                        <div class="run-metric">
+                            <div class="label">Finished</div>
+                            <div class="value">{escape(run_summary['finished_at'])}</div>
+                        </div>
+                        <div class="run-metric">
+                            <div class="label">Result</div>
+                            <div class="value">{escape(run_summary['result'])}</div>
+                        </div>
+                        <div class="run-metric">
+                            <div class="label">Run ID</div>
+                            <div class="value">{escape(run_summary['run_id'])}</div>
+                        </div>
+                        <div class="run-metric">
+                            <div class="label">Started</div>
+                            <div class="value">{escape(run_summary['started_at'])}</div>
+                        </div>
+                    </div>
                 </aside>
             </div>
         </section>
@@ -582,10 +653,12 @@ def render_dashboard_html(
                     <tr>
                                                 <th><button type="button" data-sort-index="0" data-sort-kind="text">Company</button></th>
                                                 <th><button type="button" data-sort-index="1" data-sort-kind="number">Score</button></th>
-                                                <th><button type="button" data-sort-index="2" data-sort-kind="text">Label</button></th>
-                                                <th><button type="button" data-sort-index="3" data-sort-kind="text">Freshness</button></th>
-                                                <th><button type="button" data-sort-index="4" data-sort-kind="date">Inputs</button></th>
-                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Breakdown</button></th>
+                                                <th><button type="button" data-sort-index="2" data-sort-kind="text">Freshness</button></th>
+                                                <th><button type="button" data-sort-index="3" data-sort-kind="number">Val</button></th>
+                                                <th><button type="button" data-sort-index="4" data-sort-kind="number">Qual</button></th>
+                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Growth</button></th>
+                                                <th><button type="button" data-sort-index="6" data-sort-kind="number">Mom</button></th>
+                                                <th><button type="button" data-sort-index="7" data-sort-kind="number">Risk</button></th>
                     </tr>
                 </thead>
                                 <tbody id="ratings-table-body">
@@ -643,43 +716,80 @@ def render_stat_card(label: str, value: str, caption: str) -> str:
 
 def render_rating_row(rating: RatingSnapshot) -> str:
     freshness_class = f"freshness-{escape(rating.freshness_status)}"
-    metrics = [
-    ("Valuation", rating.valuation_score),
-    ("Quality", rating.quality_score),
-    ("Growth", rating.growth_score),
-    ("Momentum", rating.momentum_score),
-    ("Risk", rating.risk_score),
-    ]
-    metrics_html = "".join(render_metric(name, value) for name, value in metrics)
     rating_ten = format_score_ten(Decimal(rating.rating_score))
     score_band = score_band_class(Decimal(rating.rating_score))
     company_sort = f"{rating.symbol} {rating.company_name}".lower()
-    summary_score = average_metric_score([value for _, value in metrics])
+    factor_cells_html = "".join(
+        [
+            render_factor_cell("Valuation", rating.valuation_score),
+            render_factor_cell("Quality", rating.quality_score),
+            render_factor_cell("Growth", rating.growth_score),
+            render_factor_cell("Momentum", rating.momentum_score),
+            render_factor_cell("Risk", rating.risk_score),
+        ]
+    )
     return (
-    "<tr>"
+        "<tr>"
         f'<td data-sort="{escape(company_sort)}"><div class="symbol">{escape(rating.symbol)}</div><div class="company">{escape(rating.company_name)}</div></td>'
         f'<td data-sort="{rating.rating_score}"><span class="score-chip {score_band}"><small>Rating</small><strong>{escape(rating_ten)}</strong></span></td>'
-        f'<td data-sort="{escape(rating.rating_label.lower())}">{escape(rating.rating_label)}</td>'
         f'<td data-sort="{escape(rating.freshness_status)}" class="{freshness_class}">{escape(rating.freshness_status.title())}</td>'
-        f'<td data-sort="{escape(format_date(rating.freshest_input_date))}">{escape(format_date(rating.freshest_input_date))}</td>'
-        f'<td data-sort="{summary_score}"><div class="metric-grid">{metrics_html}</div></td>'
-    "</tr>"
+        f'{factor_cells_html}'
+        "</tr>"
     )
 
 
-def render_run_summary(latest_run: tuple[str, str, datetime, datetime | None] | None) -> dict[str, str]:
+def render_run_summary(
+    latest_run: tuple[str, str, datetime, datetime | None] | None,
+    latest_run_counts: dict[str, int],
+) -> dict[str, str]:
     if latest_run is None:
         return {
             "headline": "No run data",
             "detail": "pipeline_runs is empty, so the dashboard only reflects persisted rating rows.",
+            "run_id": "N/A",
+            "started_at": "N/A",
+            "finished_at": "N/A",
+            "result": "No symbol refresh data",
+            "status_text": "No run",
+            "status_class": "run-status-failed",
         }
 
     run_id, status, started_at, finished_at = latest_run
-    finished_text = finished_at.isoformat(sep=" ", timespec="seconds") if finished_at else "still running"
+    finished_text = format_timestamp(finished_at) if finished_at else "Still running"
+    started_text = format_timestamp(started_at)
+    succeeded_count = latest_run_counts.get("succeeded", 0)
+    failed_count = latest_run_counts.get("failed", 0)
+    rate_limited_count = latest_run_counts.get("rate_limited", 0)
+    result_parts = [f"{succeeded_count} succeeded"]
+    if failed_count:
+        result_parts.append(f"{failed_count} failed")
+    if rate_limited_count:
+        result_parts.append(f"{rate_limited_count} rate limited")
     return {
-        "headline": f"{status.title()} run",
-        "detail": f"Run {run_id} started {started_at.isoformat(sep=' ', timespec='seconds')} and finished {finished_text}.",
+        "headline": f"{status.title()} update",
+        "detail": f"Last database-backed refresh attempt for the tracked universe.",
+        "run_id": run_id,
+        "started_at": started_text,
+        "finished_at": finished_text,
+        "result": ", ".join(result_parts),
+        "status_text": status.replace("_", " "),
+        "status_class": run_status_class(status),
     }
+
+
+def run_status_class(status: str) -> str:
+    normalized = status.lower()
+    if normalized == "success":
+        return "run-status-success"
+    if normalized == "partial":
+        return "run-status-partial"
+    return "run-status-failed"
+
+
+def format_timestamp(value: datetime | None) -> str:
+    if value is None:
+        return "N/A"
+    return value.isoformat(sep=" ", timespec="seconds")
 
 
 def format_date(value: date | None) -> str:
@@ -710,52 +820,55 @@ def score_band_class(value: Decimal | None) -> str:
     return "score-band-low"
 
 
-def render_metric(name: str, value: Decimal | None) -> str:
+def render_factor_cell(name: str, value: Decimal | None) -> str:
     score_text = format_score_ten(value)
-    width = metric_width(value)
-    fill_class = metric_fill_class(value)
-    caption = metric_caption(value)
+    width = factor_width(value)
+    fill_class = factor_fill_class(value)
+    sort_value = factor_sort_value(value)
+    short_name = factor_short_name(name)
     return (
-        '<div class="metric">'
-        f'<div class="metric-head"><span>{escape(name)}</span><strong>{escape(score_text)}</strong></div>'
-        f'<div class="metric-track"><div class="metric-fill {fill_class}" style="width: {width}%"></div></div>'
-        f'<div class="metric-caption">{escape(caption)}</div>'
+        f'<td class="factor-cell" data-sort="{sort_value}">'
+        '<div class="factor-chip">'
+        f'<div class="factor-head"><span>{escape(short_name)}</span><strong>{escape(score_text)}</strong></div>'
+        f'<div class="factor-track"><div class="factor-fill {fill_class}" style="width: {width}%"></div></div>'
         '</div>'
+        '</td>'
     )
 
 
-def metric_width(value: Decimal | None) -> int:
+def factor_width(value: Decimal | None) -> int:
     if value is None:
         return 0
     bounded = max(Decimal("0"), min(Decimal("100"), value))
     return int(round(float(bounded)))
 
 
-def metric_fill_class(value: Decimal | None) -> str:
+def factor_fill_class(value: Decimal | None) -> str:
     if value is None:
-        return "metric-fill-mid"
+        return "factor-fill-mid"
     if value >= 70:
-        return "metric-fill-high"
+        return "factor-fill-high"
     if value >= 45:
-        return "metric-fill-mid"
-    return "metric-fill-low"
+        return "factor-fill-mid"
+    return "factor-fill-low"
 
 
-def metric_caption(value: Decimal | None) -> str:
+def factor_sort_value(value: Decimal | None) -> int:
     if value is None:
-        return "No data"
-    if value >= 70:
-        return "Strong"
-    if value >= 45:
-        return "Mixed"
-    return "Weak"
-
-
-def average_metric_score(values: list[Decimal | None]) -> int:
-    present = [max(Decimal("0"), min(Decimal("100"), value)) for value in values if value is not None]
-    if not present:
         return 0
-    return int(round(float(sum(present) / len(present))))
+    bounded = max(Decimal("0"), min(Decimal("100"), value))
+    return int(round(float(bounded)))
+
+
+def factor_short_name(name: str) -> str:
+    labels = {
+        "Valuation": "Val",
+        "Quality": "Qual",
+        "Growth": "Growth",
+        "Momentum": "Mom",
+        "Risk": "Risk",
+    }
+    return labels.get(name, name)
 
 
 if __name__ == "__main__":

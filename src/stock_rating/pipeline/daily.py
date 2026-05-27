@@ -5,8 +5,10 @@ import time
 from stock_rating.config import get_settings
 from stock_rating.ingest.prices import (
     AlphaVantageRateLimitError,
+    StooqResponseError,
     TwelveDataRateLimitError,
     fetch_alpha_vantage_daily_adjusted,
+    fetch_stooq_daily,
     fetch_twelve_data_time_series,
     get_price_provider_status,
     persist_price_bars,
@@ -102,12 +104,82 @@ def build_default_refresh_plan() -> list[RefreshTask]:
     return plan_price_refreshes(symbol_states, as_of=date.today(), budget=min(settings.symbol_limit, len(symbol_states)))
 
 
-def preferred_provider_name(alpha_vantage_configured: bool, twelve_data_configured: bool) -> str:
+def preferred_provider_name(alpha_vantage_configured: bool, twelve_data_configured: bool, stooq_configured: bool) -> str:
     if alpha_vantage_configured:
         return "alpha_vantage"
     if twelve_data_configured:
         return "twelve_data"
+    if stooq_configured:
+        return "twelve_data"
     return "stooq"
+
+
+def execute_stooq_refresh_plan(
+    run_id: str,
+    tasks: list[RefreshTask],
+    database_url: str,
+    api_key: str,
+    fetch_fn=fetch_stooq_daily,
+    persist_fn=persist_price_bars,
+    mark_refreshed_fn=update_symbol_last_price_refresh_at,
+    persist_features_fn=persist_features,
+    compute_features_fn=compute_price_features,
+    persist_ratings_fn=persist_ratings,
+    build_rating_record_fn=build_rating_record,
+) -> list[SymbolRefreshRunRecord]:
+    symbol_runs: list[SymbolRefreshRunRecord] = []
+
+    for task in tasks:
+        attempted_at = utc_now()
+        try:
+            bars = fetch_fn(task.symbol, api_key)
+            persisted = persist_fn(database_url, bars)
+            if database_url and not persisted:
+                raise RuntimeError(f"Failed to persist price bars for {task.symbol}")
+            if persisted:
+                features = compute_features_fn(bars)
+                features_persisted = persist_features_fn(database_url, features)
+                if features and not features_persisted:
+                    raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
+                rating_record = build_rating_record_fn(task, features)
+                rating_persisted = persist_ratings_fn(database_url, [rating_record])
+                if not rating_persisted:
+                    raise RuntimeError(f"Failed to persist rating for {task.symbol}")
+                mark_refreshed_fn(database_url, task.symbol, utc_now())
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="stooq",
+                    status="succeeded",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=None,
+                    fetched_bar_count=len(bars),
+                    provider_error_code=None,
+                )
+            )
+        except Exception as error:
+            error_code = "stooq_error"
+            if isinstance(error, StooqResponseError):
+                error_code = "stooq_error"
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="stooq",
+                    status="failed",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code=error_code,
+                )
+            )
+
+    return symbol_runs
 
 
 def build_symbol_refresh_run_records(
@@ -306,8 +378,10 @@ def execute_price_refresh_plan(
     database_url: str,
     alpha_vantage_api_key: str,
     twelve_data_api_key: str,
+    stooq_api_key: str = "",
     alpha_fetch_fn=fetch_alpha_vantage_daily_adjusted,
     twelve_fetch_fn=fetch_twelve_data_time_series,
+    stooq_fetch_fn=fetch_stooq_daily,
     persist_fn=persist_price_bars,
     mark_refreshed_fn=update_symbol_last_price_refresh_at,
     persist_features_fn=persist_features,
@@ -318,6 +392,11 @@ def execute_price_refresh_plan(
     alpha_vantage_pause_seconds: float = 0.0,
     alpha_vantage_sleep_fn=time.sleep,
 ) -> list[SymbolRefreshRunRecord]:
+    def unresolved_tasks_from(records: list[SymbolRefreshRunRecord], candidate_tasks: list[RefreshTask]) -> list[RefreshTask]:
+        unresolved = {record.symbol for record in records if record.status in {"failed", "rate_limited"}}
+        succeeded = {record.symbol for record in records if record.status == "succeeded"}
+        return [task for task in candidate_tasks if task.symbol in unresolved and task.symbol not in succeeded]
+
     if alpha_vantage_api_key:
         alpha_tasks = tasks
         if alpha_vantage_max_requests is not None and alpha_vantage_max_requests >= 0:
@@ -359,17 +438,81 @@ def execute_price_refresh_plan(
                 persist_ratings_fn=persist_ratings_fn,
                 build_rating_record_fn=build_rating_record_fn,
             )
+            stooq_tasks = unresolved_tasks_from(twelve_runs, fallback_tasks)
+            if stooq_tasks and stooq_api_key:
+                stooq_runs = execute_stooq_refresh_plan(
+                    run_id=run_id,
+                    tasks=stooq_tasks,
+                    database_url=database_url,
+                    api_key=stooq_api_key,
+                    fetch_fn=stooq_fetch_fn,
+                    persist_fn=persist_fn,
+                    mark_refreshed_fn=mark_refreshed_fn,
+                    persist_features_fn=persist_features_fn,
+                    compute_features_fn=compute_features_fn,
+                    persist_ratings_fn=persist_ratings_fn,
+                    build_rating_record_fn=build_rating_record_fn,
+                )
+                return alpha_runs + twelve_runs + stooq_runs
             return alpha_runs + twelve_runs
+
+        if fallback_tasks and stooq_api_key:
+            stooq_runs = execute_stooq_refresh_plan(
+                run_id=run_id,
+                tasks=fallback_tasks,
+                database_url=database_url,
+                api_key=stooq_api_key,
+                fetch_fn=stooq_fetch_fn,
+                persist_fn=persist_fn,
+                mark_refreshed_fn=mark_refreshed_fn,
+                persist_features_fn=persist_features_fn,
+                compute_features_fn=compute_features_fn,
+                persist_ratings_fn=persist_ratings_fn,
+                build_rating_record_fn=build_rating_record_fn,
+            )
+            return alpha_runs + stooq_runs
 
         return alpha_runs
 
     if twelve_data_api_key:
-        return execute_twelve_data_refresh_plan(
+        twelve_runs = execute_twelve_data_refresh_plan(
             run_id=run_id,
             tasks=tasks,
             database_url=database_url,
             api_key=twelve_data_api_key,
             fetch_fn=twelve_fetch_fn,
+            persist_fn=persist_fn,
+            mark_refreshed_fn=mark_refreshed_fn,
+            persist_features_fn=persist_features_fn,
+            compute_features_fn=compute_features_fn,
+            persist_ratings_fn=persist_ratings_fn,
+            build_rating_record_fn=build_rating_record_fn,
+        )
+        stooq_tasks = unresolved_tasks_from(twelve_runs, tasks)
+        if stooq_tasks and stooq_api_key:
+            stooq_runs = execute_stooq_refresh_plan(
+                run_id=run_id,
+                tasks=stooq_tasks,
+                database_url=database_url,
+                api_key=stooq_api_key,
+                fetch_fn=stooq_fetch_fn,
+                persist_fn=persist_fn,
+                mark_refreshed_fn=mark_refreshed_fn,
+                persist_features_fn=persist_features_fn,
+                compute_features_fn=compute_features_fn,
+                persist_ratings_fn=persist_ratings_fn,
+                build_rating_record_fn=build_rating_record_fn,
+            )
+            return twelve_runs + stooq_runs
+        return twelve_runs
+
+    if stooq_api_key:
+        return execute_stooq_refresh_plan(
+            run_id=run_id,
+            tasks=tasks,
+            database_url=database_url,
+            api_key=stooq_api_key,
+            fetch_fn=stooq_fetch_fn,
             persist_fn=persist_fn,
             mark_refreshed_fn=mark_refreshed_fn,
             persist_features_fn=persist_features_fn,
@@ -402,19 +545,22 @@ def main() -> None:
     providers = get_price_provider_status(
         alpha_vantage_api_key=settings.alpha_vantage_api_key,
         twelve_data_api_key=settings.twelve_data_api_key,
+        stooq_api_key=settings.stooq_api_key,
     )
     refresh_plan = build_default_refresh_plan()
     provider_name = preferred_provider_name(
         alpha_vantage_configured=providers[0].configured,
         twelve_data_configured=providers[1].configured,
+        stooq_configured=providers[2].configured,
     )
-    if provider_name in {"alpha_vantage", "twelve_data"}:
+    if provider_name in {"alpha_vantage", "twelve_data", "stooq"}:
         symbol_runs = execute_price_refresh_plan(
             run_id=run_id,
             tasks=refresh_plan,
             database_url=settings.database_url,
             alpha_vantage_api_key=settings.alpha_vantage_api_key,
             twelve_data_api_key=settings.twelve_data_api_key,
+            stooq_api_key=settings.stooq_api_key,
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
         )

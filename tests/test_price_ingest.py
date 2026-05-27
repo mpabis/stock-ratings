@@ -6,13 +6,17 @@ from stock_rating.ingest.prices import (
     AlphaVantageResponseError,
     AlphaVantageRateLimitError,
     DailyPriceBar,
+    StooqResponseError,
     TwelveDataRateLimitError,
     build_alpha_vantage_daily_adjusted_url,
+    build_stooq_daily_url,
     build_twelve_data_time_series_url,
     fetch_alpha_vantage_daily_adjusted,
+    fetch_stooq_daily,
     fetch_twelve_data_time_series,
     get_price_provider_status,
     parse_alpha_vantage_daily_adjusted,
+    parse_stooq_daily_csv,
     parse_twelve_data_time_series,
     persist_price_bars,
 )
@@ -20,7 +24,7 @@ from stock_rating.repository.symbols import update_symbol_last_price_refresh_at
 
 
 def test_free_price_provider_status_marks_stooq_configured() -> None:
-    statuses = get_price_provider_status(alpha_vantage_api_key="", twelve_data_api_key="")
+    statuses = get_price_provider_status(alpha_vantage_api_key="", twelve_data_api_key="", stooq_api_key="stooq-key")
     providers = {status.provider: status.configured for status in statuses}
 
     assert providers["alpha_vantage"] is False
@@ -84,6 +88,12 @@ def test_build_alpha_vantage_daily_adjusted_url_contains_expected_query() -> Non
     assert "TIME_SERIES_DAILY" in url
     assert "symbol=AAPL" in url
     assert "apikey=demo-key" in url
+
+
+def test_build_alpha_vantage_daily_adjusted_url_strips_exchange_prefix() -> None:
+    url = build_alpha_vantage_daily_adjusted_url("NASDAQ:GOOGL", "demo-key")
+
+    assert "symbol=GOOGL" in url
 
 
 class _FakeHttpResponse:
@@ -161,6 +171,27 @@ def test_build_twelve_data_time_series_url_contains_expected_query() -> None:
     assert "apikey=demo-key" in url
 
 
+def test_build_twelve_data_time_series_url_normalizes_exchange_prefixes() -> None:
+    nasdaq_url = build_twelve_data_time_series_url("NASDAQ:GOOGL", "demo-key")
+    tsx_url = build_twelve_data_time_series_url("TSE:FFH", "demo-key")
+    xetr_url = build_twelve_data_time_series_url("ETR:AIXA", "demo-key")
+
+    assert "symbol=GOOGL" in nasdaq_url
+    assert "symbol=FFH%3ATSX" in tsx_url
+    assert "symbol=AIXA%3AXETR" in xetr_url
+
+
+def test_build_stooq_daily_url_normalizes_exchange_prefixes() -> None:
+    us_url = build_stooq_daily_url("SKYW", "stooq-key")
+    tsx_url = build_stooq_daily_url("TSE:FFH", "stooq-key")
+    xetr_url = build_stooq_daily_url("ETR:AIXA", "stooq-key")
+
+    assert "s=skyw.us" in us_url
+    assert "s=ffh.ca" in tsx_url
+    assert "s=aixa.de" in xetr_url
+    assert "apikey=stooq-key" in tsx_url
+
+
 def test_parse_twelve_data_time_series_returns_bars() -> None:
     payload = {
         "values": [
@@ -193,6 +224,39 @@ def test_fetch_twelve_data_time_series_raises_on_rate_limit() -> None:
         raise AssertionError("Expected TwelveDataRateLimitError")
 
 
+def test_parse_stooq_daily_csv_returns_bars() -> None:
+    payload = "Date,Open,High,Low,Close,Volume\n2026-05-27,100.0,110.0,99.0,108.0,123456\n"
+
+    bars = parse_stooq_daily_csv("TSE:FFH", payload)
+
+    assert len(bars) == 1
+    assert bars[0].symbol == "TSE:FFH"
+    assert bars[0].source == "stooq"
+    assert bars[0].close == Decimal("108.0")
+
+
+def test_fetch_stooq_daily_raises_on_missing_api_key_message() -> None:
+    try:
+        fetch_stooq_daily(
+            "TSE:FFH",
+            "bad-key",
+            urlopen_fn=lambda _: _FakeHttpResponseString("Get your apikey"),
+        )
+    except StooqResponseError as error:
+        assert "invalid or missing" in str(error)
+    else:
+        raise AssertionError("Expected StooqResponseError")
+
+
+def test_fetch_stooq_daily_parses_payload() -> None:
+    payload = "Date,Open,High,Low,Close,Volume\n2026-05-27,100.0,110.0,99.0,108.0,123456\n"
+
+    bars = fetch_stooq_daily("TSE:FFH", "stooq-key", urlopen_fn=lambda _: _FakeHttpResponseString(payload))
+
+    assert len(bars) == 1
+    assert bars[0].date.isoformat() == "2026-05-27"
+
+
 class _FakePriceCursor:
     def __init__(self) -> None:
         self.executemany_calls: list[tuple[str, list[tuple[object, ...]]]] = []
@@ -219,6 +283,20 @@ class _FakePriceConnection:
 
     def close(self) -> None:
         self.closed = True
+
+
+class _FakeHttpResponseString:
+    def __init__(self, payload: str) -> None:
+        self.payload = payload
+
+    def read(self) -> bytes:
+        return self.payload.encode("utf-8")
+
+    def __enter__(self) -> "_FakeHttpResponseString":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
 
 
 def test_persist_price_bars_inserts_rows() -> None:

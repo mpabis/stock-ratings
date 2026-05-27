@@ -87,6 +87,38 @@ def test_rating_breakdown_penalizes_negative_returns() -> None:
     assert positive_breakdown.risk_score > negative_breakdown.risk_score
 
 
+def test_build_rating_record_spreads_labels_for_different_feature_profiles() -> None:
+    task = RefreshTask(symbol="AAPL", refresh_tier=1, age_in_days=1, freshness_status="fresh")
+    scenarios = {
+        "steady": [
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="intraday_return", feature_value=Decimal("0.01"), source_version="v1"),
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="one_day_return", feature_value=Decimal("0.15"), source_version="v1"),
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="daily_volume", feature_value=Decimal("50000000"), source_version="v1"),
+        ],
+        "balanced": [
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="intraday_return", feature_value=Decimal("0.00"), source_version="v1"),
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="one_day_return", feature_value=Decimal("0.01"), source_version="v1"),
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="daily_volume", feature_value=Decimal("1500000"), source_version="v1"),
+        ],
+        "stressed": [
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="intraday_return", feature_value=Decimal("-0.08"), source_version="v1"),
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="one_day_return", feature_value=Decimal("-0.20"), source_version="v1"),
+            FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="daily_volume", feature_value=Decimal("10000"), source_version="v1"),
+        ],
+    }
+
+    labels = {
+        name: build_rating_record(task, features).rating_label
+        for name, features in scenarios.items()
+    }
+
+    assert labels == {
+        "steady": "D / Unattractive",
+        "balanced": "C / Neutral",
+        "stressed": "F / Very Unattractive",
+    }
+
+
 def test_persist_ratings_inserts_rows() -> None:
     task = RefreshTask(symbol="AAPL", refresh_tier=1, age_in_days=1, freshness_status="fresh")
     features = [

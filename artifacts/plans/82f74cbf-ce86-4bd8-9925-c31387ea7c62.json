@@ -1,0 +1,168 @@
+{
+  "pipeline_run": {
+    "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+    "started_at": "2026-05-27T17:07:35.564570+00:00",
+    "finished_at": "2026-05-27T17:07:53.086413+00:00",
+    "status": "partial",
+    "error_message": null,
+    "git_sha": null
+  },
+  "symbol_refresh_runs": [
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "alpha_vantage",
+      "status": "rate_limited",
+      "attempted_at": "2026-05-27T17:07:36.443181+00:00",
+      "completed_at": "2026-05-27T17:07:36.847104+00:00",
+      "error_message": "We have detected your API key as IQSRNO5U76BA94T7 and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.",
+      "fetched_bar_count": null,
+      "provider_error_code": "alpha_vantage_rate_limit"
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "AAPL",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:07:36.847167+00:00",
+      "completed_at": "2026-05-27T17:07:38.836091+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "TSE:FFH",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T17:07:38.836118+00:00",
+      "completed_at": "2026-05-27T17:07:39.105617+00:00",
+      "error_message": "This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "TSE:IMG",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "failed",
+      "attempted_at": "2026-05-27T17:07:39.105639+00:00",
+      "completed_at": "2026-05-27T17:07:39.335197+00:00",
+      "error_message": "This symbol is available starting with the Grow or Venture plan. Consider upgrading now at https://twelvedata.com/pricing",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_error"
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "ACMR",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:07:39.335218+00:00",
+      "completed_at": "2026-05-27T17:07:41.045096+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "AER",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:07:41.045117+00:00",
+      "completed_at": "2026-05-27T17:07:42.754316+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "AMZN",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:07:42.754346+00:00",
+      "completed_at": "2026-05-27T17:07:46.738150+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "BAC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:07:46.738169+00:00",
+      "completed_at": "2026-05-27T17:07:48.486973+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "INTC",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:07:48.486999+00:00",
+      "completed_at": "2026-05-27T17:07:50.096724+00:00",
+      "error_message": null,
+      "fetched_bar_count": 30,
+      "provider_error_code": null
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "MP",
+      "data_type": "price",
+      "provider": "twelve_data",
+      "status": "rate_limited",
+      "attempted_at": "2026-05-27T17:07:50.096746+00:00",
+      "completed_at": "2026-05-27T17:07:50.272389+00:00",
+      "error_message": "You have run out of API credits for the current minute. 9 API credits were used, with the current limit being 8. Wait for the next minute or consider switching to a higher tier plan at https://twelvedata.com/pricing",
+      "fetched_bar_count": null,
+      "provider_error_code": "twelve_data_rate_limit"
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "TSE:FFH",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "failed",
+      "attempted_at": "2026-05-27T17:07:50.272446+00:00",
+      "completed_at": "2026-05-27T17:07:50.544188+00:00",
+      "error_message": "No daily bars returned for TSE:FFH",
+      "fetched_bar_count": null,
+      "provider_error_code": "stooq_error"
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "TSE:IMG",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "failed",
+      "attempted_at": "2026-05-27T17:07:50.544242+00:00",
+      "completed_at": "2026-05-27T17:07:50.683623+00:00",
+      "error_message": "No daily bars returned for TSE:IMG",
+      "fetched_bar_count": null,
+      "provider_error_code": "stooq_error"
+    },
+    {
+      "run_id": "82f74cbf-ce86-4bd8-9925-c31387ea7c62",
+      "symbol": "MP",
+      "data_type": "price",
+      "provider": "stooq",
+      "status": "succeeded",
+      "attempted_at": "2026-05-27T17:07:50.683640+00:00",
+      "completed_at": "2026-05-27T17:07:53.086141+00:00",
+      "error_message": null,
+      "fetched_bar_count": 1489,
+      "provider_error_code": null
+    }
+  ]
+}

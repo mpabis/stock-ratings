@@ -21,5 +21,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          STOOQ_API_KEY: ${{ secrets.STOOQ_API_KEY }}
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: python -m stock_rating.pipeline.daily

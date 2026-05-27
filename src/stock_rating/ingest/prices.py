@@ -133,21 +133,26 @@ def normalize_symbol_for_stooq(symbol: str) -> str:
     return normalized_symbol
 
 
-def build_alpha_vantage_daily_adjusted_url(symbol: str, api_key: str) -> str:
+def build_alpha_vantage_daily_adjusted_url(symbol: str, api_key: str, outputsize: str = "compact") -> str:
     request_symbol = normalize_symbol_for_alpha_vantage(symbol)
     query = urlencode(
         {
             "function": "TIME_SERIES_DAILY",
             "symbol": request_symbol,
-            "outputsize": "compact",
+            "outputsize": outputsize,
             "apikey": api_key,
         }
     )
     return f"https://www.alphavantage.co/query?{query}"
 
 
-def fetch_alpha_vantage_daily_adjusted(symbol: str, api_key: str, urlopen_fn=urlopen) -> list[DailyPriceBar]:
-    url = build_alpha_vantage_daily_adjusted_url(symbol, api_key)
+def fetch_alpha_vantage_daily_adjusted(
+    symbol: str,
+    api_key: str,
+    urlopen_fn=urlopen,
+    outputsize: str = "compact",
+) -> list[DailyPriceBar]:
+    url = build_alpha_vantage_daily_adjusted_url(symbol, api_key, outputsize=outputsize)
     with urlopen_fn(url) as response:
         payload = json.loads(response.read().decode("utf-8"))
 

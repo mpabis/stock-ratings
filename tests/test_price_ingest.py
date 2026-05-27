@@ -90,6 +90,12 @@ def test_build_alpha_vantage_daily_adjusted_url_contains_expected_query() -> Non
     assert "apikey=demo-key" in url
 
 
+def test_build_alpha_vantage_daily_adjusted_url_supports_full_outputsize() -> None:
+    url = build_alpha_vantage_daily_adjusted_url("AAPL", "demo-key", outputsize="full")
+
+    assert "outputsize=full" in url
+
+
 def test_build_alpha_vantage_daily_adjusted_url_strips_exchange_prefix() -> None:
     url = build_alpha_vantage_daily_adjusted_url("NASDAQ:GOOGL", "demo-key")
 

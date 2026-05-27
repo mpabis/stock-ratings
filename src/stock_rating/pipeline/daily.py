@@ -3,6 +3,14 @@ from datetime import date
 import time
 
 from stock_rating.config import get_settings
+from stock_rating.db import DatabaseConfig, is_configured
+from stock_rating.ingest.fred_macro import (
+    CORE_FRED_SERIES,
+    FredMacroResponseError,
+    fetch_fred_series_observations,
+    parse_fred_series_observations,
+    persist_macro_observations,
+)
 from stock_rating.ingest.prices import (
     AlphaVantageRateLimitError,
     StooqResponseError,
@@ -13,6 +21,14 @@ from stock_rating.ingest.prices import (
     get_price_provider_status,
     persist_price_bars,
 )
+from stock_rating.ingest.sec_companyfacts import (
+    SecCompanyFactsResponseError,
+    fetch_sec_company_facts,
+    fetch_sec_ticker_mapping,
+    normalize_symbol_for_sec,
+    parse_company_facts,
+    persist_fundamental_facts,
+)
 from stock_rating.repository.runs import (
     SymbolRefreshRunRecord,
     build_pipeline_run_record,
@@ -22,9 +38,14 @@ from stock_rating.repository.runs import (
     write_plan_artifact,
 )
 from stock_rating.repository.ratings import persist_ratings
+from stock_rating.repository.fundamentals import load_latest_fundamental_facts
+from stock_rating.repository.macro import load_latest_macro_observations
 from stock_rating.repository.symbols import load_symbol_seeds, update_symbol_last_price_refresh_at
+from stock_rating.repository.symbols import update_symbol_last_fundamental_refresh_at
 from stock_rating.rating.model_v1 import build_rating_record
 from stock_rating.transform.features import compute_price_features, persist_features
+from stock_rating.transform.fundamentals import compute_fundamental_features
+from stock_rating.transform.macro import compute_macro_features
 
 
 MAX_PRICE_AGE_BY_TIER = {
@@ -114,6 +135,146 @@ def preferred_provider_name(alpha_vantage_configured: bool, twelve_data_configur
     return "stooq"
 
 
+def build_symbol_features(
+    database_url: str,
+    task: RefreshTask,
+    bars,
+    compute_price_features_fn=compute_price_features,
+    load_fundamental_facts_fn=load_latest_fundamental_facts,
+    compute_fundamental_features_fn=compute_fundamental_features,
+    load_macro_observations_fn=load_latest_macro_observations,
+    compute_macro_features_fn=compute_macro_features,
+):
+    price_features = compute_price_features_fn(bars)
+    if not price_features:
+        return []
+
+    latest_date = max(feature.date for feature in price_features)
+    fundamental_facts = load_fundamental_facts_fn(database_url, task.symbol)
+    fundamental_features = compute_fundamental_features_fn(task.symbol, latest_date, fundamental_facts)
+    macro_observations = load_macro_observations_fn(database_url, CORE_FRED_SERIES)
+    macro_features = compute_macro_features_fn(task.symbol, latest_date, macro_observations)
+    return price_features + fundamental_features + macro_features
+
+
+def execute_macro_refresh(
+    database_url: str,
+    api_key: str,
+    fetch_fn=fetch_fred_series_observations,
+    parse_fn=parse_fred_series_observations,
+    persist_fn=persist_macro_observations,
+) -> str:
+    if not is_configured(DatabaseConfig(url=database_url)) or not api_key:
+        return "skipped"
+
+    for series_id in CORE_FRED_SERIES:
+        try:
+            payload = fetch_fn(series_id, api_key)
+            observations = parse_fn(series_id, payload)
+            if observations and not persist_fn(database_url, observations):
+                return "failed"
+        except FredMacroResponseError:
+            return "failed"
+
+    return "succeeded"
+
+
+def execute_fundamental_refresh_plan(
+    run_id: str,
+    tasks: list[RefreshTask],
+    database_url: str,
+    user_agent: str,
+    fetch_mapping_fn=fetch_sec_ticker_mapping,
+    fetch_company_facts_fn=fetch_sec_company_facts,
+    parse_company_facts_fn=parse_company_facts,
+    persist_facts_fn=persist_fundamental_facts,
+    mark_refreshed_fn=update_symbol_last_fundamental_refresh_at,
+) -> list[SymbolRefreshRunRecord]:
+    if not tasks or not is_configured(DatabaseConfig(url=database_url)):
+        return []
+
+    try:
+        mappings = fetch_mapping_fn(user_agent)
+    except SecCompanyFactsResponseError as error:
+        attempted_at = utc_now()
+        return [
+            SymbolRefreshRunRecord(
+                run_id=run_id,
+                symbol=task.symbol,
+                data_type="fundamental",
+                provider="sec_edgar",
+                status="failed",
+                attempted_at=attempted_at,
+                completed_at=utc_now(),
+                error_message=str(error),
+                fetched_bar_count=None,
+                provider_error_code="sec_edgar_error",
+            )
+            for task in tasks
+        ]
+
+    symbol_runs: list[SymbolRefreshRunRecord] = []
+    for task in tasks:
+        mapping = mappings.get(normalize_symbol_for_sec(task.symbol))
+        if mapping is None:
+            continue
+
+        attempted_at = utc_now()
+        try:
+            payload = fetch_company_facts_fn(mapping.cik, user_agent)
+            facts = parse_company_facts_fn(task.symbol, mapping.cik, payload)
+            if facts and not persist_facts_fn(database_url, facts):
+                raise RuntimeError(f"Failed to persist fundamental facts for {task.symbol}")
+            if facts:
+                mark_refreshed_fn(database_url, task.symbol, utc_now())
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="fundamental",
+                    provider="sec_edgar",
+                    status="succeeded",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=None,
+                    fetched_bar_count=len(facts),
+                    provider_error_code=None,
+                )
+            )
+        except SecCompanyFactsResponseError as error:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="fundamental",
+                    provider="sec_edgar",
+                    status="failed",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="sec_edgar_error",
+                )
+            )
+        except Exception as error:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="fundamental",
+                    provider="sec_edgar",
+                    status="failed",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="sec_edgar_error",
+                )
+            )
+
+    return symbol_runs
+
+
 def execute_stooq_refresh_plan(
     run_id: str,
     tasks: list[RefreshTask],
@@ -124,6 +285,8 @@ def execute_stooq_refresh_plan(
     mark_refreshed_fn=update_symbol_last_price_refresh_at,
     persist_features_fn=persist_features,
     compute_features_fn=compute_price_features,
+    load_fundamental_facts_fn=load_latest_fundamental_facts,
+    compute_fundamental_features_fn=compute_fundamental_features,
     persist_ratings_fn=persist_ratings,
     build_rating_record_fn=build_rating_record,
 ) -> list[SymbolRefreshRunRecord]:
@@ -137,7 +300,14 @@ def execute_stooq_refresh_plan(
             if database_url and not persisted:
                 raise RuntimeError(f"Failed to persist price bars for {task.symbol}")
             if persisted:
-                features = compute_features_fn(bars)
+                features = build_symbol_features(
+                    database_url,
+                    task,
+                    bars,
+                    compute_price_features_fn=compute_features_fn,
+                    load_fundamental_facts_fn=load_fundamental_facts_fn,
+                    compute_fundamental_features_fn=compute_fundamental_features_fn,
+                )
                 features_persisted = persist_features_fn(database_url, features)
                 if features and not features_persisted:
                     raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
@@ -215,6 +385,8 @@ def execute_alpha_vantage_refresh_plan(
     mark_refreshed_fn=update_symbol_last_price_refresh_at,
     persist_features_fn=persist_features,
     compute_features_fn=compute_price_features,
+    load_fundamental_facts_fn=load_latest_fundamental_facts,
+    compute_fundamental_features_fn=compute_fundamental_features,
     persist_ratings_fn=persist_ratings,
     build_rating_record_fn=build_rating_record,
     request_pause_seconds: float = 0.0,
@@ -230,7 +402,14 @@ def execute_alpha_vantage_refresh_plan(
             if database_url and not persisted:
                 raise RuntimeError(f"Failed to persist price bars for {task.symbol}")
             if persisted:
-                features = compute_features_fn(bars)
+                features = build_symbol_features(
+                    database_url,
+                    task,
+                    bars,
+                    compute_price_features_fn=compute_features_fn,
+                    load_fundamental_facts_fn=load_fundamental_facts_fn,
+                    compute_fundamental_features_fn=compute_fundamental_features_fn,
+                )
                 features_persisted = persist_features_fn(database_url, features)
                 if features and not features_persisted:
                     raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
@@ -301,6 +480,8 @@ def execute_twelve_data_refresh_plan(
     mark_refreshed_fn=update_symbol_last_price_refresh_at,
     persist_features_fn=persist_features,
     compute_features_fn=compute_price_features,
+    load_fundamental_facts_fn=load_latest_fundamental_facts,
+    compute_fundamental_features_fn=compute_fundamental_features,
     persist_ratings_fn=persist_ratings,
     build_rating_record_fn=build_rating_record,
 ) -> list[SymbolRefreshRunRecord]:
@@ -314,7 +495,14 @@ def execute_twelve_data_refresh_plan(
             if database_url and not persisted:
                 raise RuntimeError(f"Failed to persist price bars for {task.symbol}")
             if persisted:
-                features = compute_features_fn(bars)
+                features = build_symbol_features(
+                    database_url,
+                    task,
+                    bars,
+                    compute_price_features_fn=compute_features_fn,
+                    load_fundamental_facts_fn=load_fundamental_facts_fn,
+                    compute_fundamental_features_fn=compute_fundamental_features_fn,
+                )
                 features_persisted = persist_features_fn(database_url, features)
                 if features and not features_persisted:
                     raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
@@ -542,6 +730,7 @@ def main() -> None:
     settings = get_settings()
     run_id = generate_run_id()
     started_at = utc_now()
+    macro_refresh_status = execute_macro_refresh(settings.database_url, settings.fred_api_key)
     providers = get_price_provider_status(
         alpha_vantage_api_key=settings.alpha_vantage_api_key,
         twelve_data_api_key=settings.twelve_data_api_key,
@@ -553,8 +742,14 @@ def main() -> None:
         twelve_data_configured=providers[1].configured,
         stooq_configured=providers[2].configured,
     )
+    fundamental_runs = execute_fundamental_refresh_plan(
+        run_id=run_id,
+        tasks=refresh_plan,
+        database_url=settings.database_url,
+        user_agent=settings.sec_user_agent,
+    )
     if provider_name in {"alpha_vantage", "twelve_data", "stooq"}:
-        symbol_runs = execute_price_refresh_plan(
+        price_runs = execute_price_refresh_plan(
             run_id=run_id,
             tasks=refresh_plan,
             database_url=settings.database_url,
@@ -564,13 +759,15 @@ def main() -> None:
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
         )
+        symbol_runs = fundamental_runs + price_runs
     else:
-        symbol_runs = build_symbol_refresh_run_records(
+        price_runs = build_symbol_refresh_run_records(
             run_id=run_id,
             tasks=refresh_plan,
             provider=provider_name,
             attempted_at=started_at,
         )
+        symbol_runs = fundamental_runs + price_runs
     finished_at = utc_now()
     pipeline_run = build_pipeline_run_record(
         run_id=run_id,
@@ -583,6 +780,7 @@ def main() -> None:
 
     print(f"Run ID: {run_id}")
     print(f"Database persistence: {'enabled' if database_persisted else 'skipped'}")
+    print(f"Macro refresh: {macro_refresh_status}")
     print(f"Pipeline status: {pipeline_run.status}")
     print("Price providers:")
     for provider in providers:

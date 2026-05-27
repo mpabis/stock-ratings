@@ -4,6 +4,7 @@ from decimal import Decimal
 from stock_rating.pipeline.daily import (
     SymbolRefreshState,
     build_symbol_refresh_run_records,
+    execute_fundamental_refresh_plan,
     execute_alpha_vantage_refresh_plan,
     execute_price_refresh_plan,
     execute_stooq_refresh_plan,
@@ -12,6 +13,7 @@ from stock_rating.pipeline.daily import (
     pipeline_status_for,
 )
 from stock_rating.ingest.prices import AlphaVantageRateLimitError, DailyPriceBar, TwelveDataRateLimitError
+from stock_rating.ingest.sec_companyfacts import FundamentalFact, SecCompanyFactsResponseError
 from stock_rating.transform.features import FeatureValue
 
 
@@ -238,6 +240,68 @@ def test_execute_stooq_refresh_plan_marks_success() -> None:
 
     assert records[0].provider == "stooq"
     assert records[0].status == "succeeded"
+
+
+def test_execute_fundamental_refresh_plan_marks_success_and_updates_refresh_time() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="AAPL", refresh_tier=1, last_price_date=date(2026, 5, 26))],
+        as_of=as_of,
+        budget=1,
+    )
+    updates: list[str] = []
+
+    records = execute_fundamental_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="postgresql://example",
+        user_agent="stock-rating-test@example.com",
+        fetch_mapping_fn=lambda user_agent: {"AAPL": type("Mapping", (), {"cik": "0000320193"})()},
+        fetch_company_facts_fn=lambda cik, user_agent: {"facts": {}},
+        parse_company_facts_fn=lambda symbol, cik, payload: [
+            FundamentalFact(
+                cik=cik,
+                symbol=symbol,
+                fiscal_period="FY",
+                fiscal_year=2025,
+                form="10-K",
+                metric="revenue",
+                value=Decimal("1000"),
+                unit="USD",
+                filed_at=datetime(2025, 11, 1, tzinfo=UTC),
+            )
+        ],
+        persist_facts_fn=lambda database_url, facts: True,
+        mark_refreshed_fn=lambda database_url, symbol, refreshed_at: updates.append(symbol) or True,
+    )
+
+    assert len(records) == 1
+    assert records[0].provider == "sec_edgar"
+    assert records[0].status == "succeeded"
+    assert records[0].fetched_bar_count == 1
+    assert updates == ["AAPL"]
+
+
+def test_execute_fundamental_refresh_plan_marks_failure_on_sec_error() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="AAPL", refresh_tier=1, last_price_date=date(2026, 5, 26))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_fundamental_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="postgresql://example",
+        user_agent="stock-rating-test@example.com",
+        fetch_mapping_fn=lambda user_agent: (_ for _ in ()).throw(SecCompanyFactsResponseError("forbidden")),
+    )
+
+    assert len(records) == 1
+    assert records[0].provider == "sec_edgar"
+    assert records[0].status == "failed"
+    assert records[0].provider_error_code == "sec_edgar_error"
 
 
 def test_execute_price_refresh_plan_falls_back_to_stooq_after_twelve_failure() -> None:

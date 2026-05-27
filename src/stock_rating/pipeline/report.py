@@ -8,6 +8,7 @@ from typing import Any
 
 from stock_rating.config import get_settings
 from stock_rating.db import connect_postgres
+from stock_rating.quality.checks import QualityAlert, SymbolQualitySnapshot, build_quality_alerts
 
 
 TABLE_NAMES = ["symbols", "pipeline_runs", "symbol_refresh_runs", "price_daily", "features_daily", "ratings_daily"]
@@ -39,17 +40,21 @@ def main() -> None:
         latest_run_counts = fetch_run_status_counts(cursor, latest_run[0] if latest_run else None)
         table_counts = fetch_table_counts(cursor)
         ratings = fetch_latest_ratings(cursor)
+        quality_alerts = build_quality_alerts(fetch_quality_snapshots(cursor), date.today())
 
         if latest_run:
             print(f"Latest run: {latest_run[0]}")
             print(f"Status: {latest_run[1]}")
             print(f"Started: {latest_run[2]}")
             print(f"Finished: {latest_run[3]}")
+        print(f"Quality alerts: {len(quality_alerts)}")
+        for alert in quality_alerts[:5]:
+            print(f"- {alert.symbol}: {alert.message}")
 
         for table_name in TABLE_NAMES:
             print(f"{table_name}: {table_counts[table_name]}")
 
-        output_path = write_dashboard(ratings, latest_run, latest_run_counts, table_counts)
+        output_path = write_dashboard(ratings, latest_run, latest_run_counts, table_counts, quality_alerts)
         print(f"Dashboard: {output_path}")
     finally:
         cursor.close()
@@ -157,16 +162,54 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
         return snapshots
 
 
+def fetch_quality_snapshots(cursor: Any) -> list[SymbolQualitySnapshot]:
+        cursor.execute(
+                """
+                with latest_prices as (
+                        select symbol, max(date) as last_price_date
+                        from price_daily
+                        group by symbol
+                ),
+                latest_ratings as (
+                        select symbol, max(date) as latest_rating_date
+                        from ratings_daily
+                        group by symbol
+                )
+                select
+                        s.symbol,
+                        s.refresh_tier,
+                        lp.last_price_date,
+                        lr.latest_rating_date
+                from symbols s
+                left join latest_prices lp on lp.symbol = s.symbol
+                left join latest_ratings lr on lr.symbol = s.symbol
+                where s.active = true
+                order by s.symbol asc
+                """
+        )
+
+        return [
+                SymbolQualitySnapshot(
+                        symbol=row[0],
+                        refresh_tier=row[1],
+                        last_price_date=row[2],
+                        latest_rating_date=row[3],
+                )
+                for row in cursor.fetchall()
+        ]
+
+
 def write_dashboard(
         ratings: list[RatingSnapshot],
         latest_run: tuple[str, str, datetime, datetime | None] | None,
     latest_run_counts: dict[str, int],
         table_counts: dict[str, int],
+    quality_alerts: list[QualityAlert],
 ) -> Path:
         output_dir = Path("artifacts") / "reports"
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / "ratings-dashboard.html"
-        output_path.write_text(render_dashboard_html(ratings, latest_run, latest_run_counts, table_counts), encoding="utf-8")
+        output_path.write_text(render_dashboard_html(ratings, latest_run, latest_run_counts, table_counts, quality_alerts), encoding="utf-8")
         return output_path.resolve()
 
 
@@ -175,6 +218,7 @@ def render_dashboard_html(
         latest_run: tuple[str, str, datetime, datetime | None] | None,
     latest_run_counts: dict[str, int],
         table_counts: dict[str, int],
+    quality_alerts: list[QualityAlert],
 ) -> str:
         label_counts = Counter(rating.rating_label for rating in ratings)
         freshness_counts = Counter(rating.freshness_status for rating in ratings)
@@ -199,6 +243,16 @@ def render_dashboard_html(
                 f'<div class="pill"><span>{escape(status.title())}</span><strong>{count}</strong></div>'
                 for status, count in sorted(freshness_counts.items())
         ) or '<div class="pill"><span>No freshness data</span><strong>0</strong></div>'
+
+        quality_alert_pills = "".join(
+            f'<div class="pill"><span>{escape(alert_code.replace("_", " ").title())}</span><strong>{count}</strong></div>'
+            for alert_code, count in sorted(Counter(alert.code for alert in quality_alerts).items())
+        ) or '<div class="pill"><span>No active alerts</span><strong>0</strong></div>'
+
+        quality_alert_rows = "".join(
+            f'<li><strong>{escape(alert.symbol)}</strong><span>{escape(alert.message)}</span></li>'
+            for alert in quality_alerts[:10]
+        ) or '<li><strong>Healthy</strong><span>No active data quality alerts.</span></li>'
 
         rows_html = "".join(render_rating_row(rating) for rating in ratings) or (
             '<tr><td colspan="8" class="empty">No ratings found in ratings_daily.</td></tr>'
@@ -436,6 +490,29 @@ def render_dashboard_html(
         .pill strong {{
             color: var(--accent);
         }}
+        .alert-list {{
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 12px;
+        }}
+        .alert-list li {{
+            display: grid;
+            gap: 4px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: var(--panel-strong);
+        }}
+        .alert-list strong {{
+            font-size: 0.95rem;
+        }}
+        .alert-list span {{
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.45;
+        }}
         table {{
             width: 100%;
             border-collapse: collapse;
@@ -641,6 +718,16 @@ def render_dashboard_html(
             <div class="pill-row">{label_pills}</div>
             <div style="height: 12px"></div>
             <div class="pill-row">{freshness_pills}</div>
+        </section>
+
+        <section class="section">
+            <div class="section-title">
+                <h2>Data quality</h2>
+                <p>Flags active symbols with stale prices or missing ratings.</p>
+            </div>
+            <div class="pill-row">{quality_alert_pills}</div>
+            <div style="height: 16px"></div>
+            <ul class="alert-list">{quality_alert_rows}</ul>
         </section>
 
         <section class="section">

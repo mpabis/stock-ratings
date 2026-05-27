@@ -31,7 +31,7 @@ def build_rating(task: RefreshTaskLike, raw_score: int) -> dict[str, object]:
         "label": mapped.label,
         "freshness_status": task.freshness_status,
         "explanation": build_rating_explanation(task.symbol, task.freshness_status),
-        "model_version": "v2",
+        "model_version": "v3",
     }
 
 
@@ -40,6 +40,11 @@ def compute_rating_breakdown(features: list[FeatureValue]) -> RatingBreakdown:
     intraday_return = Decimal(feature_map.get("intraday_return", Decimal("0")))
     one_day_return = Decimal(feature_map.get("one_day_return", Decimal("0")))
     daily_volume = Decimal(feature_map.get("daily_volume", Decimal("0")))
+    yield_curve_slope = _optional_decimal(feature_map, "yield_curve_slope")
+    net_margin = _optional_decimal(feature_map, "net_margin")
+    cash_flow_margin = _optional_decimal(feature_map, "cash_flow_margin")
+    return_on_assets = _optional_decimal(feature_map, "return_on_assets")
+    debt_to_assets = _optional_decimal(feature_map, "debt_to_assets")
 
     liquidity_score = _clamp_decimal(Decimal("25") + (daily_volume / Decimal("200000")))
     trend_score = _clamp_decimal(Decimal("50") + one_day_return * Decimal("1800") + intraday_return * Decimal("700"))
@@ -51,6 +56,40 @@ def compute_rating_breakdown(features: list[FeatureValue]) -> RatingBreakdown:
     growth_score = _clamp_decimal(Decimal("25") + (trend_score * Decimal("0.75")) + max(one_day_return, Decimal("0")) * Decimal("500"))
     momentum_score = _clamp_decimal((trend_score * Decimal("0.8")) + (liquidity_score * Decimal("0.2")))
     risk_score = _clamp_decimal(Decimal("85") - stability_penalty + (liquidity_score * Decimal("0.15")))
+
+    if any(value is not None for value in (net_margin, cash_flow_margin, return_on_assets, debt_to_assets)):
+        profitability_score = _clamp_decimal(Decimal("50") + (net_margin or Decimal("0")) * Decimal("250"))
+        cash_generation_score = _clamp_decimal(Decimal("50") + (cash_flow_margin or Decimal("0")) * Decimal("220"))
+        asset_efficiency_score = _clamp_decimal(Decimal("50") + (return_on_assets or Decimal("0")) * Decimal("500"))
+        leverage_score = _clamp_decimal(Decimal("80") - (debt_to_assets or Decimal("0.5")) * Decimal("60"))
+
+        valuation_score = _clamp_decimal(
+            valuation_score * Decimal("0.65")
+            + profitability_score * Decimal("0.20")
+            + leverage_score * Decimal("0.15")
+        )
+        quality_score = _clamp_decimal(
+            quality_score * Decimal("0.45")
+            + profitability_score * Decimal("0.20")
+            + cash_generation_score * Decimal("0.20")
+            + asset_efficiency_score * Decimal("0.15")
+        )
+        growth_score = _clamp_decimal(
+            growth_score * Decimal("0.70")
+            + profitability_score * Decimal("0.20")
+            + cash_generation_score * Decimal("0.10")
+        )
+        risk_score = _clamp_decimal(
+            risk_score * Decimal("0.55")
+            + cash_generation_score * Decimal("0.15")
+            + leverage_score * Decimal("0.30")
+        )
+
+    if yield_curve_slope is not None:
+        macro_risk_score = _clamp_decimal(Decimal("55") + yield_curve_slope * Decimal("12"))
+        macro_growth_score = _clamp_decimal(Decimal("50") + yield_curve_slope * Decimal("8"))
+        growth_score = _clamp_decimal(growth_score * Decimal("0.75") + macro_growth_score * Decimal("0.25"))
+        risk_score = _clamp_decimal(risk_score * Decimal("0.75") + macro_risk_score * Decimal("0.25"))
 
     final_score = int(
         round(
@@ -92,7 +131,7 @@ def build_rating_record(task: RefreshTaskLike, features: list[FeatureValue]) -> 
         momentum_score=breakdown.momentum_score,
         risk_score=breakdown.risk_score,
         explanation_json=explanation,
-        model_version="v2",
+        model_version="v3",
         freshness_status=task.freshness_status,
         freshest_input_date=latest_date,
     )
@@ -104,3 +143,9 @@ def _clamp_decimal(value: Decimal) -> Decimal:
     if value > 100:
         return Decimal("100")
     return value
+
+
+def _optional_decimal(feature_map: dict[str, Decimal], key: str) -> Decimal | None:
+    if key not in feature_map:
+        return None
+    return Decimal(feature_map[key])

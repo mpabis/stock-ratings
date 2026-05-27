@@ -15,6 +15,7 @@ class Settings:
     alpha_vantage_min_interval_seconds: float = float(os.getenv("ALPHA_VANTAGE_MIN_INTERVAL_SECONDS", "1.2"))
     twelve_data_api_key: str = os.getenv("TWELVE_DATA_API_KEY", "")
     stooq_api_key: str = os.getenv("STOOQ_API_KEY", "")
+    sec_user_agent: str = os.getenv("SEC_USER_AGENT", "stock-rating/0.1 research@localhost")
     fred_api_key: str = os.getenv("FRED_API_KEY", "")
     symbol_limit: int = int(os.getenv("STOCK_RATING_SYMBOL_LIMIT", "100"))
     symbol_seed_path: str = os.getenv("STOCK_RATING_SYMBOL_SEED_PATH", "")

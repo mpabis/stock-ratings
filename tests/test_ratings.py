@@ -62,7 +62,7 @@ def test_build_rating_record_maps_to_schema_shape() -> None:
 
     assert record.symbol == "AAPL"
     assert record.freshness_status == "fresh"
-    assert record.model_version == "v2"
+    assert record.model_version == "v3"
     assert record.rating_label
 
 
@@ -140,3 +140,52 @@ def test_persist_ratings_inserts_rows() -> None:
     assert fake_connection.committed is True
     assert fake_connection.cursor_instance.closed is True
     assert fake_connection.closed is True
+
+
+def test_fundamentals_improve_breakdown_for_same_price_profile() -> None:
+    base_features = [
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="intraday_return", feature_value=Decimal("0.00"), source_version="v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="one_day_return", feature_value=Decimal("0.01"), source_version="v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="daily_volume", feature_value=Decimal("1500000"), source_version="v1"),
+    ]
+    strong_fundamentals = base_features + [
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="net_margin", feature_value=Decimal("0.24"), source_version="fundamentals_v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="cash_flow_margin", feature_value=Decimal("0.22"), source_version="fundamentals_v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="return_on_assets", feature_value=Decimal("0.11"), source_version="fundamentals_v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="debt_to_assets", feature_value=Decimal("0.28"), source_version="fundamentals_v1"),
+    ]
+    weak_fundamentals = base_features + [
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="net_margin", feature_value=Decimal("-0.08"), source_version="fundamentals_v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="cash_flow_margin", feature_value=Decimal("-0.03"), source_version="fundamentals_v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="return_on_assets", feature_value=Decimal("-0.02"), source_version="fundamentals_v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="debt_to_assets", feature_value=Decimal("0.92"), source_version="fundamentals_v1"),
+    ]
+
+    strong_breakdown = compute_rating_breakdown(strong_fundamentals)
+    weak_breakdown = compute_rating_breakdown(weak_fundamentals)
+
+    assert strong_breakdown.score > weak_breakdown.score
+    assert strong_breakdown.valuation_score > weak_breakdown.valuation_score
+    assert strong_breakdown.quality_score > weak_breakdown.quality_score
+    assert strong_breakdown.risk_score > weak_breakdown.risk_score
+
+
+def test_inverted_yield_curve_penalizes_growth_and_risk() -> None:
+    base_features = [
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="intraday_return", feature_value=Decimal("0.00"), source_version="v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="one_day_return", feature_value=Decimal("0.01"), source_version="v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="daily_volume", feature_value=Decimal("1500000"), source_version="v1"),
+    ]
+
+    positive_curve = compute_rating_breakdown(
+        base_features
+        + [FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="yield_curve_slope", feature_value=Decimal("1.20"), source_version="macro_v1")]
+    )
+    inverted_curve = compute_rating_breakdown(
+        base_features
+        + [FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="yield_curve_slope", feature_value=Decimal("-0.40"), source_version="macro_v1")]
+    )
+
+    assert positive_curve.score > inverted_curve.score
+    assert positive_curve.growth_score > inverted_curve.growth_score
+    assert positive_curve.risk_score > inverted_curve.risk_score

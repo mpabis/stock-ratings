@@ -39,6 +39,15 @@ create table if not exists fundamental_facts (
     primary key (symbol, fiscal_year, fiscal_period, metric, source)
 );
 
+create table if not exists macro_series_daily (
+    series_id text not null,
+    date date not null,
+    value numeric,
+    source text not null,
+    ingested_at timestamptz not null default now(),
+    primary key (series_id, date, source)
+);
+
 create table if not exists features_daily (
     symbol text not null references symbols(symbol),
     date date not null,

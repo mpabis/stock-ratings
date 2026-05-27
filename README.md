@@ -16,12 +16,18 @@ Hosted daily stock ratings pipeline scaffold for free-only market data sources.
 - Run tests: `python -m pytest`
 - Run daily pipeline: `python -m stock_rating.daily`
 - Run daily pipeline with the original module path: `python -m stock_rating.pipeline.daily`
+- Backfill historical daily prices with Alpha Vantage full-history fetches: `python -m stock_rating.pipeline.backfill`
 - Bootstrap symbols into Postgres: `python -m stock_rating.pipeline.bootstrap_symbols`
+- Bootstrap SEC fundamentals into `fundamental_facts`: `python -m stock_rating.pipeline.bootstrap_fundamentals`
 - Check database connection safely: `python -m stock_rating.pipeline.check_db`
 - Report latest database state and generate HTML dashboard: `python -m stock_rating.pipeline.report`
 
 Optional provider note:
 - `STOOQ_API_KEY` can be configured to enable Stooq as a third fallback provider for symbols that Alpha Vantage or Twelve Data do not cover on your current plan.
+- `SEC_USER_AGENT` should identify you when calling SEC EDGAR endpoints. SEC expects a descriptive user agent with contact information.
+	Example: `stock-rating/0.1 your-email@example.com`
+- When `DATABASE_URL` and `SEC_USER_AGENT` are configured, the daily pipeline automatically refreshes SEC fundamentals for SEC-covered symbols before scoring.
+- When `DATABASE_URL` and `FRED_API_KEY` are configured, the daily pipeline also refreshes core FRED macro series and uses the yield-curve slope in scoring.
 
 ## How to update tracked stocks
 
@@ -57,6 +63,8 @@ Tier guidance:
 The system persists data in stages:
 - `symbols` stores the tracked universe.
 - `price_daily` stores fetched daily price bars.
+- `fundamental_facts` stores the latest SEC-derived core facts per metric and filing period.
+- `macro_series_daily` stores persisted FRED macro observations.
 - `features_daily` stores derived factors.
 - `ratings_daily` stores the final published ratings.
 
@@ -66,6 +74,9 @@ Typical refresh workflow:
 2. If you changed [data/symbols.csv](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/data/symbols.csv), run `python -m stock_rating.pipeline.bootstrap_symbols`.
 3. Run `python -m stock_rating.daily`.
 4. Run `python -m stock_rating.pipeline.report` to refresh the presentation layer.
+
+Manual fundamentals bootstrap is still available with `python -m stock_rating.pipeline.bootstrap_fundamentals` if you want to backfill SEC facts separately from the daily price run.
+Historical price backfills are available with `python -m stock_rating.pipeline.backfill`.
 
 ## How to see the data
 
@@ -77,7 +88,7 @@ Console summary:
 
 HTML dashboard:
 - Open [artifacts/reports/ratings-dashboard.html](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/artifacts/reports/ratings-dashboard.html)
-- This dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and a more presentation-friendly summary.
+- This dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and active data quality alerts for stale prices or missing ratings.
 
 Planner artifacts:
 - Open files in [artifacts/plans](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/artifacts/plans)

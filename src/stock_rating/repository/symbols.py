@@ -139,6 +139,39 @@ def update_symbol_last_price_refresh_at(
             pass
 
 
+def update_symbol_last_fundamental_refresh_at(
+    database_url: str,
+    symbol: str,
+    refreshed_at: datetime | None = None,
+    connect_fn=connect_postgres,
+) -> bool:
+    if not is_configured(DatabaseConfig(url=database_url)):
+        return False
+
+    effective_refreshed_at = refreshed_at or datetime.now(UTC)
+    try:
+        connection = connect_fn(database_url)
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            update symbols
+            set last_fundamental_refresh_at = %s
+            where symbol = %s
+            """,
+            (effective_refreshed_at, symbol),
+        )
+        connection.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        try:
+            cursor.close()
+            connection.close()
+        except Exception:
+            pass
+
+
 def upsert_symbol_seeds(
     database_url: str,
     seeds: list[SymbolSeed],
@@ -152,6 +185,7 @@ def upsert_symbol_seeds(
     try:
         connection = connect_fn(database_url)
         cursor = connection.cursor()
+        active_symbols = [seed.symbol for seed in seeds]
         cursor.executemany(
             """
             insert into symbols (
@@ -179,6 +213,14 @@ def upsert_symbol_seeds(
                 )
                 for seed in seeds
             ],
+        )
+        cursor.execute(
+            """
+            update symbols
+            set active = false
+            where symbol <> all(%s)
+            """,
+            (active_symbols,),
         )
         connection.commit()
         return True

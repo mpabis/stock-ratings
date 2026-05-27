@@ -44,10 +44,14 @@ class _FakeSymbolConnection:
 class _FakeUpsertCursor:
     def __init__(self) -> None:
         self.executemany_calls: list[tuple[str, list[tuple[object, ...]]]] = []
+        self.execute_calls: list[tuple[str, tuple[object, ...]]] = []
         self.closed = False
 
     def executemany(self, query: str, params_seq: list[tuple[object, ...]]) -> None:
         self.executemany_calls.append((query, params_seq))
+
+    def execute(self, query: str, params: tuple[object, ...]) -> None:
+        self.execute_calls.append((query, params))
 
     def close(self) -> None:
         self.closed = True
@@ -101,6 +105,8 @@ def test_upsert_symbol_seeds_inserts_rows() -> None:
 
     assert persisted is True
     assert len(fake_connection.cursor_instance.executemany_calls) == 1
+    assert len(fake_connection.cursor_instance.execute_calls) == 1
+    assert fake_connection.cursor_instance.execute_calls[0][1] == (([seed.symbol for seed in seeds[:2]]),)
     assert fake_connection.committed is True
     assert fake_connection.cursor_instance.closed is True
     assert fake_connection.closed is True

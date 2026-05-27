@@ -16,6 +16,7 @@ Hosted daily stock ratings pipeline scaffold for free-only market data sources.
 - Run tests: `python -m pytest`
 - Run daily pipeline: `python -m stock_rating.daily`
 - Run daily pipeline with the original module path: `python -m stock_rating.pipeline.daily`
+- Run read-only API: `uvicorn stock_rating.api.app:app --host 0.0.0.0 --port 8000`
 - Backfill historical daily prices with Alpha Vantage full-history fetches: `python -m stock_rating.pipeline.backfill`
 - Bootstrap symbols into Postgres: `python -m stock_rating.pipeline.bootstrap_symbols`
 - Bootstrap SEC fundamentals into `fundamental_facts`: `python -m stock_rating.pipeline.bootstrap_fundamentals`
@@ -89,6 +90,14 @@ Console summary:
 HTML dashboard:
 - Open [artifacts/reports/ratings-dashboard.html](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/artifacts/reports/ratings-dashboard.html)
 - This dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and active data quality alerts for stale prices or missing ratings.
+
+Read-only API (FastAPI):
+- Start: `uvicorn stock_rating.api.app:app --host 0.0.0.0 --port 8000`
+- Endpoints:
+	- `GET /healthz`
+	- `GET /api/summary`
+	- `GET /api/ratings?limit=100`
+	- `GET /api/quality-alerts?limit=100`
 
 Planner artifacts:
 - Open files in [artifacts/plans](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/artifacts/plans)

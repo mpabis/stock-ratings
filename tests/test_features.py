@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from stock_rating.ingest.prices import DailyPriceBar
@@ -62,7 +62,42 @@ def test_compute_price_features_generates_expected_values() -> None:
     features = compute_price_features(bars)
     names = {feature.feature_name for feature in features}
 
-    assert names == {"intraday_return", "daily_volume", "one_day_return"}
+    assert names == {
+        "intraday_return",
+        "daily_volume",
+        "one_day_return",
+        "high_low_range_pct",
+        "gap_open_return",
+    }
+
+
+def test_compute_price_features_generates_lookback_and_volatility_metrics() -> None:
+    bars: list[DailyPriceBar] = []
+    base_date = date(2026, 5, 27)
+    for day_index in range(25):
+        close = Decimal("100") + Decimal(day_index)
+        bars.append(
+            DailyPriceBar(
+                symbol="AAPL",
+                date=base_date - timedelta(days=day_index),
+                open=close - Decimal("1"),
+                high=close + Decimal("1"),
+                low=close - Decimal("2"),
+                close=close,
+                adjusted_close=close,
+                volume=1000 + day_index,
+                source="alpha_vantage",
+            )
+        )
+
+    features = compute_price_features(bars)
+    names = {feature.feature_name for feature in features}
+
+    assert "five_day_return" in names
+    assert "ten_day_return" in names
+    assert "twenty_day_return" in names
+    assert "average_volume_20d" in names
+    assert "twenty_day_volatility" in names
 
 
 def test_persist_features_inserts_rows() -> None:

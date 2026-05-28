@@ -136,6 +136,38 @@ def test_fetch_alpha_vantage_daily_adjusted_parses_payload() -> None:
     assert bars[0].symbol == "AAPL"
 
 
+def test_fetch_alpha_vantage_daily_adjusted_retries_transient_failure_then_succeeds() -> None:
+    payload = {
+        "Time Series (Daily)": {
+            "2026-05-27": {
+                "1. open": "201.10",
+                "2. high": "203.50",
+                "3. low": "200.00",
+                "4. close": "202.75",
+                "5. adjusted close": "202.50",
+                "6. volume": "12345678",
+            }
+        }
+    }
+    calls = {"count": 0}
+
+    def _flaky_urlopen(_: str):
+        calls["count"] += 1
+        if calls["count"] < 3:
+            raise TimeoutError("temporary timeout")
+        return _FakeHttpResponse(payload)
+
+    bars = fetch_alpha_vantage_daily_adjusted(
+        "AAPL",
+        "demo-key",
+        urlopen_fn=_flaky_urlopen,
+        sleep_fn=lambda _: None,
+    )
+
+    assert len(bars) == 1
+    assert calls["count"] == 3
+
+
 def test_fetch_alpha_vantage_daily_adjusted_raises_on_rate_limit() -> None:
     payload = {"Note": "Thank you for using Alpha Vantage"}
 
@@ -230,6 +262,38 @@ def test_fetch_twelve_data_time_series_raises_on_rate_limit() -> None:
         raise AssertionError("Expected TwelveDataRateLimitError")
 
 
+def test_fetch_twelve_data_time_series_retries_transient_failure_then_succeeds() -> None:
+    payload = {
+        "values": [
+            {
+                "datetime": "2026-05-27",
+                "open": "201.10",
+                "high": "203.50",
+                "low": "200.00",
+                "close": "202.75",
+                "volume": "12345678",
+            }
+        ]
+    }
+    calls = {"count": 0}
+
+    def _flaky_urlopen(_: str):
+        calls["count"] += 1
+        if calls["count"] < 2:
+            raise ConnectionError("temporary connection reset")
+        return _FakeHttpResponse(payload)
+
+    bars = fetch_twelve_data_time_series(
+        "AAPL",
+        "demo-key",
+        urlopen_fn=_flaky_urlopen,
+        sleep_fn=lambda _: None,
+    )
+
+    assert len(bars) == 1
+    assert calls["count"] == 2
+
+
 def test_parse_stooq_daily_csv_returns_bars() -> None:
     payload = "Date,Open,High,Low,Close,Volume\n2026-05-27,100.0,110.0,99.0,108.0,123456\n"
 
@@ -261,6 +325,27 @@ def test_fetch_stooq_daily_parses_payload() -> None:
 
     assert len(bars) == 1
     assert bars[0].date.isoformat() == "2026-05-27"
+
+
+def test_fetch_stooq_daily_retries_transient_failure_then_succeeds() -> None:
+    payload = "Date,Open,High,Low,Close,Volume\n2026-05-27,100.0,110.0,99.0,108.0,123456\n"
+    calls = {"count": 0}
+
+    def _flaky_urlopen(_: str):
+        calls["count"] += 1
+        if calls["count"] < 3:
+            raise TimeoutError("temporary timeout")
+        return _FakeHttpResponseString(payload)
+
+    bars = fetch_stooq_daily(
+        "TSE:FFH",
+        "stooq-key",
+        urlopen_fn=_flaky_urlopen,
+        sleep_fn=lambda _: None,
+    )
+
+    assert len(bars) == 1
+    assert calls["count"] == 3
 
 
 class _FakePriceCursor:

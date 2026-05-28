@@ -4,6 +4,8 @@ from datetime import date
 from decimal import Decimal
 from io import StringIO
 import json
+import time
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -55,6 +57,19 @@ class TwelveDataResponseError(RuntimeError):
 
 class StooqResponseError(RuntimeError):
     pass
+
+
+TRANSIENT_HTTP_STATUS_CODES = {408, 429, 500, 502, 503, 504}
+
+
+def _is_transient_http_error(error: HTTPError) -> bool:
+    return error.code in TRANSIENT_HTTP_STATUS_CODES
+
+
+def _sleep_backoff(attempt: int, base_seconds: float, sleep_fn=time.sleep) -> None:
+    if attempt <= 0 or base_seconds <= 0:
+        return
+    sleep_fn(base_seconds * (2 ** (attempt - 1)))
 
 
 def get_price_provider_status(
@@ -151,10 +166,33 @@ def fetch_alpha_vantage_daily_adjusted(
     api_key: str,
     urlopen_fn=urlopen,
     outputsize: str = "compact",
+    max_attempts: int = 3,
+    base_backoff_seconds: float = 0.5,
+    sleep_fn=time.sleep,
 ) -> list[DailyPriceBar]:
     url = build_alpha_vantage_daily_adjusted_url(symbol, api_key, outputsize=outputsize)
-    with urlopen_fn(url) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    payload: dict[str, object] | None = None
+    attempts = max(1, max_attempts)
+    for attempt in range(1, attempts + 1):
+        try:
+            with urlopen_fn(url) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except HTTPError as error:
+            if _is_transient_http_error(error) and attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise AlphaVantageResponseError(f"Alpha Vantage request failed with HTTP {error.code}") from error
+        except (URLError, TimeoutError, ConnectionError) as error:
+            if attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise AlphaVantageResponseError(
+                f"Alpha Vantage request failed after {attempts} attempts: {error}"
+            ) from error
+
+    if payload is None:
+        raise AlphaVantageResponseError("Alpha Vantage request failed before receiving a payload")
 
     if "Note" in payload:
         raise AlphaVantageRateLimitError(str(payload["Note"]))
@@ -253,10 +291,35 @@ def parse_stooq_daily_csv(symbol: str, payload: str) -> list[DailyPriceBar]:
     return sorted(bars, key=lambda bar: bar.date, reverse=True)
 
 
-def fetch_stooq_daily(symbol: str, api_key: str, urlopen_fn=urlopen) -> list[DailyPriceBar]:
+def fetch_stooq_daily(
+    symbol: str,
+    api_key: str,
+    urlopen_fn=urlopen,
+    max_attempts: int = 3,
+    base_backoff_seconds: float = 0.5,
+    sleep_fn=time.sleep,
+) -> list[DailyPriceBar]:
     url = build_stooq_daily_url(symbol, api_key)
-    with urlopen_fn(url) as response:
-        payload = response.read().decode("utf-8")
+    payload: str | None = None
+    attempts = max(1, max_attempts)
+    for attempt in range(1, attempts + 1):
+        try:
+            with urlopen_fn(url) as response:
+                payload = response.read().decode("utf-8")
+            break
+        except HTTPError as error:
+            if _is_transient_http_error(error) and attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise StooqResponseError(f"Stooq request failed with HTTP {error.code}") from error
+        except (URLError, TimeoutError, ConnectionError) as error:
+            if attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise StooqResponseError(f"Stooq request failed after {attempts} attempts: {error}") from error
+
+    if payload is None:
+        raise StooqResponseError("Stooq request failed before receiving a payload")
 
     lowered = payload.lower()
     if "get your apikey" in lowered:
@@ -268,10 +331,37 @@ def fetch_stooq_daily(symbol: str, api_key: str, urlopen_fn=urlopen) -> list[Dai
     return bars
 
 
-def fetch_twelve_data_time_series(symbol: str, api_key: str, urlopen_fn=urlopen) -> list[DailyPriceBar]:
+def fetch_twelve_data_time_series(
+    symbol: str,
+    api_key: str,
+    urlopen_fn=urlopen,
+    max_attempts: int = 3,
+    base_backoff_seconds: float = 0.5,
+    sleep_fn=time.sleep,
+) -> list[DailyPriceBar]:
     url = build_twelve_data_time_series_url(symbol, api_key)
-    with urlopen_fn(url) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    payload: dict[str, object] | None = None
+    attempts = max(1, max_attempts)
+    for attempt in range(1, attempts + 1):
+        try:
+            with urlopen_fn(url) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except HTTPError as error:
+            if _is_transient_http_error(error) and attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise TwelveDataResponseError(f"Twelve Data request failed with HTTP {error.code}") from error
+        except (URLError, TimeoutError, ConnectionError) as error:
+            if attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise TwelveDataResponseError(
+                f"Twelve Data request failed after {attempts} attempts: {error}"
+            ) from error
+
+    if payload is None:
+        raise TwelveDataResponseError("Twelve Data request failed before receiving a payload")
 
     if payload.get("code") == 429:
         raise TwelveDataRateLimitError(str(payload.get("message", "Twelve Data rate limit reached")))

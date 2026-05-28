@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from datetime import date
+import os
+import subprocess
 import time
 
 from stock_rating.config import get_settings
@@ -726,8 +728,34 @@ def pipeline_status_for(symbol_runs: list[SymbolRefreshRunRecord]) -> str:
     return "planned"
 
 
+def resolve_git_sha(
+    environ: dict[str, str] | None = None,
+    git_rev_parse_fn=None,
+) -> str | None:
+    active_env = environ or os.environ
+    github_sha = active_env.get("GITHUB_SHA", "").strip()
+    if github_sha:
+        return github_sha
+
+    def _default_git_rev_parse() -> str:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+
+    git_rev_parse = git_rev_parse_fn or _default_git_rev_parse
+    try:
+        local_sha = git_rev_parse().strip()
+    except Exception:
+        return None
+
+    return local_sha or None
+
+
 def main() -> None:
     settings = get_settings()
+    git_sha = resolve_git_sha()
     run_id = generate_run_id()
     started_at = utc_now()
     macro_refresh_status = execute_macro_refresh(settings.database_url, settings.fred_api_key)
@@ -774,6 +802,7 @@ def main() -> None:
         started_at=started_at,
         finished_at=finished_at,
         status=pipeline_status_for(symbol_runs),
+        git_sha=git_sha,
     )
     database_persisted = persist_run_records(settings.database_url, pipeline_run, symbol_runs)
     artifact_path = write_plan_artifact(settings.plan_output_dir or None, pipeline_run, symbol_runs)

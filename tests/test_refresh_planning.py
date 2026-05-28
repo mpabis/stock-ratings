@@ -11,10 +11,38 @@ from stock_rating.pipeline.daily import (
     execute_twelve_data_refresh_plan,
     plan_price_refreshes,
     pipeline_status_for,
+    resolve_git_sha,
 )
 from stock_rating.ingest.prices import AlphaVantageRateLimitError, DailyPriceBar, TwelveDataRateLimitError
 from stock_rating.ingest.sec_companyfacts import FundamentalFact, SecCompanyFactsResponseError
 from stock_rating.transform.features import FeatureValue
+
+
+def test_resolve_git_sha_prefers_github_sha_environment_value() -> None:
+    git_sha = resolve_git_sha(
+        environ={"GITHUB_SHA": "a23f69fd383f58fbe0d3f2be6462e9c957f6f1f3"},
+        git_rev_parse_fn=lambda: "should-not-be-used",
+    )
+
+    assert git_sha == "a23f69fd383f58fbe0d3f2be6462e9c957f6f1f3"
+
+
+def test_resolve_git_sha_uses_git_rev_parse_when_github_sha_missing() -> None:
+    git_sha = resolve_git_sha(
+        environ={},
+        git_rev_parse_fn=lambda: "2f1c9db91d8d7237deccf81b12e4f1d0f9ed51ab\n",
+    )
+
+    assert git_sha == "2f1c9db91d8d7237deccf81b12e4f1d0f9ed51ab"
+
+
+def test_resolve_git_sha_returns_none_when_git_rev_parse_fails() -> None:
+    git_sha = resolve_git_sha(
+        environ={},
+        git_rev_parse_fn=lambda: (_ for _ in ()).throw(RuntimeError("git unavailable")),
+    )
+
+    assert git_sha is None
 
 
 def test_refresh_plan_prioritizes_tier_then_staleness() -> None:

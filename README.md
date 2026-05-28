@@ -91,6 +91,11 @@ HTML dashboard:
 - Open [artifacts/reports/ratings-dashboard.html](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/artifacts/reports/ratings-dashboard.html)
 - This dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and active data quality alerts for stale prices or missing ratings.
 
+Hosted mobile dashboard (GitHub Pages):
+- The daily workflow can publish the latest dashboard to GitHub Pages.
+- URL pattern: `https://<github-username>.github.io/stock-ratings/`
+- This updates after each scheduled or manual run of the daily workflow.
+
 Read-only API (FastAPI):
 - Start: `uvicorn stock_rating.api.app:app --host 0.0.0.0 --port 8000`
 - Endpoints:

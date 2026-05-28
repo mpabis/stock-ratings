@@ -17,6 +17,8 @@ concurrency:
 jobs:
   update-ratings-and-build-dashboard:
     runs-on: ubuntu-latest
+    outputs:
+      pages_enabled: ${{ steps.configure_pages.outcome == 'success' && 'true' || 'false' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -48,8 +50,13 @@ jobs:
           mkdir -p _site
           cp artifacts/reports/ratings-dashboard.html _site/index.html
       - name: Configure GitHub Pages
+        id: configure_pages
+        continue-on-error: true
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload GitHub Pages artifact
+        if: steps.configure_pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -57,6 +64,7 @@ jobs:
   deploy-dashboard:
     runs-on: ubuntu-latest
     needs: update-ratings-and-build-dashboard
+    if: needs.update-ratings-and-build-dashboard.outputs.pages_enabled == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

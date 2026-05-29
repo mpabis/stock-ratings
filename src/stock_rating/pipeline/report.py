@@ -446,9 +446,7 @@ def render_dashboard_html(
         )
 
         run_summary = render_run_summary(latest_run, latest_run_counts)
-        source_metrics_html = "".join(render_source_metric(summary) for summary in source_refresh_summaries) or (
-            '<div class="run-metric"><div class="label">No source summary</div><div class="value">N/A</div><div class="meta">Run artifact not found.</div></div>'
-        )
+        source_metrics_html = render_source_metrics_table(source_refresh_summaries)
 
         return f"""<!doctype html>
 <html lang="en">
@@ -603,11 +601,6 @@ def render_dashboard_html(
             gap: 8px;
             margin-top: 2px;
         }}
-        .source-grid {{
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 6px;
-        }}
         .run-metric {{
             padding: 8px 10px;
             border-radius: 12px;
@@ -627,28 +620,73 @@ def render_dashboard_html(
             line-height: 1.25;
             word-break: break-word;
         }}
-        .source-line {{
-            display: grid;
-            grid-template-columns: auto 1fr;
-            align-items: baseline;
-            gap: 6px;
-            padding: 6px 8px;
-            border-radius: 10px;
+        .source-metrics-table-wrap {{
+            margin-top: 2px;
+            overflow-x: auto;
+            border-radius: 12px;
             border: 1px solid rgba(13, 92, 99, 0.1);
             background: rgba(255, 255, 255, 0.52);
         }}
-        .source-line strong {{
-            font-size: 0.74rem;
-            letter-spacing: 0.07em;
+        .source-metrics-table {{
+            width: 100%;
+            border-collapse: collapse;
             font-family: "Trebuchet MS", sans-serif;
-            text-transform: uppercase;
-            color: var(--accent);
+        }}
+        .source-metrics-table th,
+        .source-metrics-table td {{
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(13, 92, 99, 0.08);
+            text-align: left;
+            vertical-align: middle;
+            font-size: 0.72rem;
+            line-height: 1.15;
             white-space: nowrap;
         }}
-        .source-line span {{
+        .source-metrics-table th {{
             color: var(--muted);
-            font-size: 0.82rem;
-            line-height: 1.25;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.56rem;
+            background: rgba(13, 92, 99, 0.04);
+        }}
+        .source-metrics-table tbody tr:last-child td {{
+            border-bottom: 0;
+        }}
+        .source-metrics-table td:first-child {{
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: normal;
+        }}
+        .source-status-chip {{
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 2px 6px;
+            font-size: 0.56rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid rgba(31, 41, 51, 0.08);
+        }}
+        .source-status-succeeded {{
+            color: var(--good);
+            background: rgba(62, 138, 99, 0.12);
+        }}
+        .source-status-partial {{
+            color: var(--warn);
+            background: rgba(213, 166, 63, 0.14);
+        }}
+        .source-status-failed {{
+            color: var(--warm);
+            background: rgba(184, 92, 56, 0.16);
+        }}
+        .source-count-ok {{
+            color: var(--good);
+            font-weight: 700;
+        }}
+        .source-count-failed {{
+            color: #b9402e;
+            font-weight: 700;
         }}
         .section {{
             margin-top: 24px;
@@ -994,17 +1032,9 @@ def render_dashboard_html(
                             <div class="label">Result</div>
                             <div class="value">{escape(run_summary['result'])}</div>
                         </div>
-                        <div class="run-metric">
-                            <div class="label">Run ID</div>
-                            <div class="value">{escape(run_summary['run_id'])}</div>
-                        </div>
-                        <div class="run-metric">
-                            <div class="label">Started</div>
-                            <div class="value">{escape(run_summary['started_at'])}</div>
-                        </div>
                     </div>
                     <div class="kicker">Source calls</div>
-                    <div class="run-grid source-grid">{source_metrics_html}</div>
+                    {source_metrics_html}
                 </aside>
             </div>
         </section>
@@ -1113,13 +1143,58 @@ def render_stat_card(label: str, value: str, caption: str) -> str:
         )
 
 
-def render_source_metric(summary: SourceRefreshSummary) -> str:
+def render_source_metrics_table(source_refresh_summaries: list[SourceRefreshSummary]) -> str:
+    if not source_refresh_summaries:
+        return (
+            '<div class="run-metric">'
+            '<div class="label">No source summary</div>'
+            '<div class="value">N/A</div>'
+            '<div class="meta">Run artifact not found.</div>'
+            '</div>'
+        )
+
+    rows_html = "".join(render_source_metric_row(summary) for summary in source_refresh_summaries)
     return (
-        '<div class="source-line">'
-        f'<strong>{escape(format_source_name(summary.source))}</strong>'
-        f'<span>{summary.calls} calls - {escape(format_source_status(summary))}</span>'
+        '<div class="source-metrics-table-wrap">'
+        '<table class="source-metrics-table">'
+        '<thead><tr><th>Source</th><th>Calls</th><th>Status</th><th>Ok</th><th>Failed</th></tr></thead>'
+        f'<tbody>{rows_html}</tbody>'
+        '</table>'
         '</div>'
     )
+
+
+def render_source_metric_row(summary: SourceRefreshSummary) -> str:
+    status_class = source_status_class(summary.status)
+    row_summary = f"{summary.calls} calls - {format_source_status(summary)}"
+    status_label = short_source_status(summary.status)
+    return (
+        f'<tr title="{escape(row_summary)}">'
+        f'<td>{escape(format_source_name(summary.source))}</td>'
+        f'<td>{summary.calls}</td>'
+        f'<td><span class="source-status-chip {escape(status_class)}">{escape(status_label)}</span></td>'
+        f'<td class="source-count-ok">{summary.succeeded}</td>'
+        f'<td class="source-count-failed">{summary.failed}</td>'
+        '</tr>'
+    )
+
+
+def source_status_class(status: str) -> str:
+    normalized = status.strip().lower()
+    if normalized in {"succeeded", "success"}:
+        return "source-status-succeeded"
+    if normalized == "partial":
+        return "source-status-partial"
+    return "source-status-failed"
+
+
+def short_source_status(status: str) -> str:
+    normalized = status.strip().lower().replace("_", " ")
+    if normalized in {"succeeded", "success"}:
+        return "OK"
+    if normalized == "partial":
+        return "Partial"
+    return "Failed"
 
 
 def render_rating_row(rating: RatingSnapshot) -> str:
@@ -1323,7 +1398,10 @@ def run_status_class(status: str) -> str:
 def format_timestamp(value: datetime | None) -> str:
     if value is None:
         return "N/A"
-    return value.isoformat(sep=" ", timespec="seconds")
+    timezone_label = ""
+    if value.tzinfo is not None:
+        timezone_label = value.strftime(" %Z") or " UTC"
+    return value.strftime("%b %d, %Y, %H:%M") + timezone_label
 
 
 def format_date(value: date | None) -> str:

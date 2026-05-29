@@ -151,11 +151,6 @@
             gap: 8px;
             margin-top: 2px;
         }
-        .source-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 6px;
-        }
         .run-metric {
             padding: 8px 10px;
             border-radius: 12px;
@@ -175,28 +170,73 @@
             line-height: 1.25;
             word-break: break-word;
         }
-        .source-line {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            align-items: baseline;
-            gap: 6px;
-            padding: 6px 8px;
-            border-radius: 10px;
+        .source-metrics-table-wrap {
+            margin-top: 2px;
+            overflow-x: auto;
+            border-radius: 12px;
             border: 1px solid rgba(13, 92, 99, 0.1);
             background: rgba(255, 255, 255, 0.52);
         }
-        .source-line strong {
-            font-size: 0.74rem;
-            letter-spacing: 0.07em;
+        .source-metrics-table {
+            width: 100%;
+            border-collapse: collapse;
             font-family: "Trebuchet MS", sans-serif;
-            text-transform: uppercase;
-            color: var(--accent);
+        }
+        .source-metrics-table th,
+        .source-metrics-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(13, 92, 99, 0.08);
+            text-align: left;
+            vertical-align: middle;
+            font-size: 0.72rem;
+            line-height: 1.15;
             white-space: nowrap;
         }
-        .source-line span {
+        .source-metrics-table th {
             color: var(--muted);
-            font-size: 0.82rem;
-            line-height: 1.25;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.56rem;
+            background: rgba(13, 92, 99, 0.04);
+        }
+        .source-metrics-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+        .source-metrics-table td:first-child {
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: normal;
+        }
+        .source-status-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 2px 6px;
+            font-size: 0.56rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid rgba(31, 41, 51, 0.08);
+        }
+        .source-status-succeeded {
+            color: var(--good);
+            background: rgba(62, 138, 99, 0.12);
+        }
+        .source-status-partial {
+            color: var(--warn);
+            background: rgba(213, 166, 63, 0.14);
+        }
+        .source-status-failed {
+            color: var(--warm);
+            background: rgba(184, 92, 56, 0.16);
+        }
+        .source-count-ok {
+            color: var(--good);
+            font-weight: 700;
+        }
+        .source-count-failed {
+            color: #b9402e;
+            font-weight: 700;
         }
         .section {
             margin-top: 24px;
@@ -536,23 +576,15 @@
                     <div class="run-grid">
                         <div class="run-metric">
                             <div class="label">Finished</div>
-                            <div class="value">2026-05-29 12:29:28+00:00</div>
+                            <div class="value">May 29, 2026, 12:29 UTC</div>
                         </div>
                         <div class="run-metric">
                             <div class="label">Result</div>
                             <div class="value">52 succeeded, 4 failed, 2 rate limited</div>
                         </div>
-                        <div class="run-metric">
-                            <div class="label">Run ID</div>
-                            <div class="value">051539fb-da2b-4115-a03c-f728c7975811</div>
-                        </div>
-                        <div class="run-metric">
-                            <div class="label">Started</div>
-                            <div class="value">2026-05-29 12:27:57+00:00</div>
-                        </div>
                     </div>
                     <div class="kicker">Source calls</div>
-                    <div class="run-grid source-grid"><div class="source-line"><strong>FRED</strong><span>2 calls - Succeeded · 2 succeeded, 0 failed</span></div><div class="source-line"><strong>SEC EDGAR</strong><span>23 calls - Succeeded · 23 succeeded, 0 failed</span></div><div class="source-line"><strong>Alpha Vantage Overview</strong><span>24 calls - Partial · 23 succeeded, 1 failed</span></div><div class="source-line"><strong>Alpha Vantage</strong><span>1 calls - Failed · 0 succeeded, 1 failed</span></div><div class="source-line"><strong>Twelve Data</strong><span>8 calls - Partial · 6 succeeded, 2 failed</span></div><div class="source-line"><strong>Stooq</strong><span>2 calls - Failed · 0 succeeded, 2 failed</span></div></div>
+                    <div class="source-metrics-table-wrap"><table class="source-metrics-table"><thead><tr><th>Source</th><th>Calls</th><th>Status</th><th>Ok</th><th>Failed</th></tr></thead><tbody><tr title="2 calls - Succeeded · 2 succeeded, 0 failed"><td>FRED</td><td>2</td><td><span class="source-status-chip source-status-succeeded">OK</span></td><td class="source-count-ok">2</td><td class="source-count-failed">0</td></tr><tr title="23 calls - Succeeded · 23 succeeded, 0 failed"><td>SEC EDGAR</td><td>23</td><td><span class="source-status-chip source-status-succeeded">OK</span></td><td class="source-count-ok">23</td><td class="source-count-failed">0</td></tr><tr title="24 calls - Partial · 23 succeeded, 1 failed"><td>Alpha Vantage Overview</td><td>24</td><td><span class="source-status-chip source-status-partial">Partial</span></td><td class="source-count-ok">23</td><td class="source-count-failed">1</td></tr><tr title="1 calls - Failed · 0 succeeded, 1 failed"><td>Alpha Vantage</td><td>1</td><td><span class="source-status-chip source-status-failed">Failed</span></td><td class="source-count-ok">0</td><td class="source-count-failed">1</td></tr><tr title="8 calls - Partial · 6 succeeded, 2 failed"><td>Twelve Data</td><td>8</td><td><span class="source-status-chip source-status-partial">Partial</span></td><td class="source-count-ok">6</td><td class="source-count-failed">2</td></tr><tr title="2 calls - Failed · 0 succeeded, 2 failed"><td>Stooq</td><td>2</td><td><span class="source-status-chip source-status-failed">Failed</span></td><td class="source-count-ok">0</td><td class="source-count-failed">2</td></tr></tbody></table></div>
                 </aside>
             </div>
         </section>

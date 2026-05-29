@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Style Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #475569;
+      --paper: #f8fafc;
+      --line: #dbe1ea;
+      --brand: #0e7490;
+      --ok: #0f766e;
+      --warn: #b45309;
+      --bad: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1000px 300px at 50% -150px, #c7d2fe 0%, rgba(199, 210, 254, 0) 70%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    }
+
+    .wrap {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 32px 20px 40px;
+    }
+
+    .title {
+      margin: 0;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      font-size: clamp(30px, 4vw, 44px);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 8px 0 24px;
+      color: var(--muted);
+      max-width: 760px;
+      line-height: 1.4;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 18px;
+    }
+
+    .option {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      min-height: 370px;
+    }
+
+    .option-head {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .option-kicker {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #0f766e;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .option-name {
+      margin: 6px 0 4px;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    .option-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .canvas {
+      padding: 14px;
+      background: #ffffff;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 190px;
+      background: #ffffff;
+    }
+
+    .row {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .r2 { grid-template-columns: 1.3fr 1fr; }
+    .r3 { grid-template-columns: repeat(3, 1fr); }
+    .r4 { grid-template-columns: repeat(4, 1fr); }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      min-height: 34px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .good { color: var(--ok); border-color: #99f6e4; background: #f0fdfa; }
+    .warn { color: var(--warn); border-color: #fde68a; background: #fffbeb; }
+    .bad { color: var(--bad); border-color: #fecaca; background: #fef2f2; }
+
+    .bar {
+      position: relative;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f1f5f9;
+    }
+
+    .bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 62%;
+      background: #67e8f9;
+      opacity: 0.55;
+    }
+
+    .bar-labels {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      padding: 0 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      font-size: 11px;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .table {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .tr {
+      display: grid;
+      grid-template-columns: 1.3fr 0.8fr 0.9fr;
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .tr:first-child { border-top: none; }
+
+    .td {
+      padding: 8px;
+      background: #fff;
+    }
+
+    .thead .td {
+      background: #f8fafc;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .newspaper {
+      border: 1px solid #cbd5e1;
+      border-radius: 0;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .news-title {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 21px;
+      letter-spacing: -0.01em;
+      border-bottom: 2px solid #0f172a;
+      margin: 0 0 8px;
+      padding-bottom: 6px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 8px;
+    }
+
+    .heat {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .cell {
+      border-radius: 6px;
+      height: 24px;
+      border: 1px solid #d1d5db;
+      background: #e2e8f0;
+    }
+
+    .c1 { background: #bbf7d0; }
+    .c2 { background: #86efac; }
+    .c3 { background: #fde68a; }
+    .c4 { background: #fecaca; }
+
+    .note {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; }
+      .tr { grid-template-columns: 1.2fr 0.9fr 0.8fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="title">5 Visual Directions for the Stock Ratings Dashboard</h1>
+    <p class="subtitle">Each block is a mini mockup of the same data with a different visual style. Choose one and I will implement it in the real dashboard renderer.</p>
+
+    <div class="grid">
+      <section class="option">
+        <div class="option-head">
+          <p class="option-kicker">Option 1</p>
+          <h2 class="option-name">Minimal Financial Terminal</h2>
+          <p class="option-text">Clean, no decoration, scan speed first. Sticky table + compact status chips.</p>
+        </div>
+        <div class="canvas">
+          <div class="mini">
+            <div class="row r2">
+              <div class="box"><strong>Today Signal</strong><span class="pill good">BUY</span></div>
+              <div class="box">Score <strong>78</strong></div>
+            </div>
+            <div class="bar">
+              <div class="bar-fill"></div>
+              <div class="bar-labels"><span>122</span><span>138</span><span>151</span></div>
+            </div>
+            <div style="height:8px"></div>
+            <div class="table">
+              <div class="tr thead"><div class="td">Ticker</div><div class="td">Rating</div><div class="td">Trend</div></div>
+              <div class="tr"><div class="td">NVDA</div><div class="td"><span class="pill good">Strong Buy</span></div><div class="td">+2.1%</div></div>
+              <div class="tr"><div class="td">AAPL</div><div class="td"><span class="pill warn">Hold</span></div><div class="td">-0.4%</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="option">
+        <div class="option-head">
+          <p class="option-kicker">Option 2</p>
+          <h2 class="option-name">Priority Card Grid</h2>
+          <p class="option-text">Action-first layout with top opportunities before full table detail.</p>
+        </div>
+        <div class="canvas">
+          <div class="mini">
+            <div class="row r3">
+              <div class="box" style="background:#f0fdfa;border-color:#99f6e4;">Best Buy<br><strong>NVDA</strong></div>
+              <div class="box" style="background:#fff7ed;border-color:#fdba74;">Highest Risk<br><strong>TSLA</strong></div>
+              <div class="box" style="background:#eff6ff;border-color:#93c5fd;">Biggest Gap<br><strong>AMZN</strong></div>
+            </div>
+            <div class="row r2">
+              <div class="box">Top Movers</div>
+              <div class="box">Watchlist</div>
+            </div>
+            <div class="table">
+              <div class="tr thead"><div class="td">Source</div><div class="td">Calls</div><div class="td">Status</div></div>
+              <div class="tr"><div class="td">Prices</div><div class="td">412</div><div class="td"><span class="pill good">OK</span></div></div>
+              <div class="tr"><div class="td">SEC</div><div class="td">48</div><div class="td"><span class="pill warn">Late</span></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="option">
+        <div class="option-head">
+          <p class="option-kicker">Option 3</p>
+          <h2 class="option-name">Split View Summary + Screener</h2>
+          <p class="option-text">Persistent left insights rail and right dense screener for decisions.</p>
+        </div>
+        <div class="canvas">
+          <div class="mini split">
+            <div>
+              <div class="box" style="margin-bottom:8px;">Market Pulse <strong>Risk-On</strong></div>
+              <div class="box" style="margin-bottom:8px;">Changed Since Yesterday <strong>+7</strong></div>
+              <div class="box">Top Sector <strong>Semis</strong></div>
+            </div>
+            <div>
+              <div class="row r4">
+                <div class="box">BUY 14</div>
+                <div class="box">HOLD 11</div>
+                <div class="box">SELL 6</div>
+                <div class="box">STRONG 9</div>
+              </div>
+              <div class="bar">
+                <div class="bar-fill" style="width:70%"></div>
+                <div class="bar-labels"><span>95</span><span>112</span><span>133</span></div>
+              </div>
+              <div style="height:8px"></div>
+              <div class="table">
+                <div class="tr thead"><div class="td">Ticker</div><div class="td">Analyst</div><div class="td">Score</div></div>
+                <div class="tr"><div class="td">MSFT</div><div class="td">Buy</div><div class="td">81</div></div>
+                <div class="tr"><div class="td">META</div><div class="td">Hold</div><div class="td">62</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="option">
+        <div class="option-head">
+          <p class="option-kicker">Option 4</p>
+          <h2 class="option-name">Newspaper Data Sheet</h2>
+          <p class="option-text">Editorial typography, dense alignment, premium black-and-white look.</p>
+        </div>
+        <div class="canvas">
+          <div class="newspaper">
+            <h3 class="news-title">Top 5 Moves</h3>
+            <div class="row r2">
+              <div class="box">Headline: Analyst upgrades accelerate in AI basket.</div>
+              <div class="box">Edition: 29 May 2026</div>
+            </div>
+            <div class="table" style="margin-top:6px;">
+              <div class="tr thead"><div class="td">Symbol</div><div class="td">Call</div><div class="td">Target</div></div>
+              <div class="tr"><div class="td">NVDA</div><div class="td">Strong Buy</div><div class="td">151</div></div>
+              <div class="tr"><div class="td">AMD</div><div class="td">Buy</div><div class="td">172</div></div>
+            </div>
+            <div style="height:8px"></div>
+            <div class="bar">
+              <div class="bar-fill" style="width:64%"></div>
+              <div class="bar-labels"><span>Low</span><span>Median</span><span>High</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="option">
+        <div class="option-head">
+          <p class="option-kicker">Option 5</p>
+          <h2 class="option-name">Heatmap + Table Hybrid</h2>
+          <p class="option-text">Visual density with strict flat design, color carries meaning only.</p>
+        </div>
+        <div class="canvas">
+          <div class="mini">
+            <div class="heat">
+              <div class="cell c2"></div><div class="cell c1"></div><div class="cell c3"></div><div class="cell c2"></div>
+              <div class="cell c4"></div><div class="cell c3"></div><div class="cell c2"></div><div class="cell c1"></div>
+            </div>
+            <div class="row r3">
+              <div class="box">Tech 42%</div>
+              <div class="box">Finance 18%</div>
+              <div class="box">Health 15%</div>
+            </div>
+            <div class="table">
+              <div class="tr thead"><div class="td">Ticker</div><div class="td">Signal</div><div class="td">Heat</div></div>
+              <div class="tr"><div class="td">GOOG</div><div class="td"><span class="pill good">Buy</span></div><div class="td">84</div></div>
+              <div class="tr"><div class="td">NFLX</div><div class="td"><span class="pill bad">Sell</span></div><div class="td">31</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="note">
+      Reply with one number: 1, 2, 3, 4, or 5. I will implement that exact style in the real generated dashboard.
+    </div>
+  </div>
+</body>
+</html>

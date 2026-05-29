@@ -456,29 +456,28 @@ def render_dashboard_html(
     <title>Stock Ratings Dashboard</title>
     <style>
         :root {{
-            --bg: #f6f1e8;
-            --panel: rgba(255, 252, 247, 0.9);
-            --panel-strong: #fffaf1;
-            --text: #1f2933;
-            --muted: #5e6b78;
-            --line: rgba(31, 41, 51, 0.12);
-            --accent: #0d5c63;
-            --accent-soft: #d7ecee;
-            --warm: #b85c38;
-            --good: #2d6a4f;
-            --warn: #a2670a;
-            --shadow: 0 18px 50px rgba(29, 43, 57, 0.12);
+            --bg: #f3f6fa;
+            --panel: #ffffff;
+            --panel-strong: #ffffff;
+            --text: #0f172a;
+            --muted: #475569;
+            --line: #dce3eb;
+            --accent: #0f766e;
+            --accent-soft: #e6f6f4;
+            --warm: #b45309;
+            --good: #0f766e;
+            --warn: #b45309;
+            --shadow: none;
         }}
 
         * {{ box-sizing: border-box; }}
         body {{
             margin: 0;
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top left, rgba(13, 92, 99, 0.18), transparent 28%),
-                radial-gradient(circle at top right, rgba(184, 92, 56, 0.16), transparent 24%),
-                linear-gradient(180deg, #fbf7ef 0%, var(--bg) 55%, #efe4d3 100%);
+                radial-gradient(1100px 300px at 50% -210px, rgba(15, 118, 110, 0.12), transparent 70%),
+                linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
             min-height: 100vh;
         }}
         .page {{
@@ -487,21 +486,15 @@ def render_dashboard_html(
             padding: 32px 0 40px;
         }}
         .hero {{
-            background: linear-gradient(135deg, rgba(255, 250, 241, 0.95), rgba(240, 233, 218, 0.95));
-            border: 1px solid rgba(13, 92, 99, 0.12);
-            border-radius: 28px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
             box-shadow: var(--shadow);
             overflow: hidden;
             position: relative;
         }}
         .hero::after {{
-            content: "";
-            position: absolute;
-            inset: auto -80px -100px auto;
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(13, 92, 99, 0.2), transparent 68%);
+            content: none;
         }}
         .hero-inner {{
             display: grid;
@@ -511,18 +504,19 @@ def render_dashboard_html(
             align-items: start;
         }}
         h1 {{
-            font-size: clamp(2rem, 3.2vw, 2.9rem);
-            line-height: 0.96;
+            font-size: clamp(1.7rem, 2.8vw, 2.3rem);
+            line-height: 1.03;
             margin: 0 0 8px;
-            letter-spacing: -0.05em;
+            letter-spacing: -0.02em;
         }}
         .eyebrow {{
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             text-transform: uppercase;
-            letter-spacing: 0.18em;
-            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            font-size: 0.68rem;
             color: var(--accent);
             margin-bottom: 8px;
+            font-weight: 700;
         }}
         .lead {{
             font-size: 0.92rem;
@@ -538,29 +532,30 @@ def render_dashboard_html(
             display: inline-block;
             text-decoration: none;
             color: #ffffff;
-            background: linear-gradient(90deg, var(--accent), #1b7f88);
+            background: var(--accent);
             border-radius: 999px;
             padding: 8px 14px;
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.74rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }}
         .hero-panel {{
-            background: rgba(13, 92, 99, 0.06);
-            border: 1px solid rgba(13, 92, 99, 0.12);
-            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
             padding: 14px;
             display: flex;
             flex-direction: column;
             gap: 8px;
         }}
         .hero-panel .kicker {{
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.7rem;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--accent);
+            font-weight: 700;
         }}
         .hero-panel .value {{
             font-size: 1.35rem;
@@ -577,11 +572,11 @@ def render_dashboard_html(
             width: fit-content;
             padding: 6px 10px;
             border-radius: 999px;
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.75rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
-            border: 1px solid rgba(31, 41, 51, 0.08);
+            border: 1px solid var(--line);
         }}
         .run-status-success {{
             background: rgba(62, 138, 99, 0.14);
@@ -603,13 +598,13 @@ def render_dashboard_html(
         }}
         .run-metric {{
             padding: 8px 10px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.45);
-            border: 1px solid rgba(13, 92, 99, 0.08);
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid var(--line);
         }}
         .run-metric .label {{
             color: var(--muted);
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.65rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -623,19 +618,19 @@ def render_dashboard_html(
         .source-metrics-table-wrap {{
             margin-top: 2px;
             overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid rgba(13, 92, 99, 0.1);
-            background: rgba(255, 255, 255, 0.52);
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #ffffff;
         }}
         .source-metrics-table {{
             width: 100%;
             border-collapse: collapse;
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
         }}
         .source-metrics-table th,
         .source-metrics-table td {{
             padding: 6px 8px;
-            border-bottom: 1px solid rgba(13, 92, 99, 0.08);
+            border-bottom: 1px solid var(--line);
             text-align: left;
             vertical-align: middle;
             font-size: 0.72rem;
@@ -647,7 +642,7 @@ def render_dashboard_html(
             text-transform: uppercase;
             letter-spacing: 0.08em;
             font-size: 0.56rem;
-            background: rgba(13, 92, 99, 0.04);
+            background: #f8fafc;
         }}
         .source-metrics-table tbody tr:last-child td {{
             border-bottom: 0;
@@ -692,10 +687,9 @@ def render_dashboard_html(
             margin-top: 24px;
             background: var(--panel);
             border: 1px solid var(--line);
-            border-radius: 24px;
+            border-radius: 14px;
             box-shadow: var(--shadow);
-            padding: 24px;
-            backdrop-filter: blur(10px);
+            padding: 20px;
         }}
         .section-title {{
             display: flex;
@@ -721,12 +715,12 @@ def render_dashboard_html(
         .card {{
             background: var(--panel-strong);
             border: 1px solid var(--line);
-            border-radius: 20px;
-            padding: 18px;
+            border-radius: 10px;
+            padding: 14px;
         }}
         .card .label {{
             color: var(--muted);
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
@@ -754,8 +748,8 @@ def render_dashboard_html(
             border: 1px solid var(--line);
             background: var(--panel-strong);
             border-radius: 999px;
-            padding: 10px 14px;
-            font-size: 0.95rem;
+            padding: 8px 12px;
+            font-size: 0.88rem;
         }}
         .pill strong {{
             color: var(--accent);
@@ -771,7 +765,7 @@ def render_dashboard_html(
             display: grid;
             gap: 4px;
             padding: 14px 16px;
-            border-radius: 18px;
+            border-radius: 10px;
             border: 1px solid var(--line);
             background: var(--panel-strong);
         }}
@@ -787,7 +781,8 @@ def render_dashboard_html(
             width: 100%;
             border-collapse: collapse;
             overflow: hidden;
-            border-radius: 18px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
         }}
         th, td {{
             text-align: left;
@@ -796,11 +791,15 @@ def render_dashboard_html(
             vertical-align: top;
         }}
         th {{
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.78rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--muted);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #f8fafc;
         }}
         th button {{
             border: 0;
@@ -813,7 +812,7 @@ def render_dashboard_html(
             cursor: pointer;
         }}
         tbody tr:hover {{
-            background: rgba(13, 92, 99, 0.04);
+            background: #f8fbfb;
         }}
         .symbol {{
             font-weight: 700;
@@ -837,11 +836,11 @@ def render_dashboard_html(
             border-radius: 999px;
             padding: 4px 9px;
             font-size: 0.66rem;
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             letter-spacing: 0.06em;
             text-transform: uppercase;
             font-weight: 700;
-            border: 1px solid rgba(31, 41, 51, 0.08);
+            border: 1px solid var(--line);
         }}
         .analyst-chip-up {{
             background: #dcf5e5;
@@ -868,11 +867,11 @@ def render_dashboard_html(
             gap: 6px;
         }}
         .target-mini {{
-            border: 1px solid rgba(31, 41, 51, 0.1);
-            border-radius: 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
             padding: 6px;
             text-align: center;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(242, 238, 230, 0.78));
+            background: #ffffff;
         }}
         .target-mini .price {{
             display: block;
@@ -882,7 +881,7 @@ def render_dashboard_html(
         }}
         .target-mini .pct {{
             display: block;
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.62rem;
             letter-spacing: 0.04em;
             font-weight: 700;
@@ -899,14 +898,13 @@ def render_dashboard_html(
             min-width: 72px;
             gap: 3px;
             padding: 10px 12px;
-            border-radius: 16px;
-            border: 1px solid rgba(31, 41, 51, 0.08);
+            border-radius: 10px;
+            border: 1px solid var(--line);
             color: #183042;
             font-weight: 700;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
         }}
         .score-chip small {{
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.68rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
@@ -917,13 +915,13 @@ def render_dashboard_html(
             line-height: 1;
         }}
         .score-band-low {{
-            background: linear-gradient(180deg, #f7d7cd, #f3b9a8);
+            background: #fee2e2;
         }}
         .score-band-mid {{
-            background: linear-gradient(180deg, #f7e9c6, #efd48a);
+            background: #fef3c7;
         }}
         .score-band-high {{
-            background: linear-gradient(180deg, #d8edd4, #acd8a1);
+            background: #d1fae5;
         }}
         .freshness-fresh {{ color: var(--good); }}
         .freshness-aging {{ color: var(--warn); }}
@@ -933,9 +931,9 @@ def render_dashboard_html(
         }}
         .factor-chip {{
             padding: 8px 8px 9px;
-            border-radius: 14px;
-            border: 1px solid rgba(13, 92, 99, 0.08);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(242, 238, 230, 0.75));
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #ffffff;
         }}
         .factor-head {{
             display: block;
@@ -944,7 +942,7 @@ def render_dashboard_html(
         .factor-chip span {{
             display: block;
             color: var(--muted);
-            font-family: "Trebuchet MS", sans-serif;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
             font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
@@ -968,13 +966,13 @@ def render_dashboard_html(
             border-radius: 999px;
         }}
         .factor-fill-low {{
-            background: linear-gradient(90deg, #db6f51, #e79870);
+            background: #fb7185;
         }}
         .factor-fill-mid {{
-            background: linear-gradient(90deg, #d5a63f, #edd073);
+            background: #f59e0b;
         }}
         .factor-fill-high {{
-            background: linear-gradient(90deg, #3e8a63, #78bc86);
+            background: #10b981;
         }}
         .empty {{
             text-align: center;
@@ -1014,8 +1012,8 @@ def render_dashboard_html(
             <div class="hero-inner">
                 <div>
                     <div class="eyebrow">Daily stock snapshot</div>
-                    <h1>Ratings worth presenting.</h1>
-                    <p class="lead">Latest ratings, freshness state, and score breakdowns generated directly from the pipeline's persisted outputs.</p>
+                    <h1>Today's signal, quickly.</h1>
+                    <p class="lead">Flat, clean view of ratings, freshness, analyst stance, and targets with quick scan priority.</p>
                     <div class="hero-link"><a href="ratings-methodology.html">How Ratings Are Calculated</a></div>
                 </div>
                 <aside class="hero-panel">

@@ -17,6 +17,7 @@ This project uses dated entries because it has not adopted public semantic versi
 
 ### Changed
 
+- Updated GitHub Actions workflows to current Node 24-compatible action majors.
 - Upgraded the scoring model to `v4`, using richer valuation, growth, momentum, quality, and risk components while retaining the planned 25/25/20/20/10 composite weighting.
 - Changed rating freshness calculation so persisted ratings use the actual latest feature/input date after a successful refresh, not the stale pre-refresh planning state.
 - Changed price freshness age to count trading weekdays rather than raw calendar days.

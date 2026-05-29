@@ -189,6 +189,12 @@
                         <td>ingest/sec_companyfacts.py + transform/fundamentals.py</td>
                     </tr>
                     <tr>
+                        <td>Analyst Consensus</td>
+                        <td>analyst_target_price, analyst strong_buy/buy/hold/sell/strong_sell counts, suggestion_label</td>
+                        <td>Alpha Vantage OVERVIEW</td>
+                        <td>ingest/analyst.py + analyst_consensus_daily</td>
+                    </tr>
+                    <tr>
                         <td>Macro</td>
                         <td>yield_curve_slope</td>
                         <td>FRED series DGS10 and DGS2</td>
@@ -203,7 +209,7 @@
                     <tr><th>Source</th><th>Calls</th><th>Succeeded</th><th>Failed</th><th>Status</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="5">No source call summary available in latest artifact.</td></tr>
+                    <tr><td>FRED</td><td>2</td><td>2</td><td>0</td><td>Succeeded</td></tr><tr><td>SEC EDGAR</td><td>23</td><td>23</td><td>0</td><td>Succeeded</td></tr><tr><td>Alpha Vantage Overview</td><td>24</td><td>23</td><td>1</td><td>Partial</td></tr><tr><td>Alpha Vantage</td><td>1</td><td>0</td><td>1</td><td>Failed</td></tr><tr><td>Twelve Data</td><td>8</td><td>6</td><td>2</td><td>Partial</td></tr><tr><td>Stooq</td><td>2</td><td>0</td><td>2</td><td>Failed</td></tr>
                 </tbody>
             </table>
         </section>

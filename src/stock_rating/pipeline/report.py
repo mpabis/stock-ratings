@@ -39,6 +39,12 @@ class RatingSnapshot:
         summary: str
         analyst_target_price: Decimal | None = None
         analyst_suggestion_label: str | None = None
+        latest_price_close: Decimal | None = None
+        strong_buy_count: int | None = None
+        buy_count: int | None = None
+        hold_count: int | None = None
+        sell_count: int | None = None
+        strong_sell_count: int | None = None
 
 
 @dataclass(frozen=True)
@@ -193,8 +199,20 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 select distinct on (symbol)
                     symbol,
                     analyst_target_price,
-                    suggestion_label
+                    suggestion_label,
+                    strong_buy_count,
+                    buy_count,
+                    hold_count,
+                    sell_count,
+                    strong_sell_count
                 from analyst_consensus_daily
+                order by symbol, date desc, ingested_at desc
+            ),
+            latest_prices as (
+                select distinct on (symbol)
+                    symbol,
+                    coalesce(adjusted_close, close) as latest_price_close
+                from price_daily
                 order by symbol, date desc, ingested_at desc
             )
             select
@@ -211,9 +229,16 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 rr.risk_score,
                 rr.explanation_json,
                 la.analyst_target_price,
-                la.suggestion_label
+                la.suggestion_label,
+                lp.latest_price_close,
+                la.strong_buy_count,
+                la.buy_count,
+                la.hold_count,
+                la.sell_count,
+                la.strong_sell_count
             from ranked_ratings rr
             left join latest_analyst la on la.symbol = rr.symbol
+            left join latest_prices lp on lp.symbol = rr.symbol
             where rr.row_number = 1
             order by rr.rating_score desc, rr.symbol asc
             """
@@ -241,6 +266,13 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                     ) as row_number
                 from ratings_daily r
                 join symbols s on s.symbol = r.symbol
+            ),
+            latest_prices as (
+                select distinct on (symbol)
+                    symbol,
+                    coalesce(adjusted_close, close) as latest_price_close
+                from price_daily
+                order by symbol, date desc, ingested_at desc
             )
             select
                 symbol,
@@ -256,35 +288,48 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 risk_score,
                 explanation_json,
                 null as analyst_target_price,
-                null as suggestion_label
-            from ranked_ratings
+                null as suggestion_label,
+                lp.latest_price_close,
+                null as strong_buy_count,
+                null as buy_count,
+                null as hold_count,
+                null as sell_count,
+                null as strong_sell_count
+            from ranked_ratings rr
+            left join latest_prices lp on lp.symbol = rr.symbol
             where row_number = 1
             order by rating_score desc, symbol asc
             """
         )
 
-        snapshots: list[RatingSnapshot] = []
-        for row in cursor.fetchall():
-                explanation_json = row[11] or {}
-                snapshots.append(
-                        RatingSnapshot(
-                                symbol=row[0],
-                                company_name=row[1],
-                                rating_score=row[2],
-                                rating_label=row[3],
-                                freshness_status=row[4],
-                                freshest_input_date=row[5],
-                                valuation_score=row[6],
-                                quality_score=row[7],
-                                growth_score=row[8],
-                                momentum_score=row[9],
-                                risk_score=row[10],
-                                analyst_target_price=row[12],
-                                analyst_suggestion_label=row[13],
-                                summary=explanation_json.get("summary", "No explanation available."),
-                        )
-                )
-        return snapshots
+    snapshots: list[RatingSnapshot] = []
+    for row in cursor.fetchall():
+        explanation_json = row[11] or {}
+        snapshots.append(
+            RatingSnapshot(
+                symbol=row[0],
+                company_name=row[1],
+                rating_score=row[2],
+                rating_label=row[3],
+                freshness_status=row[4],
+                freshest_input_date=row[5],
+                valuation_score=row[6],
+                quality_score=row[7],
+                growth_score=row[8],
+                momentum_score=row[9],
+                risk_score=row[10],
+                analyst_target_price=row[12],
+                analyst_suggestion_label=row[13],
+                latest_price_close=row[14],
+                strong_buy_count=row[15],
+                buy_count=row[16],
+                hold_count=row[17],
+                sell_count=row[18],
+                strong_sell_count=row[19],
+                summary=explanation_json.get("summary", "No explanation available."),
+            )
+        )
+    return snapshots
 
 
 def fetch_quality_snapshots(cursor: Any) -> list[SymbolQualitySnapshot]:
@@ -397,7 +442,7 @@ def render_dashboard_html(
         ) or '<li><strong>Healthy</strong><span>No active data quality alerts.</span></li>'
 
         rows_html = "".join(render_rating_row(rating) for rating in ratings) or (
-            '<tr><td colspan="8" class="empty">No ratings found in ratings_daily.</td></tr>'
+            '<tr><td colspan="10" class="empty">No ratings found in ratings_daily.</td></tr>'
         )
 
         run_summary = render_run_summary(latest_run, latest_run_counts)
@@ -748,6 +793,66 @@ def render_dashboard_html(
             margin-top: 3px;
             line-height: 1.3;
         }}
+        .analyst-chip {{
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 0.66rem;
+            font-family: "Trebuchet MS", sans-serif;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 700;
+            border: 1px solid rgba(31, 41, 51, 0.08);
+        }}
+        .analyst-chip-up {{
+            background: #dcf5e5;
+            color: #1f8b4d;
+        }}
+        .analyst-chip-down {{
+            background: #fde4df;
+            color: #b9402e;
+        }}
+        .analyst-chip-flat {{
+            background: #efe8da;
+            color: #7c6f5b;
+        }}
+        .target-cell {{
+            min-width: 252px;
+        }}
+        .target-option-one {{
+            display: grid;
+            gap: 0;
+        }}
+        .target-grid {{
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+        }}
+        .target-mini {{
+            border: 1px solid rgba(31, 41, 51, 0.1);
+            border-radius: 10px;
+            padding: 6px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(242, 238, 230, 0.78));
+        }}
+        .target-mini .price {{
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }}
+        .target-mini .pct {{
+            display: block;
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.62rem;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+            margin-top: 2px;
+        }}
+        .target-mini .pct-up {{ color: var(--good); }}
+        .target-mini .pct-down {{ color: var(--warm); }}
+        .target-mini .pct-flat {{ color: var(--muted); }}
         .score-chip {{
             display: inline-flex;
             flex-direction: column;
@@ -920,6 +1025,8 @@ def render_dashboard_html(
                                                 <th><button type="button" data-sort-index="5" data-sort-kind="number">Growth</button></th>
                                                 <th><button type="button" data-sort-index="6" data-sort-kind="number">Mom</button></th>
                                                 <th><button type="button" data-sort-index="7" data-sort-kind="number">Risk</button></th>
+                                                <th><button type="button" data-sort-index="8" data-sort-kind="number">Analyst</button></th>
+                                                <th><button type="button" data-sort-index="9" data-sort-kind="number">Target</button></th>
                     </tr>
                 </thead>
                                 <tbody id="ratings-table-body">
@@ -1020,6 +1127,19 @@ def render_rating_row(rating: RatingSnapshot) -> str:
     rating_ten = format_score_ten(Decimal(rating.rating_score))
     score_band = score_band_class(Decimal(rating.rating_score))
     company_sort = f"{rating.symbol} {rating.company_name}".lower()
+    analyst_suggestion = (rating.analyst_suggestion_label or "").replace("_", " ").title()
+    analyst_sort_rank = analyst_rank_value(rating.analyst_suggestion_label)
+    analyst_target_sort = str(rating.analyst_target_price) if rating.analyst_target_price is not None else "-1"
+    analyst_badge_html = render_analyst_badge(analyst_suggestion or "N/A")
+    target_option_one_html = render_target_option_one(
+        analyst_target_price=rating.analyst_target_price,
+        latest_price_close=rating.latest_price_close,
+        strong_buy_count=rating.strong_buy_count,
+        buy_count=rating.buy_count,
+        hold_count=rating.hold_count,
+        sell_count=rating.sell_count,
+        strong_sell_count=rating.strong_sell_count,
+    )
     factor_cells_html = "".join(
         [
             render_factor_cell("Valuation", rating.valuation_score),
@@ -1029,20 +1149,107 @@ def render_rating_row(rating: RatingSnapshot) -> str:
             render_factor_cell("Risk", rating.risk_score),
         ]
     )
-    analyst_parts: list[str] = []
-    if rating.analyst_suggestion_label:
-        analyst_parts.append(f"Analyst: {rating.analyst_suggestion_label.replace('_', ' ').title()}")
-    if rating.analyst_target_price is not None:
-        analyst_parts.append(f"Target: {format_currency(rating.analyst_target_price)}")
-    analyst_html = f'<div class="analyst">{" | ".join(escape(part) for part in analyst_parts)}</div>' if analyst_parts else ""
     return (
         "<tr>"
-        f'<td data-sort="{escape(company_sort)}"><div class="symbol">{escape(rating.symbol)}</div><div class="company">{escape(rating.company_name)}</div>{analyst_html}</td>'
+        f'<td data-sort="{escape(company_sort)}"><div class="symbol">{escape(rating.symbol)}</div><div class="company">{escape(rating.company_name)}</div></td>'
         f'<td data-sort="{rating.rating_score}"><span class="score-chip {score_band}"><small>Rating</small><strong>{escape(rating_ten)}</strong></span></td>'
         f'<td data-sort="{escape(rating.freshness_status)}" class="{freshness_class}">{escape(rating.freshness_status.title())}</td>'
         f'{factor_cells_html}'
+        f'<td data-sort="{analyst_sort_rank}" class="analyst">{analyst_badge_html}</td>'
+        f'<td data-sort="{escape(analyst_target_sort)}" class="target-cell">{target_option_one_html}</td>'
         "</tr>"
     )
+
+
+def render_analyst_badge(suggestion_label: str) -> str:
+    normalized = suggestion_label.strip().lower().replace(" ", "_")
+    if normalized in {"strong_buy", "buy"}:
+        chip_class = "analyst-chip-up"
+    elif normalized in {"strong_sell", "sell"}:
+        chip_class = "analyst-chip-down"
+    else:
+        chip_class = "analyst-chip-flat"
+    return f'<span class="analyst-chip {chip_class}">{escape(suggestion_label)}</span>'
+
+
+def render_target_option_one(
+    analyst_target_price: Decimal | None,
+    latest_price_close: Decimal | None,
+    strong_buy_count: int | None,
+    buy_count: int | None,
+    hold_count: int | None,
+    sell_count: int | None,
+    strong_sell_count: int | None,
+) -> str:
+    targets = derive_target_triplet(
+        analyst_target_price,
+        strong_buy_count,
+        buy_count,
+        hold_count,
+        sell_count,
+        strong_sell_count,
+    )
+
+    cells_html = "".join(
+        (
+            '<div class="target-mini">'
+            f'<span class="price">{escape(format_currency_usd(value))}</span>'
+            f'<span class="pct {escape(target_pct_class(target_percent(value, latest_price_close)))}">'
+            f'{escape(format_percent(target_percent(value, latest_price_close)))}'
+            '</span>'
+            '</div>'
+        )
+        for value in targets
+    )
+
+    return (
+        '<div class="target-option-one">'
+        f'<div class="target-grid">{cells_html}</div>'
+        '</div>'
+    )
+
+
+def derive_target_triplet(
+    median_target: Decimal | None,
+    strong_buy_count: int | None,
+    buy_count: int | None,
+    hold_count: int | None,
+    sell_count: int | None,
+    strong_sell_count: int | None,
+) -> list[Decimal | None]:
+    if median_target is None:
+        return [None, None, None]
+
+    strong_buy = strong_buy_count or 0
+    buy = buy_count or 0
+    hold = hold_count or 0
+    sell = sell_count or 0
+    strong_sell = strong_sell_count or 0
+    total = strong_buy + buy + hold + sell + strong_sell
+
+    # Use analyst vote dispersion to estimate a low/high envelope around the reported target.
+    if total <= 0:
+        spread_pct = Decimal("0.12")
+    else:
+        weighted_bias = (strong_buy * 2 + buy) - (sell + strong_sell * 2)
+        consensus_strength = Decimal(abs(weighted_bias)) / (Decimal(2) * Decimal(total))
+        spread_pct = Decimal("0.06") + (Decimal("1") - consensus_strength) * Decimal("0.14")
+
+    low = (median_target * (Decimal("1") - spread_pct)).quantize(Decimal("0.01"))
+    high = (median_target * (Decimal("1") + spread_pct)).quantize(Decimal("0.01"))
+    return [low, median_target.quantize(Decimal("0.01")), high]
+
+
+def analyst_rank_value(suggestion_label: str | None) -> int:
+    normalized = (suggestion_label or "").strip().lower().replace(" ", "_")
+    ranking = {
+        "strong_sell": 1,
+        "sell": 2,
+        "hold": 3,
+        "buy": 4,
+        "strong_buy": 5,
+    }
+    return ranking.get(normalized, 0)
 
 
 def render_run_summary(
@@ -1135,6 +1342,37 @@ def format_currency(value: Decimal | None) -> str:
     if value is None:
         return "N/A"
     return f"{value:.2f}"
+
+
+def format_currency_usd(value: Decimal | None) -> str:
+    if value is None:
+        return "N/A"
+    return f"${value:.2f}"
+
+
+def target_percent(target_value: Decimal | None, latest_price_close: Decimal | None) -> Decimal | None:
+    if target_value is None or latest_price_close is None:
+        return None
+    if latest_price_close == 0:
+        return None
+    percent = ((target_value - latest_price_close) / latest_price_close) * Decimal("100")
+    return percent.quantize(Decimal("0.1"))
+
+
+def format_percent(value: Decimal | None) -> str:
+    if value is None:
+        return "N/A"
+    return f"{value:+.1f}%"
+
+
+def target_pct_class(value: Decimal | None) -> str:
+    if value is None:
+        return "pct-flat"
+    if value > 0:
+        return "pct-up"
+    if value < 0:
+        return "pct-down"
+    return "pct-flat"
 
 
 def format_score_ten(value: Decimal | None) -> str:

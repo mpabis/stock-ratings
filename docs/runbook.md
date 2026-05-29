@@ -7,8 +7,9 @@
 3. Run the daily planner demo with `python -m stock_rating.pipeline.daily`.
 4. Bootstrap symbols with `python -m stock_rating.pipeline.bootstrap_symbols`.
 5. Follow [docs/supabase_setup.md](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/docs/supabase_setup.md) to create and initialize the hosted database.
-6. Verify connectivity with `python -m stock_rating.pipeline.check_db`.
-7. Summarize current DB state and generate the ratings dashboard with `python -m stock_rating.pipeline.report`.
+6. Apply pending migrations with `python -m stock_rating.pipeline.migrate`.
+7. Verify connectivity with `python -m stock_rating.pipeline.check_db`.
+8. Summarize current DB state and generate the ratings dashboard with `python -m stock_rating.pipeline.report`.
 
 ## Operations
 
@@ -21,6 +22,7 @@
 - Inspect `artifacts/reports/ratings-dashboard.html` for the latest presentation-friendly ratings view.
 - Configure `DATABASE_URL` to persist `pipeline_runs` and `symbol_refresh_runs` into Postgres.
 - Apply migrations before running the bootstrap or daily pipeline against a fresh database.
+- Use `python -m stock_rating.pipeline.migrate` to apply outstanding migrations after pulling new changes.
 
 ## Hosted database
 

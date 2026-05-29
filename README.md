@@ -19,6 +19,7 @@ Hosted daily stock ratings pipeline scaffold for free-only market data sources.
 - Run read-only API: `uvicorn stock_rating.api.app:app --host 0.0.0.0 --port 8000`
 - Backfill historical daily prices with Alpha Vantage full-history fetches: `python -m stock_rating.pipeline.backfill`
 - Bootstrap symbols into Postgres: `python -m stock_rating.pipeline.bootstrap_symbols`
+- Apply pending SQL migrations: `python -m stock_rating.pipeline.migrate`
 - Bootstrap SEC fundamentals into `fundamental_facts`: `python -m stock_rating.pipeline.bootstrap_fundamentals`
 - Check database connection safely: `python -m stock_rating.pipeline.check_db`
 - Report latest database state and generate HTML dashboard: `python -m stock_rating.pipeline.report`

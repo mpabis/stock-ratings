@@ -386,56 +386,56 @@ def render_dashboard_html(
         }}
         .hero-inner {{
             display: grid;
-            grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.95fr);
-            gap: 24px;
-            padding: 24px 28px;
+            grid-template-columns: minmax(0, 1.15fr) minmax(440px, 1.2fr);
+            gap: 16px;
+            padding: 18px 20px;
             align-items: start;
         }}
         h1 {{
-            font-size: clamp(2.4rem, 5vw, 4.5rem);
-            line-height: 0.95;
-            margin: 0 0 14px;
+            font-size: clamp(2rem, 3.2vw, 2.9rem);
+            line-height: 0.96;
+            margin: 0 0 8px;
             letter-spacing: -0.05em;
         }}
         .eyebrow {{
             font-family: "Trebuchet MS", sans-serif;
             text-transform: uppercase;
             letter-spacing: 0.18em;
-            font-size: 0.76rem;
+            font-size: 0.7rem;
             color: var(--accent);
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }}
         .lead {{
-            font-size: 1rem;
-            line-height: 1.6;
+            font-size: 0.92rem;
+            line-height: 1.45;
             color: var(--muted);
-            max-width: 48ch;
+            max-width: 52ch;
             margin: 0;
         }}
         .hero-panel {{
             background: rgba(13, 92, 99, 0.06);
             border: 1px solid rgba(13, 92, 99, 0.12);
-            border-radius: 22px;
-            padding: 18px;
+            border-radius: 18px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }}
         .hero-panel .kicker {{
             font-family: "Trebuchet MS", sans-serif;
-            font-size: 0.78rem;
-            letter-spacing: 0.14em;
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
             color: var(--accent);
         }}
         .hero-panel .value {{
-            font-size: 1.9rem;
+            font-size: 1.35rem;
             font-weight: 700;
         }}
         .hero-panel .meta {{
             color: var(--muted);
-            line-height: 1.5;
-            font-size: 0.95rem;
+            line-height: 1.35;
+            font-size: 0.84rem;
         }}
         .run-status-chip {{
             display: inline-flex;
@@ -464,38 +464,55 @@ def render_dashboard_html(
         .run-grid {{
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-            margin-top: 4px;
+            gap: 8px;
+            margin-top: 2px;
         }}
         .source-grid {{
-            margin-top: 4px;
-        }}
-        .source-grid .value {{
-            font-size: 1.2rem;
-        }}
-        .source-grid .meta {{
-            color: var(--muted);
-            font-size: 0.86rem;
-            line-height: 1.35;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
         }}
         .run-metric {{
-            padding: 10px 12px;
-            border-radius: 16px;
+            padding: 8px 10px;
+            border-radius: 12px;
             background: rgba(255, 255, 255, 0.45);
             border: 1px solid rgba(13, 92, 99, 0.08);
         }}
         .run-metric .label {{
             color: var(--muted);
             font-family: "Trebuchet MS", sans-serif;
-            font-size: 0.72rem;
+            font-size: 0.65rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }}
         .run-metric .value {{
-            margin-top: 6px;
-            font-size: 1rem;
-            line-height: 1.35;
+            margin-top: 4px;
+            font-size: 0.95rem;
+            line-height: 1.25;
             word-break: break-word;
+        }}
+        .source-line {{
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: baseline;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(13, 92, 99, 0.1);
+            background: rgba(255, 255, 255, 0.52);
+        }}
+        .source-line strong {{
+            font-size: 0.74rem;
+            letter-spacing: 0.07em;
+            font-family: "Trebuchet MS", sans-serif;
+            text-transform: uppercase;
+            color: var(--accent);
+            white-space: nowrap;
+        }}
+        .source-line span {{
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.25;
         }}
         .section {{
             margin-top: 24px;
@@ -736,6 +753,9 @@ def render_dashboard_html(
             .hero-inner, .cards {{
                 grid-template-columns: 1fr;
             }}
+            .source-grid {{
+                grid-template-columns: 1fr;
+            }}
             .factor-cell {{ min-width: 72px; }}
         }}
         @media (max-width: 720px) {{
@@ -890,10 +910,9 @@ def render_stat_card(label: str, value: str, caption: str) -> str:
 
 def render_source_metric(summary: SourceRefreshSummary) -> str:
     return (
-        '<div class="run-metric">'
-        f'<div class="label">{escape(format_source_name(summary.source))}</div>'
-        f'<div class="value">{summary.calls} calls</div>'
-        f'<div class="meta">{escape(format_source_status(summary))}</div>'
+        '<div class="source-line">'
+        f'<strong>{escape(format_source_name(summary.source))}</strong>'
+        f'<span>{summary.calls} calls - {escape(format_source_status(summary))}</span>'
         '</div>'
     )
 

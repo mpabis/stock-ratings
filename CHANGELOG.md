@@ -27,6 +27,7 @@ This project uses dated entries because it has not adopted public semantic versi
 
 ### Fixed
 
+- Fixed the GitHub Pages artifact so generated report pages such as `ratings-methodology.html` are published instead of only `index.html`.
 - Fixed `preferred_provider_name` returning `twelve_data` when only Stooq was configured.
 - Fixed non-US or non-SEC-covered symbols being treated as SEC refresh failures; they are now recorded as skipped with `sec_mapping_missing`.
 - Fixed stale rating labels that could persist after a symbol refreshed successfully.

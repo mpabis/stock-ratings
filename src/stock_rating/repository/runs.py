@@ -31,6 +31,15 @@ class SymbolRefreshRunRecord:
     provider_error_code: str | None = None
 
 
+@dataclass(frozen=True)
+class SourceRefreshSummaryRecord:
+    source: str
+    calls: int
+    succeeded: int
+    failed: int
+    status: str
+
+
 def generate_run_id() -> str:
     return str(uuid4())
 
@@ -61,6 +70,7 @@ def write_plan_artifact(
     output_dir: str | None,
     pipeline_run: PipelineRunRecord,
     symbol_runs: list[SymbolRefreshRunRecord],
+    source_refresh_summaries: list[SourceRefreshSummaryRecord] | None = None,
 ) -> Path:
     base_dir = Path(output_dir) if output_dir else Path(__file__).resolve().parents[3] / "artifacts" / "plans"
     base_dir.mkdir(parents=True, exist_ok=True)
@@ -69,6 +79,9 @@ def write_plan_artifact(
     payload = {
         "pipeline_run": _json_ready(asdict(pipeline_run)),
         "symbol_refresh_runs": [_json_ready(asdict(record)) for record in symbol_runs],
+        "source_refresh_summaries": [
+            _json_ready(asdict(record)) for record in (source_refresh_summaries or [])
+        ],
     }
 
     artifact_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")

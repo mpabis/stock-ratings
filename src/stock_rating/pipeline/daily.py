@@ -33,6 +33,7 @@ from stock_rating.ingest.sec_companyfacts import (
 )
 from stock_rating.repository.runs import (
     SymbolRefreshRunRecord,
+    SourceRefreshSummaryRecord,
     build_pipeline_run_record,
     generate_run_id,
     persist_run_records,
@@ -159,26 +160,81 @@ def build_symbol_features(
     return price_features + fundamental_features + macro_features
 
 
+def summarize_symbol_runs(source: str, symbol_runs: list[SymbolRefreshRunRecord]) -> SourceRefreshSummaryRecord:
+    calls = len(symbol_runs)
+    succeeded = sum(1 for record in symbol_runs if record.status == "succeeded")
+    failed = calls - succeeded
+    if calls == 0:
+        status = "skipped"
+    elif failed == 0:
+        status = "succeeded"
+    elif succeeded == 0:
+        status = "failed"
+    else:
+        status = "partial"
+    return SourceRefreshSummaryRecord(
+        source=source,
+        calls=calls,
+        succeeded=succeeded,
+        failed=failed,
+        status=status,
+    )
+
+
+def summarize_provider_runs(symbol_runs: list[SymbolRefreshRunRecord]) -> list[SourceRefreshSummaryRecord]:
+    provider_order: list[str] = []
+    grouped_runs: dict[str, list[SymbolRefreshRunRecord]] = {}
+    for record in symbol_runs:
+        if record.provider not in grouped_runs:
+            provider_order.append(record.provider)
+            grouped_runs[record.provider] = []
+        grouped_runs[record.provider].append(record)
+
+    return [summarize_symbol_runs(provider, grouped_runs[provider]) for provider in provider_order]
+
+
 def execute_macro_refresh(
     database_url: str,
     api_key: str,
     fetch_fn=fetch_fred_series_observations,
     parse_fn=parse_fred_series_observations,
     persist_fn=persist_macro_observations,
-) -> str:
+) -> SourceRefreshSummaryRecord:
     if not is_configured(DatabaseConfig(url=database_url)) or not api_key:
-        return "skipped"
+        return SourceRefreshSummaryRecord(source="fred", calls=0, succeeded=0, failed=0, status="skipped")
 
+    calls_made = 0
+    succeeded = 0
     for series_id in CORE_FRED_SERIES:
+        calls_made += 1
         try:
             payload = fetch_fn(series_id, api_key)
             observations = parse_fn(series_id, payload)
             if observations and not persist_fn(database_url, observations):
-                return "failed"
+                return SourceRefreshSummaryRecord(
+                    source="fred",
+                    calls=calls_made,
+                    succeeded=succeeded,
+                    failed=1,
+                    status="failed",
+                )
+            succeeded += 1
         except FredMacroResponseError:
-            return "failed"
+            return SourceRefreshSummaryRecord(
+                source="fred",
+                calls=calls_made,
+                succeeded=succeeded,
+                failed=1,
+                status="failed",
+            )
 
-    return "succeeded"
+    return SourceRefreshSummaryRecord(
+        source="fred",
+        calls=calls_made,
+        succeeded=succeeded,
+        failed=0,
+        status="succeeded",
+    )
 
 
 def execute_fundamental_refresh_plan(
@@ -758,7 +814,7 @@ def main() -> None:
     git_sha = resolve_git_sha()
     run_id = generate_run_id()
     started_at = utc_now()
-    macro_refresh_status = execute_macro_refresh(settings.database_url, settings.fred_api_key)
+    macro_refresh_summary = execute_macro_refresh(settings.database_url, settings.fred_api_key)
     providers = get_price_provider_status(
         alpha_vantage_api_key=settings.alpha_vantage_api_key,
         twelve_data_api_key=settings.twelve_data_api_key,
@@ -796,6 +852,12 @@ def main() -> None:
             attempted_at=started_at,
         )
         symbol_runs = fundamental_runs + price_runs
+
+    source_refresh_summaries = [
+        macro_refresh_summary,
+        summarize_symbol_runs("sec_edgar", fundamental_runs),
+        *summarize_provider_runs(price_runs),
+    ]
     finished_at = utc_now()
     pipeline_run = build_pipeline_run_record(
         run_id=run_id,
@@ -805,11 +867,16 @@ def main() -> None:
         git_sha=git_sha,
     )
     database_persisted = persist_run_records(settings.database_url, pipeline_run, symbol_runs)
-    artifact_path = write_plan_artifact(settings.plan_output_dir or None, pipeline_run, symbol_runs)
+    artifact_path = write_plan_artifact(
+        settings.plan_output_dir or None,
+        pipeline_run,
+        symbol_runs,
+        source_refresh_summaries,
+    )
 
     print(f"Run ID: {run_id}")
     print(f"Database persistence: {'enabled' if database_persisted else 'skipped'}")
-    print(f"Macro refresh: {macro_refresh_status}")
+    print(f"Macro refresh: {macro_refresh_summary.status}")
     print(f"Pipeline status: {pipeline_run.status}")
     print("Price providers:")
     for provider in providers:

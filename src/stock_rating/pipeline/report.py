@@ -1,4 +1,5 @@
 from collections import Counter
+import json
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
@@ -30,6 +31,15 @@ class RatingSnapshot:
         summary: str
 
 
+@dataclass(frozen=True)
+class SourceRefreshSummary:
+    source: str
+    calls: int
+    succeeded: int
+    failed: int
+    status: str
+
+
 def main() -> None:
     settings = get_settings()
     connection = connect_postgres(settings.database_url)
@@ -38,6 +48,7 @@ def main() -> None:
     try:
         latest_run = fetch_latest_run(cursor)
         latest_run_counts = fetch_run_status_counts(cursor, latest_run[0] if latest_run else None)
+        source_refresh_summaries = fetch_source_refresh_summaries(latest_run[0] if latest_run else None)
         table_counts = fetch_table_counts(cursor)
         ratings = fetch_latest_ratings(cursor)
         quality_alerts = build_quality_alerts(fetch_quality_snapshots(cursor), date.today())
@@ -54,7 +65,14 @@ def main() -> None:
         for table_name in TABLE_NAMES:
             print(f"{table_name}: {table_counts[table_name]}")
 
-        output_path = write_dashboard(ratings, latest_run, latest_run_counts, table_counts, quality_alerts)
+        output_path = write_dashboard(
+            ratings,
+            latest_run,
+            latest_run_counts,
+            source_refresh_summaries,
+            table_counts,
+            quality_alerts,
+        )
         print(f"Dashboard: {output_path}")
     finally:
         cursor.close()
@@ -95,6 +113,42 @@ def fetch_run_status_counts(cursor: Any, run_id: str | None) -> dict[str, int]:
         (run_id,),
     )
     return {status: count for status, count in cursor.fetchall()}
+
+
+def fetch_source_refresh_summaries(run_id: str | None) -> list[SourceRefreshSummary]:
+    if not run_id:
+        return []
+
+    artifact_path = Path("artifacts") / "plans" / f"{run_id}.json"
+    if not artifact_path.exists():
+        return []
+
+    try:
+        payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    summaries = payload.get("source_refresh_summaries", [])
+    if not isinstance(summaries, list):
+        return []
+
+    results: list[SourceRefreshSummary] = []
+    for item in summaries:
+        if not isinstance(item, dict):
+            continue
+        try:
+            results.append(
+                SourceRefreshSummary(
+                    source=str(item.get("source", "unknown")),
+                    calls=int(item.get("calls", 0)),
+                    succeeded=int(item.get("succeeded", 0)),
+                    failed=int(item.get("failed", 0)),
+                    status=str(item.get("status", "unknown")),
+                )
+            )
+        except Exception:
+            continue
+    return results
 
 
 def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
@@ -203,13 +257,24 @@ def write_dashboard(
         ratings: list[RatingSnapshot],
         latest_run: tuple[str, str, datetime, datetime | None] | None,
     latest_run_counts: dict[str, int],
+    source_refresh_summaries: list[SourceRefreshSummary],
         table_counts: dict[str, int],
     quality_alerts: list[QualityAlert],
 ) -> Path:
         output_dir = Path("artifacts") / "reports"
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / "ratings-dashboard.html"
-        output_path.write_text(render_dashboard_html(ratings, latest_run, latest_run_counts, table_counts, quality_alerts), encoding="utf-8")
+        output_path.write_text(
+            render_dashboard_html(
+                ratings,
+                latest_run,
+                latest_run_counts,
+                source_refresh_summaries,
+                table_counts,
+                quality_alerts,
+            ),
+            encoding="utf-8",
+        )
         return output_path.resolve()
 
 
@@ -217,6 +282,7 @@ def render_dashboard_html(
         ratings: list[RatingSnapshot],
         latest_run: tuple[str, str, datetime, datetime | None] | None,
     latest_run_counts: dict[str, int],
+    source_refresh_summaries: list[SourceRefreshSummary],
         table_counts: dict[str, int],
     quality_alerts: list[QualityAlert],
 ) -> str:
@@ -259,6 +325,9 @@ def render_dashboard_html(
         )
 
         run_summary = render_run_summary(latest_run, latest_run_counts)
+        source_metrics_html = "".join(render_source_metric(summary) for summary in source_refresh_summaries) or (
+            '<div class="run-metric"><div class="label">No source summary</div><div class="value">N/A</div><div class="meta">Run artifact not found.</div></div>'
+        )
 
         return f"""<!doctype html>
 <html lang="en">
@@ -317,9 +386,10 @@ def render_dashboard_html(
         }}
         .hero-inner {{
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.95fr);
             gap: 24px;
-            padding: 32px;
+            padding: 24px 28px;
+            align-items: start;
         }}
         h1 {{
             font-size: clamp(2.4rem, 5vw, 4.5rem);
@@ -336,22 +406,20 @@ def render_dashboard_html(
             margin-bottom: 12px;
         }}
         .lead {{
-            font-size: 1.08rem;
+            font-size: 1rem;
             line-height: 1.6;
             color: var(--muted);
-            max-width: 56ch;
+            max-width: 48ch;
             margin: 0;
         }}
         .hero-panel {{
-            align-self: stretch;
             background: rgba(13, 92, 99, 0.06);
             border: 1px solid rgba(13, 92, 99, 0.12);
             border-radius: 22px;
-            padding: 20px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            justify-content: center;
         }}
         .hero-panel .kicker {{
             font-family: "Trebuchet MS", sans-serif;
@@ -398,6 +466,17 @@ def render_dashboard_html(
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
             margin-top: 4px;
+        }}
+        .source-grid {{
+            margin-top: 4px;
+        }}
+        .source-grid .value {{
+            font-size: 1.2rem;
+        }}
+        .source-grid .meta {{
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.35;
         }}
         .run-metric {{
             padding: 10px 12px;
@@ -650,6 +729,9 @@ def render_dashboard_html(
             color: var(--muted);
             font-size: 0.9rem;
         }}
+        .ratings-section {{
+            margin-top: 20px;
+        }}
         @media (max-width: 980px) {{
             .hero-inner, .cards {{
                 grid-template-columns: 1fr;
@@ -673,7 +755,7 @@ def render_dashboard_html(
                 <div>
                     <div class="eyebrow">Daily stock snapshot</div>
                     <h1>Ratings worth presenting.</h1>
-                    <p class="lead">A polished view of the latest stock ratings, freshness state, and score breakdowns generated directly from the pipeline's persisted outputs.</p>
+                    <p class="lead">Latest ratings, freshness state, and score breakdowns generated directly from the pipeline's persisted outputs.</p>
                 </div>
                 <aside class="hero-panel">
                     <div class="kicker">Latest pipeline run</div>
@@ -698,8 +780,34 @@ def render_dashboard_html(
                             <div class="value">{escape(run_summary['started_at'])}</div>
                         </div>
                     </div>
+                    <div class="kicker">Source calls</div>
+                    <div class="run-grid source-grid">{source_metrics_html}</div>
                 </aside>
             </div>
+        </section>
+
+        <section class="section ratings-section">
+            <div class="section-title">
+                <h2>Latest ratings</h2>
+                <p>Sorted by score descending so the strongest names surface first.</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                                                <th><button type="button" data-sort-index="0" data-sort-kind="text">Company</button></th>
+                                                <th><button type="button" data-sort-index="1" data-sort-kind="number">Score</button></th>
+                                                <th><button type="button" data-sort-index="2" data-sort-kind="text">Freshness</button></th>
+                                                <th><button type="button" data-sort-index="3" data-sort-kind="number">Val</button></th>
+                                                <th><button type="button" data-sort-index="4" data-sort-kind="number">Qual</button></th>
+                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Growth</button></th>
+                                                <th><button type="button" data-sort-index="6" data-sort-kind="number">Mom</button></th>
+                                                <th><button type="button" data-sort-index="7" data-sort-kind="number">Risk</button></th>
+                    </tr>
+                </thead>
+                                <tbody id="ratings-table-body">
+                    {rows_html}
+                </tbody>
+            </table>
         </section>
 
         <section class="section">
@@ -731,27 +839,6 @@ def render_dashboard_html(
         </section>
 
         <section class="section">
-            <div class="section-title">
-                <h2>Latest ratings</h2>
-                <p>Sorted by score descending so the strongest names surface first.</p>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                                                <th><button type="button" data-sort-index="0" data-sort-kind="text">Company</button></th>
-                                                <th><button type="button" data-sort-index="1" data-sort-kind="number">Score</button></th>
-                                                <th><button type="button" data-sort-index="2" data-sort-kind="text">Freshness</button></th>
-                                                <th><button type="button" data-sort-index="3" data-sort-kind="number">Val</button></th>
-                                                <th><button type="button" data-sort-index="4" data-sort-kind="number">Qual</button></th>
-                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Growth</button></th>
-                                                <th><button type="button" data-sort-index="6" data-sort-kind="number">Mom</button></th>
-                                                <th><button type="button" data-sort-index="7" data-sort-kind="number">Risk</button></th>
-                    </tr>
-                </thead>
-                                <tbody id="ratings-table-body">
-                    {rows_html}
-                </tbody>
-            </table>
             <div class="footer">File is regenerated by <code>python -m stock_rating.pipeline.report</code> and written to <code>artifacts/reports/ratings-dashboard.html</code>.</div>
         </section>
     </main>
@@ -799,6 +886,16 @@ def render_stat_card(label: str, value: str, caption: str) -> str:
                 f'<div class="caption">{escape(caption)}</div>'
                 '</article>'
         )
+
+
+def render_source_metric(summary: SourceRefreshSummary) -> str:
+    return (
+        '<div class="run-metric">'
+        f'<div class="label">{escape(format_source_name(summary.source))}</div>'
+        f'<div class="value">{summary.calls} calls</div>'
+        f'<div class="meta">{escape(format_source_status(summary))}</div>'
+        '</div>'
+    )
 
 
 def render_rating_row(rating: RatingSnapshot) -> str:
@@ -862,6 +959,26 @@ def render_run_summary(
         "status_text": status.replace("_", " "),
         "status_class": run_status_class(status),
     }
+
+
+def format_source_name(source: str) -> str:
+    normalized = source.strip().lower()
+    if normalized == "fred":
+        return "FRED"
+    if normalized == "sec_edgar":
+        return "SEC EDGAR"
+    if normalized == "alpha_vantage":
+        return "Alpha Vantage"
+    if normalized == "twelve_data":
+        return "Twelve Data"
+    if normalized == "stooq":
+        return "Stooq"
+    return source.replace("_", " ").title()
+
+
+def format_source_status(summary: SourceRefreshSummary) -> str:
+    status = summary.status.replace("_", " ").title()
+    return f"{status} · {summary.succeeded} succeeded, {summary.failed} failed"
 
 
 def run_status_class(status: str) -> str:

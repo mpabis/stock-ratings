@@ -154,5 +154,9 @@ def test_execute_macro_refresh_persists_each_core_series() -> None:
         persist_fn=lambda database_url, observations: persisted_series.append(observations[0].series_id) or True,
     )
 
-    assert refreshed == "succeeded"
+    assert refreshed.source == "fred"
+    assert refreshed.calls == 2
+    assert refreshed.succeeded == 2
+    assert refreshed.failed == 0
+    assert refreshed.status == "succeeded"
     assert persisted_series == ["DGS10", "DGS2"]

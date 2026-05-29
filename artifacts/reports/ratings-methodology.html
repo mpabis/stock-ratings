@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stock Ratings Methodology</title>
+    <style>
+        :root {
+            --bg: #f6f1e8;
+            --panel: rgba(255, 252, 247, 0.95);
+            --panel-strong: #fffaf1;
+            --text: #1f2933;
+            --muted: #5e6b78;
+            --line: rgba(31, 41, 51, 0.12);
+            --accent: #0d5c63;
+            --shadow: 0 18px 50px rgba(29, 43, 57, 0.12);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(13, 92, 99, 0.18), transparent 28%),
+                radial-gradient(circle at top right, rgba(184, 92, 56, 0.16), transparent 24%),
+                linear-gradient(180deg, #fbf7ef 0%, var(--bg) 55%, #efe4d3 100%);
+            min-height: 100vh;
+        }
+        .page {
+            width: min(1160px, calc(100vw - 30px));
+            margin: 0 auto;
+            padding: 24px 0 36px;
+        }
+        .hero, .section {
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }
+        .hero { padding: 22px 24px; }
+        .eyebrow {
+            font-family: "Trebuchet MS", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--accent);
+            font-size: 0.72rem;
+        }
+        h1 {
+            margin: 8px 0 10px;
+            font-size: clamp(1.9rem, 4vw, 3rem);
+            line-height: 0.95;
+            letter-spacing: -0.03em;
+        }
+        .lead {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            max-width: 80ch;
+        }
+        .back-link {
+            margin-top: 14px;
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background: linear-gradient(90deg, var(--accent), #1b7f88);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .section {
+            margin-top: 18px;
+            padding: 20px;
+        }
+        h2 {
+            margin: 0 0 8px;
+            font-size: 1.35rem;
+        }
+        h3 {
+            margin: 14px 0 6px;
+            font-size: 1rem;
+        }
+        p, li {
+            color: var(--muted);
+            line-height: 1.5;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .card {
+            background: var(--panel-strong);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+        }
+        .formula {
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 0.83rem;
+            color: #213746;
+            background: #eef4f4;
+            border: 1px solid #d6e6e6;
+            border-radius: 10px;
+            padding: 8px 10px;
+            display: block;
+            white-space: pre-wrap;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        th, td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            font-family: "Trebuchet MS", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+        .weights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .pill {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 7px 10px;
+            background: var(--panel-strong);
+            font-size: 0.88rem;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="eyebrow">Administration</div>
+            <h1>Stock Rating Methodology</h1>
+            <p class="lead">This page documents how ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the exact factor formulas, and the final weighted score composition.</p>
+            <a class="back-link" href="ratings-dashboard.html">Back To Dashboard</a>
+        </section>
+
+        <section class="section">
+            <h2>Rating Scale</h2>
+            <table>
+                <thead>
+                    <tr><th>Score</th><th>Label</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>90-100</td><td>A / Very Attractive</td></tr>
+                    <tr><td>75-89</td><td>B / Attractive</td></tr>
+                    <tr><td>55-74</td><td>C / Neutral</td></tr>
+                    <tr><td>35-54</td><td>D / Unattractive</td></tr>
+                    <tr><td>0-34</td><td>F / Very Unattractive</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>Source To Feature Mapping</h2>
+            <table>
+                <thead>
+                    <tr><th>Feature Family</th><th>Features</th><th>Primary Sources</th><th>Where In Code</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Price / Technical</td>
+                        <td>intraday_return, one_day_return, five_day_return, ten_day_return, twenty_day_return, daily_volume, average_volume_20d, twenty_day_volatility, high_low_range_pct, gap_open_return</td>
+                        <td>Alpha Vantage, Twelve Data, Stooq (fallback order in daily pipeline)</td>
+                        <td>ingest/prices.py + transform/features.py</td>
+                    </tr>
+                    <tr>
+                        <td>Fundamental</td>
+                        <td>net_margin, cash_flow_margin, return_on_assets, debt_to_assets</td>
+                        <td>SEC EDGAR company facts</td>
+                        <td>ingest/sec_companyfacts.py + transform/fundamentals.py</td>
+                    </tr>
+                    <tr>
+                        <td>Macro</td>
+                        <td>yield_curve_slope</td>
+                        <td>FRED series DGS10 and DGS2</td>
+                        <td>ingest/fred_macro.py + transform/macro.py</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Latest Source Call Summary</h3>
+            <table>
+                <thead>
+                    <tr><th>Source</th><th>Calls</th><th>Succeeded</th><th>Failed</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="5">No source call summary available in latest artifact.</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>Factor Calculations</h2>
+            <div class="grid">
+                <article class="card">
+                    <h3>Valuation</h3>
+                    <span class="formula">liquidity_score = clamp(25 + daily_volume / 200000)
+reversal_score = clamp(50 - one_day_return*1200 - intraday_return*400)
+valuation_score = clamp(reversal_score*0.75 + liquidity_score*0.25)</span>
+                    <p>If fundamentals exist, valuation blends in profitability and leverage:</p>
+                    <span class="formula">valuation = clamp(valuation*0.65 + profitability*0.20 + leverage*0.15)</span>
+                </article>
+
+                <article class="card">
+                    <h3>Quality</h3>
+                    <span class="formula">quality_score = clamp(30 + liquidity*0.7 - abs(intraday_return - one_day_return)*900)</span>
+                    <p>With fundamentals, quality also incorporates profitability, cash generation, and asset efficiency.</p>
+                    <span class="formula">quality = clamp(quality*0.45 + profitability*0.20 + cash_generation*0.20 + asset_efficiency*0.15)</span>
+                </article>
+
+                <article class="card">
+                    <h3>Growth</h3>
+                    <span class="formula">trend_score = clamp(50 + one_day_return*1800 + intraday_return*700)
+growth_score = clamp(25 + trend_score*0.75 + max(one_day_return, 0)*500)</span>
+                    <p>Fundamentals and macro can raise/lower growth.</p>
+                    <span class="formula">growth = clamp(growth*0.70 + profitability*0.20 + cash_generation*0.10)
+growth = clamp(growth*0.75 + macro_growth*0.25)</span>
+                </article>
+
+                <article class="card">
+                    <h3>Momentum</h3>
+                    <span class="formula">momentum_score = clamp(trend_score*0.8 + liquidity_score*0.2)</span>
+                    <p>Momentum is currently driven only by price/volume behavior.</p>
+                </article>
+
+                <article class="card">
+                    <h3>Risk</h3>
+                    <span class="formula">stability_penalty = abs(one_day_return)*1600 + abs(intraday_return)*1000
+risk_score = clamp(85 - stability_penalty + liquidity_score*0.15)</span>
+                    <p>With fundamentals + macro, risk adds leverage/cash stress and yield-curve context.</p>
+                    <span class="formula">risk = clamp(risk*0.55 + cash_generation*0.15 + leverage*0.30)
+risk = clamp(risk*0.75 + macro_risk*0.25)</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Final Composite Score</h2>
+            <p>The final score is the weighted sum of the five factor scores, then rounded to an integer and clamped to 0-100.</p>
+            <span class="formula">final = round(valuation*0.25 + quality*0.25 + growth*0.20 + momentum*0.20 + risk*0.10)</span>
+            <div class="weights">
+                <div class="pill">Valuation: 25%</div>
+                <div class="pill">Quality: 25%</div>
+                <div class="pill">Growth: 20%</div>
+                <div class="pill">Momentum: 20%</div>
+                <div class="pill">Risk: 10%</div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -13,6 +13,12 @@ from stock_rating.ingest.fred_macro import (
     parse_fred_series_observations,
     persist_macro_observations,
 )
+from stock_rating.ingest.analyst import (
+    AlphaVantageAnalystRateLimitError,
+    fetch_alpha_vantage_company_overview,
+    parse_alpha_vantage_analyst_consensus,
+    persist_analyst_consensus,
+)
 from stock_rating.ingest.prices import (
     AlphaVantageRateLimitError,
     StooqResponseError,
@@ -329,6 +335,83 @@ def execute_fundamental_refresh_plan(
                     provider_error_code="sec_edgar_error",
                 )
             )
+
+    return symbol_runs
+
+
+def execute_analyst_refresh_plan(
+    run_id: str,
+    tasks: list[RefreshTask],
+    database_url: str,
+    api_key: str,
+    fetch_fn=fetch_alpha_vantage_company_overview,
+    parse_fn=parse_alpha_vantage_analyst_consensus,
+    persist_fn=persist_analyst_consensus,
+    request_pause_seconds: float = 0.0,
+    sleep_fn=time.sleep,
+) -> list[SymbolRefreshRunRecord]:
+    if not api_key or not tasks:
+        return []
+
+    symbol_runs: list[SymbolRefreshRunRecord] = []
+    for index, task in enumerate(tasks):
+        attempted_at = utc_now()
+        try:
+            payload = fetch_fn(task.symbol, api_key)
+            snapshot = parse_fn(task.symbol, payload, as_of_date=attempted_at.date())
+            if snapshot and database_url:
+                persisted = persist_fn(database_url, [snapshot])
+                if not persisted:
+                    raise RuntimeError(f"Failed to persist analyst consensus for {task.symbol}")
+
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="analyst",
+                    provider="alpha_vantage_overview",
+                    status="succeeded",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=None,
+                    fetched_bar_count=1 if snapshot else 0,
+                    provider_error_code=None,
+                )
+            )
+        except AlphaVantageAnalystRateLimitError as error:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="analyst",
+                    provider="alpha_vantage_overview",
+                    status="rate_limited",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="alpha_vantage_rate_limit",
+                )
+            )
+            break
+        except Exception as error:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="analyst",
+                    provider="alpha_vantage_overview",
+                    status="failed",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="alpha_vantage_error",
+                )
+            )
+
+        if request_pause_seconds > 0 and index < len(tasks) - 1:
+            sleep_fn(request_pause_seconds)
 
     return symbol_runs
 
@@ -832,6 +915,13 @@ def main() -> None:
         database_url=settings.database_url,
         user_agent=settings.sec_user_agent,
     )
+    analyst_runs = execute_analyst_refresh_plan(
+        run_id=run_id,
+        tasks=refresh_plan,
+        database_url=settings.database_url,
+        api_key=settings.alpha_vantage_api_key,
+        request_pause_seconds=settings.alpha_vantage_min_interval_seconds,
+    )
     if provider_name in {"alpha_vantage", "twelve_data", "stooq"}:
         price_runs = execute_price_refresh_plan(
             run_id=run_id,
@@ -843,7 +933,7 @@ def main() -> None:
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
         )
-        symbol_runs = fundamental_runs + price_runs
+        symbol_runs = fundamental_runs + analyst_runs + price_runs
     else:
         price_runs = build_symbol_refresh_run_records(
             run_id=run_id,
@@ -851,11 +941,12 @@ def main() -> None:
             provider=provider_name,
             attempted_at=started_at,
         )
-        symbol_runs = fundamental_runs + price_runs
+        symbol_runs = fundamental_runs + analyst_runs + price_runs
 
     source_refresh_summaries = [
         macro_refresh_summary,
         summarize_symbol_runs("sec_edgar", fundamental_runs),
+        summarize_symbol_runs("alpha_vantage_overview", analyst_runs),
         *summarize_provider_runs(price_runs),
     ]
     finished_at = utc_now()

@@ -1,7 +1,7 @@
 from datetime import date, datetime, UTC
 from decimal import Decimal
 
-from stock_rating.pipeline.report import RatingSnapshot, SourceRefreshSummary, render_dashboard_html
+from stock_rating.pipeline.report import RatingSnapshot, SourceRefreshSummary, render_dashboard_html, render_methodology_html
 
 
 def test_render_dashboard_places_ratings_before_portfolio_snapshot() -> None:
@@ -55,3 +55,19 @@ def test_render_dashboard_includes_source_call_summary() -> None:
     assert "4 succeeded, 0 failed" in html
     assert "Alpha Vantage" in html
     assert "1 succeeded, 1 failed" in html
+
+
+def test_render_methodology_includes_factor_and_source_sections() -> None:
+    html = render_methodology_html(
+        [
+            SourceRefreshSummary(source="fred", calls=2, succeeded=2, failed=0, status="succeeded"),
+            SourceRefreshSummary(source="sec_edgar", calls=5, succeeded=4, failed=1, status="partial"),
+        ]
+    )
+
+    assert "Stock Rating Methodology" in html
+    assert "Source To Feature Mapping" in html
+    assert "Valuation" in html
+    assert "Final Composite Score" in html
+    assert "FRED" in html
+    assert "SEC EDGAR" in html

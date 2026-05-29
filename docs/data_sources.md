@@ -3,6 +3,7 @@
 ## Free-only source strategy
 
 - Alpha Vantage: primary free API for daily prices
+- Alpha Vantage company overview: analyst target and recommendation counts
 - Twelve Data: fallback free API for price validation
 - Stooq: additional price sanity check
 - SEC EDGAR: official fundamentals source

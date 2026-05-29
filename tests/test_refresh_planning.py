@@ -4,6 +4,7 @@ from decimal import Decimal
 from stock_rating.pipeline.daily import (
     SymbolRefreshState,
     build_symbol_refresh_run_records,
+    execute_analyst_refresh_plan,
     execute_fundamental_refresh_plan,
     execute_alpha_vantage_refresh_plan,
     execute_price_refresh_plan,
@@ -330,6 +331,28 @@ def test_execute_fundamental_refresh_plan_marks_failure_on_sec_error() -> None:
     assert records[0].provider == "sec_edgar"
     assert records[0].status == "failed"
     assert records[0].provider_error_code == "sec_edgar_error"
+
+
+def test_execute_analyst_refresh_plan_marks_success_with_missing_consensus() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="AAPL", refresh_tier=1, last_price_date=date(2026, 5, 26))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_analyst_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        api_key="demo-key",
+        fetch_fn=lambda symbol, api_key: {"Symbol": symbol, "Name": "Apple Inc."},
+    )
+
+    assert len(records) == 1
+    assert records[0].provider == "alpha_vantage_overview"
+    assert records[0].status == "succeeded"
+    assert records[0].fetched_bar_count == 0
 
 
 def test_execute_price_refresh_plan_falls_back_to_stooq_after_twelve_failure() -> None:

@@ -12,7 +12,15 @@ from stock_rating.db import connect_postgres
 from stock_rating.quality.checks import QualityAlert, SymbolQualitySnapshot, build_quality_alerts
 
 
-TABLE_NAMES = ["symbols", "pipeline_runs", "symbol_refresh_runs", "price_daily", "features_daily", "ratings_daily"]
+TABLE_NAMES = [
+    "symbols",
+    "pipeline_runs",
+    "symbol_refresh_runs",
+    "price_daily",
+    "analyst_consensus_daily",
+    "features_daily",
+    "ratings_daily",
+]
 
 
 @dataclass(frozen=True)
@@ -29,6 +37,8 @@ class RatingSnapshot:
         momentum_score: Decimal | None
         risk_score: Decimal | None
         summary: str
+        analyst_target_price: Decimal | None = None
+        analyst_suggestion_label: str | None = None
 
 
 @dataclass(frozen=True)
@@ -92,11 +102,14 @@ def fetch_latest_run(cursor: Any) -> tuple[str, str, datetime, datetime | None] 
 
 
 def fetch_table_counts(cursor: Any) -> dict[str, int]:
-        counts: dict[str, int] = {}
-        for table_name in TABLE_NAMES:
-                cursor.execute(f"select count(*) from {table_name}")
-                counts[table_name] = cursor.fetchone()[0]
-        return counts
+    counts: dict[str, int] = {}
+    for table_name in TABLE_NAMES:
+        try:
+            cursor.execute(f"select count(*) from {table_name}")
+            counts[table_name] = cursor.fetchone()[0]
+        except Exception:
+            counts[table_name] = 0
+    return counts
 
 
 def fetch_run_status_counts(cursor: Any, run_id: str | None) -> dict[str, int]:
@@ -152,46 +165,102 @@ def fetch_source_refresh_summaries(run_id: str | None) -> list[SourceRefreshSumm
 
 
 def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
+    try:
         cursor.execute(
-                """
-                with ranked_ratings as (
-                        select
-                                r.symbol,
-                                s.company_name,
-                                r.rating_score,
-                                r.rating_label,
-                                r.freshness_status,
-                                r.freshest_input_date,
-                                r.valuation_score,
-                                r.quality_score,
-                                r.growth_score,
-                                r.momentum_score,
-                                r.risk_score,
-                                r.explanation_json,
-                                row_number() over (
-                                        partition by r.symbol
-                                        order by r.date desc, r.created_at desc
-                                ) as row_number
-                        from ratings_daily r
-                        join symbols s on s.symbol = r.symbol
-                )
+            """
+            with ranked_ratings as (
                 select
-                        symbol,
-                        company_name,
-                        rating_score,
-                        rating_label,
-                        freshness_status,
-                        freshest_input_date,
-                        valuation_score,
-                        quality_score,
-                        growth_score,
-                        momentum_score,
-                        risk_score,
-                        explanation_json
-                from ranked_ratings
-                where row_number = 1
-                order by rating_score desc, symbol asc
-                """
+                    r.symbol,
+                    s.company_name,
+                    r.rating_score,
+                    r.rating_label,
+                    r.freshness_status,
+                    r.freshest_input_date,
+                    r.valuation_score,
+                    r.quality_score,
+                    r.growth_score,
+                    r.momentum_score,
+                    r.risk_score,
+                    r.explanation_json,
+                    row_number() over (
+                        partition by r.symbol
+                        order by r.date desc, r.created_at desc
+                    ) as row_number
+                from ratings_daily r
+                join symbols s on s.symbol = r.symbol
+            ),
+            latest_analyst as (
+                select distinct on (symbol)
+                    symbol,
+                    analyst_target_price,
+                    suggestion_label
+                from analyst_consensus_daily
+                order by symbol, date desc, ingested_at desc
+            )
+            select
+                rr.symbol,
+                rr.company_name,
+                rr.rating_score,
+                rr.rating_label,
+                rr.freshness_status,
+                rr.freshest_input_date,
+                rr.valuation_score,
+                rr.quality_score,
+                rr.growth_score,
+                rr.momentum_score,
+                rr.risk_score,
+                rr.explanation_json,
+                la.analyst_target_price,
+                la.suggestion_label
+            from ranked_ratings rr
+            left join latest_analyst la on la.symbol = rr.symbol
+            where rr.row_number = 1
+            order by rr.rating_score desc, rr.symbol asc
+            """
+        )
+    except Exception:
+        cursor.execute(
+            """
+            with ranked_ratings as (
+                select
+                    r.symbol,
+                    s.company_name,
+                    r.rating_score,
+                    r.rating_label,
+                    r.freshness_status,
+                    r.freshest_input_date,
+                    r.valuation_score,
+                    r.quality_score,
+                    r.growth_score,
+                    r.momentum_score,
+                    r.risk_score,
+                    r.explanation_json,
+                    row_number() over (
+                        partition by r.symbol
+                        order by r.date desc, r.created_at desc
+                    ) as row_number
+                from ratings_daily r
+                join symbols s on s.symbol = r.symbol
+            )
+            select
+                symbol,
+                company_name,
+                rating_score,
+                rating_label,
+                freshness_status,
+                freshest_input_date,
+                valuation_score,
+                quality_score,
+                growth_score,
+                momentum_score,
+                risk_score,
+                explanation_json,
+                null as analyst_target_price,
+                null as suggestion_label
+            from ranked_ratings
+            where row_number = 1
+            order by rating_score desc, symbol asc
+            """
         )
 
         snapshots: list[RatingSnapshot] = []
@@ -210,6 +279,8 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                                 growth_score=row[8],
                                 momentum_score=row[9],
                                 risk_score=row[10],
+                                analyst_target_price=row[12],
+                                analyst_suggestion_label=row[13],
                                 summary=explanation_json.get("summary", "No explanation available."),
                         )
                 )
@@ -256,14 +327,15 @@ def fetch_quality_snapshots(cursor: Any) -> list[SymbolQualitySnapshot]:
 def write_dashboard(
         ratings: list[RatingSnapshot],
         latest_run: tuple[str, str, datetime, datetime | None] | None,
-    latest_run_counts: dict[str, int],
-    source_refresh_summaries: list[SourceRefreshSummary],
+        latest_run_counts: dict[str, int],
+        source_refresh_summaries: list[SourceRefreshSummary],
         table_counts: dict[str, int],
-    quality_alerts: list[QualityAlert],
+        quality_alerts: list[QualityAlert],
 ) -> Path:
         output_dir = Path("artifacts") / "reports"
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / "ratings-dashboard.html"
+        methodology_path = output_dir / "ratings-methodology.html"
         output_path.write_text(
             render_dashboard_html(
                 ratings,
@@ -275,16 +347,20 @@ def write_dashboard(
             ),
             encoding="utf-8",
         )
+        methodology_path.write_text(
+            render_methodology_html(source_refresh_summaries),
+            encoding="utf-8",
+        )
         return output_path.resolve()
 
 
 def render_dashboard_html(
         ratings: list[RatingSnapshot],
         latest_run: tuple[str, str, datetime, datetime | None] | None,
-    latest_run_counts: dict[str, int],
-    source_refresh_summaries: list[SourceRefreshSummary],
+        latest_run_counts: dict[str, int],
+        source_refresh_summaries: list[SourceRefreshSummary],
         table_counts: dict[str, int],
-    quality_alerts: list[QualityAlert],
+        quality_alerts: list[QualityAlert],
 ) -> str:
         label_counts = Counter(rating.rating_label for rating in ratings)
         freshness_counts = Counter(rating.freshness_status for rating in ratings)
@@ -411,6 +487,21 @@ def render_dashboard_html(
             color: var(--muted);
             max-width: 52ch;
             margin: 0;
+        }}
+        .hero-link {{
+            margin-top: 12px;
+        }}
+        .hero-link a {{
+            display: inline-block;
+            text-decoration: none;
+            color: #ffffff;
+            background: linear-gradient(90deg, var(--accent), #1b7f88);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }}
         .hero-panel {{
             background: rgba(13, 92, 99, 0.06);
@@ -651,6 +742,12 @@ def render_dashboard_html(
             margin-top: 2px;
             line-height: 1.25;
         }}
+        .analyst {{
+            color: var(--muted);
+            font-size: 0.76rem;
+            margin-top: 3px;
+            line-height: 1.3;
+        }}
         .score-chip {{
             display: inline-flex;
             flex-direction: column;
@@ -776,6 +873,7 @@ def render_dashboard_html(
                     <div class="eyebrow">Daily stock snapshot</div>
                     <h1>Ratings worth presenting.</h1>
                     <p class="lead">Latest ratings, freshness state, and score breakdowns generated directly from the pipeline's persisted outputs.</p>
+                    <div class="hero-link"><a href="ratings-methodology.html">How Ratings Are Calculated</a></div>
                 </div>
                 <aside class="hero-panel">
                     <div class="kicker">Latest pipeline run</div>
@@ -931,9 +1029,15 @@ def render_rating_row(rating: RatingSnapshot) -> str:
             render_factor_cell("Risk", rating.risk_score),
         ]
     )
+    analyst_parts: list[str] = []
+    if rating.analyst_suggestion_label:
+        analyst_parts.append(f"Analyst: {rating.analyst_suggestion_label.replace('_', ' ').title()}")
+    if rating.analyst_target_price is not None:
+        analyst_parts.append(f"Target: {format_currency(rating.analyst_target_price)}")
+    analyst_html = f'<div class="analyst">{" | ".join(escape(part) for part in analyst_parts)}</div>' if analyst_parts else ""
     return (
         "<tr>"
-        f'<td data-sort="{escape(company_sort)}"><div class="symbol">{escape(rating.symbol)}</div><div class="company">{escape(rating.company_name)}</div></td>'
+        f'<td data-sort="{escape(company_sort)}"><div class="symbol">{escape(rating.symbol)}</div><div class="company">{escape(rating.company_name)}</div>{analyst_html}</td>'
         f'<td data-sort="{rating.rating_score}"><span class="score-chip {score_band}"><small>Rating</small><strong>{escape(rating_ten)}</strong></span></td>'
         f'<td data-sort="{escape(rating.freshness_status)}" class="{freshness_class}">{escape(rating.freshness_status.title())}</td>'
         f'{factor_cells_html}'
@@ -1027,6 +1131,12 @@ def format_decimal(value: Decimal | None) -> str:
     return f"{value:.1f}"
 
 
+def format_currency(value: Decimal | None) -> str:
+    if value is None:
+        return "N/A"
+    return f"{value:.2f}"
+
+
 def format_score_ten(value: Decimal | None) -> str:
     if value is None:
         return "N/A"
@@ -1092,6 +1202,299 @@ def factor_short_name(name: str) -> str:
         "Risk": "Risk",
     }
     return labels.get(name, name)
+
+
+def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]) -> str:
+    source_rows = "".join(
+        (
+            "<tr>"
+            f"<td>{escape(format_source_name(summary.source))}</td>"
+            f"<td>{summary.calls}</td>"
+            f"<td>{summary.succeeded}</td>"
+            f"<td>{summary.failed}</td>"
+            f"<td>{escape(summary.status.replace('_', ' ').title())}</td>"
+            "</tr>"
+        )
+        for summary in source_refresh_summaries
+    ) or "<tr><td colspan=\"5\">No source call summary available in latest artifact.</td></tr>"
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stock Ratings Methodology</title>
+    <style>
+        :root {{
+            --bg: #f6f1e8;
+            --panel: rgba(255, 252, 247, 0.95);
+            --panel-strong: #fffaf1;
+            --text: #1f2933;
+            --muted: #5e6b78;
+            --line: rgba(31, 41, 51, 0.12);
+            --accent: #0d5c63;
+            --shadow: 0 18px 50px rgba(29, 43, 57, 0.12);
+        }}
+        * {{ box-sizing: border-box; }}
+        body {{
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(13, 92, 99, 0.18), transparent 28%),
+                radial-gradient(circle at top right, rgba(184, 92, 56, 0.16), transparent 24%),
+                linear-gradient(180deg, #fbf7ef 0%, var(--bg) 55%, #efe4d3 100%);
+            min-height: 100vh;
+        }}
+        .page {{
+            width: min(1160px, calc(100vw - 30px));
+            margin: 0 auto;
+            padding: 24px 0 36px;
+        }}
+        .hero, .section {{
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }}
+        .hero {{ padding: 22px 24px; }}
+        .eyebrow {{
+            font-family: "Trebuchet MS", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--accent);
+            font-size: 0.72rem;
+        }}
+        h1 {{
+            margin: 8px 0 10px;
+            font-size: clamp(1.9rem, 4vw, 3rem);
+            line-height: 0.95;
+            letter-spacing: -0.03em;
+        }}
+        .lead {{
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            max-width: 80ch;
+        }}
+        .back-link {{
+            margin-top: 14px;
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background: linear-gradient(90deg, var(--accent), #1b7f88);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }}
+        .section {{
+            margin-top: 18px;
+            padding: 20px;
+        }}
+        h2 {{
+            margin: 0 0 8px;
+            font-size: 1.35rem;
+        }}
+        h3 {{
+            margin: 14px 0 6px;
+            font-size: 1rem;
+        }}
+        p, li {{
+            color: var(--muted);
+            line-height: 1.5;
+        }}
+        .grid {{
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }}
+        .card {{
+            background: var(--panel-strong);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+        }}
+        .formula {{
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 0.83rem;
+            color: #213746;
+            background: #eef4f4;
+            border: 1px solid #d6e6e6;
+            border-radius: 10px;
+            padding: 8px 10px;
+            display: block;
+            white-space: pre-wrap;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }}
+        th, td {{
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }}
+        th {{
+            font-family: "Trebuchet MS", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.7rem;
+            color: var(--muted);
+        }}
+        .weights {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }}
+        .pill {{
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 7px 10px;
+            background: var(--panel-strong);
+            font-size: 0.88rem;
+        }}
+        @media (max-width: 900px) {{
+            .grid {{ grid-template-columns: 1fr; }}
+        }}
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="eyebrow">Administration</div>
+            <h1>Stock Rating Methodology</h1>
+            <p class="lead">This page documents how ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the exact factor formulas, and the final weighted score composition.</p>
+            <a class="back-link" href="ratings-dashboard.html">Back To Dashboard</a>
+        </section>
+
+        <section class="section">
+            <h2>Rating Scale</h2>
+            <table>
+                <thead>
+                    <tr><th>Score</th><th>Label</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>90-100</td><td>A / Very Attractive</td></tr>
+                    <tr><td>75-89</td><td>B / Attractive</td></tr>
+                    <tr><td>55-74</td><td>C / Neutral</td></tr>
+                    <tr><td>35-54</td><td>D / Unattractive</td></tr>
+                    <tr><td>0-34</td><td>F / Very Unattractive</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>Source To Feature Mapping</h2>
+            <table>
+                <thead>
+                    <tr><th>Feature Family</th><th>Features</th><th>Primary Sources</th><th>Where In Code</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Price / Technical</td>
+                        <td>intraday_return, one_day_return, five_day_return, ten_day_return, twenty_day_return, daily_volume, average_volume_20d, twenty_day_volatility, high_low_range_pct, gap_open_return</td>
+                        <td>Alpha Vantage, Twelve Data, Stooq (fallback order in daily pipeline)</td>
+                        <td>ingest/prices.py + transform/features.py</td>
+                    </tr>
+                    <tr>
+                        <td>Fundamental</td>
+                        <td>net_margin, cash_flow_margin, return_on_assets, debt_to_assets</td>
+                        <td>SEC EDGAR company facts</td>
+                        <td>ingest/sec_companyfacts.py + transform/fundamentals.py</td>
+                    </tr>
+                    <tr>
+                        <td>Analyst Consensus</td>
+                        <td>analyst_target_price, analyst strong_buy/buy/hold/sell/strong_sell counts, suggestion_label</td>
+                        <td>Alpha Vantage OVERVIEW</td>
+                        <td>ingest/analyst.py + analyst_consensus_daily</td>
+                    </tr>
+                    <tr>
+                        <td>Macro</td>
+                        <td>yield_curve_slope</td>
+                        <td>FRED series DGS10 and DGS2</td>
+                        <td>ingest/fred_macro.py + transform/macro.py</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Latest Source Call Summary</h3>
+            <table>
+                <thead>
+                    <tr><th>Source</th><th>Calls</th><th>Succeeded</th><th>Failed</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {source_rows}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>Factor Calculations</h2>
+            <div class="grid">
+                <article class="card">
+                    <h3>Valuation</h3>
+                    <span class="formula">liquidity_score = clamp(25 + daily_volume / 200000)
+reversal_score = clamp(50 - one_day_return*1200 - intraday_return*400)
+valuation_score = clamp(reversal_score*0.75 + liquidity_score*0.25)</span>
+                    <p>If fundamentals exist, valuation blends in profitability and leverage:</p>
+                    <span class="formula">valuation = clamp(valuation*0.65 + profitability*0.20 + leverage*0.15)</span>
+                </article>
+
+                <article class="card">
+                    <h3>Quality</h3>
+                    <span class="formula">quality_score = clamp(30 + liquidity*0.7 - abs(intraday_return - one_day_return)*900)</span>
+                    <p>With fundamentals, quality also incorporates profitability, cash generation, and asset efficiency.</p>
+                    <span class="formula">quality = clamp(quality*0.45 + profitability*0.20 + cash_generation*0.20 + asset_efficiency*0.15)</span>
+                </article>
+
+                <article class="card">
+                    <h3>Growth</h3>
+                    <span class="formula">trend_score = clamp(50 + one_day_return*1800 + intraday_return*700)
+growth_score = clamp(25 + trend_score*0.75 + max(one_day_return, 0)*500)</span>
+                    <p>Fundamentals and macro can raise/lower growth.</p>
+                    <span class="formula">growth = clamp(growth*0.70 + profitability*0.20 + cash_generation*0.10)
+growth = clamp(growth*0.75 + macro_growth*0.25)</span>
+                </article>
+
+                <article class="card">
+                    <h3>Momentum</h3>
+                    <span class="formula">momentum_score = clamp(trend_score*0.8 + liquidity_score*0.2)</span>
+                    <p>Momentum is currently driven only by price/volume behavior.</p>
+                </article>
+
+                <article class="card">
+                    <h3>Risk</h3>
+                    <span class="formula">stability_penalty = abs(one_day_return)*1600 + abs(intraday_return)*1000
+risk_score = clamp(85 - stability_penalty + liquidity_score*0.15)</span>
+                    <p>With fundamentals + macro, risk adds leverage/cash stress and yield-curve context.</p>
+                    <span class="formula">risk = clamp(risk*0.55 + cash_generation*0.15 + leverage*0.30)
+risk = clamp(risk*0.75 + macro_risk*0.25)</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Final Composite Score</h2>
+            <p>The final score is the weighted sum of the five factor scores, then rounded to an integer and clamped to 0-100.</p>
+            <span class="formula">final = round(valuation*0.25 + quality*0.25 + growth*0.20 + momentum*0.20 + risk*0.10)</span>
+            <div class="weights">
+                <div class="pill">Valuation: 25%</div>
+                <div class="pill">Quality: 25%</div>
+                <div class="pill">Growth: 20%</div>
+                <div class="pill">Momentum: 20%</div>
+                <div class="pill">Risk: 10%</div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+"""
 
 
 if __name__ == "__main__":

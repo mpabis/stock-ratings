@@ -6,7 +6,7 @@
 2. Run tests with `python -m pytest`.
 3. Run the daily planner demo with `python -m stock_rating.pipeline.daily`.
 4. Bootstrap symbols with `python -m stock_rating.pipeline.bootstrap_symbols`.
-5. Follow [docs/supabase_setup.md](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/docs/supabase_setup.md) to create and initialize the hosted database.
+5. Follow [docs/supabase_setup.md](supabase_setup.md) to create and initialize the hosted database.
 6. Apply pending migrations with `python -m stock_rating.pipeline.migrate`.
 7. Verify connectivity with `python -m stock_rating.pipeline.check_db`.
 8. Summarize current DB state and generate the ratings dashboard with `python -m stock_rating.pipeline.report`.
@@ -28,5 +28,5 @@
 
 - Preferred provider: Supabase free-tier Postgres
 - Use the direct Postgres connection string as `DATABASE_URL`
-- Run [sql/schema.sql](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/sql/schema.sql) first, then [sql/migrations/001_add_symbol_refresh_run_outcome_fields.sql](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/sql/migrations/001_add_symbol_refresh_run_outcome_fields.sql)
+- Run `python -m stock_rating.pipeline.migrate`; it applies the idempotent base schema first, then any pending files in `sql/migrations/`.
 - Then run `python -m stock_rating.pipeline.bootstrap_symbols`

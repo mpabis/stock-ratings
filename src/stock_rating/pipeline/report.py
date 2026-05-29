@@ -17,6 +17,7 @@ TABLE_NAMES = [
     "pipeline_runs",
     "symbol_refresh_runs",
     "price_daily",
+    "macro_series_daily",
     "analyst_consensus_daily",
     "features_daily",
     "ratings_daily",
@@ -1683,7 +1684,7 @@ def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]
         <section class="hero">
             <div class="eyebrow">Administration</div>
             <h1>Stock Rating Methodology</h1>
-            <p class="lead">This page documents how ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the exact factor formulas, and the final weighted score composition.</p>
+            <p class="lead">This page documents how the v4 ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the factor formulas, and the final weighted score composition.</p>
             <a class="back-link" href="ratings-dashboard.html">Back To Dashboard</a>
         </section>
 
@@ -1712,13 +1713,13 @@ def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]
                 <tbody>
                     <tr>
                         <td>Price / Technical</td>
-                        <td>intraday_return, one_day_return, five_day_return, ten_day_return, twenty_day_return, daily_volume, average_volume_20d, twenty_day_volatility, high_low_range_pct, gap_open_return</td>
+                        <td>intraday_return, one_day_return, five_day_return, ten_day_return, twenty_day_return, sixty_day_return, one_hundred_day_return, daily_volume, average_volume_20d, twenty_day_volatility, twenty_day_max_drawdown, high_low_range_pct, gap_open_return</td>
                         <td>Alpha Vantage, Twelve Data, Stooq (fallback order in daily pipeline)</td>
                         <td>ingest/prices.py + transform/features.py</td>
                     </tr>
                     <tr>
                         <td>Fundamental</td>
-                        <td>net_margin, cash_flow_margin, return_on_assets, debt_to_assets</td>
+                        <td>net_margin, cash_flow_margin, return_on_assets, debt_to_assets, earnings_yield, book_to_price, revenue_growth_yoy, net_income_growth_yoy, operating_cash_flow_growth_yoy</td>
                         <td>SEC EDGAR company facts</td>
                         <td>ingest/sec_companyfacts.py + transform/fundamentals.py</td>
                     </tr>
@@ -1754,41 +1755,37 @@ def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]
                 <article class="card">
                     <h3>Valuation</h3>
                     <span class="formula">liquidity_score = clamp(25 + daily_volume / 200000)
-reversal_score = clamp(50 - one_day_return*1200 - intraday_return*400)
-valuation_score = clamp(reversal_score*0.75 + liquidity_score*0.25)</span>
-                    <p>If fundamentals exist, valuation blends in profitability and leverage:</p>
-                    <span class="formula">valuation = clamp(valuation*0.65 + profitability*0.20 + leverage*0.15)</span>
+reversal_score = clamp(55 - one_day_return*250 - intraday_return*100)
+valuation = average(reversal/liquidity baseline, earnings_yield, book_to_price, profitability, cash flow, leverage)</span>
+                    <p>If SEC valuation inputs are missing, valuation falls back to the conservative reversal/liquidity baseline.</p>
                 </article>
 
                 <article class="card">
                     <h3>Quality</h3>
-                    <span class="formula">quality_score = clamp(30 + liquidity*0.7 - abs(intraday_return - one_day_return)*900)</span>
-                    <p>With fundamentals, quality also incorporates profitability, cash generation, and asset efficiency.</p>
-                    <span class="formula">quality = clamp(quality*0.45 + profitability*0.20 + cash_generation*0.20 + asset_efficiency*0.15)</span>
+                    <span class="formula">quality_baseline = clamp(38 + liquidity*0.45 - abs(intraday_return - one_day_return)*350)</span>
+                    <p>With fundamentals, quality averages the baseline with net margin, cash-flow margin, return on assets, and leverage.</p>
                 </article>
 
                 <article class="card">
                     <h3>Growth</h3>
-                    <span class="formula">trend_score = clamp(50 + one_day_return*1800 + intraday_return*700)
-growth_score = clamp(25 + trend_score*0.75 + max(one_day_return, 0)*500)</span>
-                    <p>Fundamentals and macro can raise/lower growth.</p>
-                    <span class="formula">growth = clamp(growth*0.70 + profitability*0.20 + cash_generation*0.10)
-growth = clamp(growth*0.75 + macro_growth*0.25)</span>
+                    <span class="formula">short_term_trend = clamp(50 + one_day_return*400 + intraday_return*150)
+growth = average(short_term_trend, revenue_growth_yoy, net_income_growth_yoy, operating_cash_flow_growth_yoy, medium_term_momentum)</span>
+                    <p>Macro yield-curve slope can raise or lower the growth component.</p>
+                    <span class="formula">growth = clamp(growth*0.75 + macro_growth*0.25)</span>
                 </article>
 
                 <article class="card">
                     <h3>Momentum</h3>
-                    <span class="formula">momentum_score = clamp(trend_score*0.8 + liquidity_score*0.2)</span>
-                    <p>Momentum is currently driven only by price/volume behavior.</p>
+                    <span class="formula">momentum_score = clamp(50 + best_available_100/60/20/10/5/1_day_return*120 + twenty_day_return*60 + liquidity*0.05)</span>
+                    <p>Momentum prefers longer available lookbacks and falls back to short-term returns when compact provider data is all that exists.</p>
                 </article>
 
                 <article class="card">
                     <h3>Risk</h3>
-                    <span class="formula">stability_penalty = abs(one_day_return)*1600 + abs(intraday_return)*1000
-risk_score = clamp(85 - stability_penalty + liquidity_score*0.15)</span>
-                    <p>With fundamentals + macro, risk adds leverage/cash stress and yield-curve context.</p>
-                    <span class="formula">risk = clamp(risk*0.55 + cash_generation*0.15 + leverage*0.30)
-risk = clamp(risk*0.75 + macro_risk*0.25)</span>
+                    <span class="formula">risk_penalty = abs(one_day_return)*250 + abs(intraday_return)*150 + volatility*450 + max_drawdown*250
+risk = average(price_stability, leverage, cash_generation, profitability)</span>
+                    <p>With macro data, risk adds yield-curve context.</p>
+                    <span class="formula">risk = clamp(risk*0.75 + macro_risk*0.25)</span>
                 </article>
             </div>
         </section>

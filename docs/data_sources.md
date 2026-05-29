@@ -13,3 +13,5 @@
 ## Operational note
 
 When provider limits are hit, the pipeline should continue refreshing the universe over multiple runs instead of forcing a full same-day refresh.
+
+The highest-confidence MVP path is still US/SEC-covered equities. Non-US symbols can remain in the tracked universe for price-only coverage when a price provider supports the exchange, but the SEC fundamentals step records them as skipped when no SEC ticker mapping exists instead of treating them as failed refreshes.

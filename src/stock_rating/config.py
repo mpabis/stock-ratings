@@ -18,6 +18,8 @@ class Settings:
     sec_user_agent: str = os.getenv("SEC_USER_AGENT", "stock-rating/0.1 research@localhost")
     fred_api_key: str = os.getenv("FRED_API_KEY", "")
     symbol_limit: int = int(os.getenv("STOCK_RATING_SYMBOL_LIMIT", "100"))
+    fundamental_symbol_limit: int = int(os.getenv("STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT", "10"))
+    analyst_symbol_limit: int = int(os.getenv("STOCK_RATING_ANALYST_SYMBOL_LIMIT", "0"))
     symbol_seed_path: str = os.getenv("STOCK_RATING_SYMBOL_SEED_PATH", "")
     plan_output_dir: str = os.getenv("STOCK_RATING_PLAN_OUTPUT_DIR", "")
 

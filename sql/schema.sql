@@ -34,6 +34,9 @@ create table if not exists fundamental_facts (
     metric text not null,
     value numeric,
     unit text,
+    period_start date,
+    period_end date,
+    frame text,
     filed_at timestamptz,
     source text not null,
     primary key (symbol, fiscal_year, fiscal_period, metric, source)

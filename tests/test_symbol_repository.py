@@ -76,8 +76,16 @@ class _FakeUpsertConnection:
 def test_load_symbol_seeds_prefers_database_when_configured() -> None:
     fake_connection = _FakeSymbolConnection(
         rows=[
-            ("QQQ", "Invesco QQQ Trust", "NASDAQ", 1, datetime(2026, 5, 26, 10, 0, tzinfo=UTC), True),
-            ("SPY", "SPDR S&P 500 ETF", "NYSEARCA", 2, None, True),
+            (
+                "QQQ",
+                "Invesco QQQ Trust",
+                "NASDAQ",
+                1,
+                datetime(2026, 5, 26, 10, 0, tzinfo=UTC),
+                datetime(2026, 5, 20, 10, 0, tzinfo=UTC),
+                True,
+            ),
+            ("SPY", "SPDR S&P 500 ETF", "NYSEARCA", 2, None, None, True),
         ]
     )
 
@@ -88,6 +96,7 @@ def test_load_symbol_seeds_prefers_database_when_configured() -> None:
 
     assert [seed.symbol for seed in seeds] == ["QQQ", "SPY"]
     assert seeds[0].last_price_date.isoformat() == "2026-05-26"
+    assert seeds[0].last_fundamental_date.isoformat() == "2026-05-20"
     assert seeds[1].refresh_tier == 2
     assert fake_connection.cursor_instance.closed is True
     assert fake_connection.closed is True

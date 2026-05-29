@@ -1,6 +1,32 @@
 from pathlib import Path
 
-from stock_rating.pipeline.migrate import list_migration_files, pending_migration_files
+from stock_rating.pipeline.migrate import apply_base_schema, list_migration_files, pending_migration_files
+
+
+class _FakeSchemaCursor:
+    def __init__(self) -> None:
+        self.executed: list[str] = []
+
+    def execute(self, query: str) -> None:
+        self.executed.append(query)
+
+    def __enter__(self) -> "_FakeSchemaCursor":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+
+class _FakeSchemaConnection:
+    def __init__(self) -> None:
+        self.cursor_instance = _FakeSchemaCursor()
+        self.committed = False
+
+    def cursor(self) -> _FakeSchemaCursor:
+        return self.cursor_instance
+
+    def commit(self) -> None:
+        self.committed = True
 
 
 def test_list_migration_files_sorts_by_name(tmp_path: Path) -> None:
@@ -23,3 +49,15 @@ def test_pending_migration_files_excludes_applied_names(tmp_path: Path) -> None:
     pending = pending_migration_files([first, second], {"001_first.sql"})
 
     assert [path.name for path in pending] == ["002_second.sql"]
+
+
+def test_apply_base_schema_executes_schema_file(tmp_path: Path) -> None:
+    schema_path = tmp_path / "schema.sql"
+    schema_path.write_text("create table example(id integer);", encoding="utf-8")
+    connection = _FakeSchemaConnection()
+
+    applied = apply_base_schema(connection, schema_path)
+
+    assert applied is True
+    assert connection.cursor_instance.executed == ["create table example(id integer);"]
+    assert connection.committed is True

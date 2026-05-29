@@ -96,6 +96,54 @@ def test_parse_company_facts_extracts_core_metrics() -> None:
     assert all(fact.cik == "0000320193" for fact in facts)
 
 
+def test_parse_company_facts_keeps_annual_flow_periods_before_recent_quarters() -> None:
+    payload = {
+        "facts": {
+            "us-gaap": {
+                "Revenues": {
+                    "units": {
+                        "USD": [
+                            {
+                                "fy": 2025,
+                                "fp": "Q3",
+                                "form": "10-Q",
+                                "filed": "2025-08-01",
+                                "start": "2025-04-01",
+                                "end": "2025-06-30",
+                                "val": 300,
+                            },
+                            {
+                                "fy": 2024,
+                                "fp": "FY",
+                                "form": "10-K",
+                                "filed": "2025-02-15",
+                                "start": "2024-01-01",
+                                "end": "2024-12-31",
+                                "val": 1000,
+                            },
+                            {
+                                "fy": 2023,
+                                "fp": "FY",
+                                "form": "10-K",
+                                "filed": "2024-02-15",
+                                "start": "2023-01-01",
+                                "end": "2023-12-31",
+                                "val": 800,
+                            },
+                        ]
+                    }
+                }
+            }
+        }
+    }
+
+    facts = parse_company_facts("AAPL", "0000320193", payload)
+    revenue_facts = [fact for fact in facts if fact.metric == "revenue"]
+
+    assert [fact.fiscal_year for fact in revenue_facts] == [2024, 2023]
+    assert revenue_facts[0].period_end.isoformat() == "2024-12-31"
+
+
 class _FakeHttpResponse:
     def __init__(self, payload: object) -> None:
         self.payload = payload

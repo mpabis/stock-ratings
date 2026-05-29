@@ -78,3 +78,40 @@ def load_latest_analyst_consensus(database_url: str, symbol: str, connect_fn=con
         suggestion_score=row[9],
         source=row[10],
     )
+
+
+def load_latest_analyst_dates(
+    database_url: str,
+    symbols: list[str],
+    connect_fn=connect_postgres,
+) -> dict[str, date]:
+    if not symbols or not is_configured(DatabaseConfig(url=database_url)):
+        return {}
+
+    connection = None
+    cursor = None
+    try:
+        connection = connect_fn(database_url)
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            select symbol, max(date)
+            from analyst_consensus_daily
+            where symbol = any(%s)
+            group by symbol
+            """,
+            (symbols,),
+        )
+        rows = cursor.fetchall()
+    except Exception:
+        return {}
+    finally:
+        try:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+        except Exception:
+            pass
+
+    return {row[0]: row[1] for row in rows}

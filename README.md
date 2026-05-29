@@ -30,10 +30,13 @@ Optional provider note:
 	Example: `stock-rating/0.1 your-email@example.com`
 - When `DATABASE_URL` and `SEC_USER_AGENT` are configured, the daily pipeline automatically refreshes SEC fundamentals for SEC-covered symbols before scoring.
 - When `DATABASE_URL` and `FRED_API_KEY` are configured, the daily pipeline also refreshes core FRED macro series and uses the yield-curve slope in scoring.
+- `STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT` caps due SEC fundamentals refreshes per run.
+- `STOCK_RATING_ANALYST_SYMBOL_LIMIT` caps optional Alpha Vantage analyst OVERVIEW calls per run. It defaults to `0` so price refreshes keep first claim on the free Alpha Vantage quota.
+- Non-US symbols can be tracked for price-only coverage when the configured providers support them; SEC fundamentals are skipped with an audit record when no SEC mapping exists.
 
 ## How to update tracked stocks
 
-The tracked universe lives in [data/symbols.csv](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/data/symbols.csv).
+The tracked universe lives in [data/symbols.csv](data/symbols.csv).
 
 Each row controls:
 - `symbol`
@@ -51,7 +54,7 @@ MU,Micron Technology Inc.,NASDAQ,2,2026-05-23,true
 
 To add, remove, or change symbols:
 
-1. Edit [data/symbols.csv](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/data/symbols.csv).
+1. Edit [data/symbols.csv](data/symbols.csv).
 2. Run `python -m stock_rating.pipeline.bootstrap_symbols` to upsert the updated rows into Postgres.
 3. Run `python -m stock_rating.daily` to fetch fresh data and compute ratings for the current universe.
 
@@ -73,7 +76,7 @@ The system persists data in stages:
 Typical refresh workflow:
 
 1. Verify DB connectivity with `python -m stock_rating.pipeline.check_db`.
-2. If you changed [data/symbols.csv](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/data/symbols.csv), run `python -m stock_rating.pipeline.bootstrap_symbols`.
+2. If you changed [data/symbols.csv](data/symbols.csv), run `python -m stock_rating.pipeline.bootstrap_symbols`.
 3. Run `python -m stock_rating.daily`.
 4. Run `python -m stock_rating.pipeline.report` to refresh the presentation layer.
 
@@ -89,7 +92,7 @@ Console summary:
 - This prints the latest run metadata and row counts for the main tables.
 
 HTML dashboard:
-- Open [artifacts/reports/ratings-dashboard.html](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/artifacts/reports/ratings-dashboard.html)
+- Open [artifacts/reports/ratings-dashboard.html](artifacts/reports/ratings-dashboard.html)
 - This dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and active data quality alerts for stale prices or missing ratings.
 
 Hosted mobile dashboard (GitHub Pages):
@@ -106,16 +109,20 @@ Read-only API (FastAPI):
 	- `GET /api/quality-alerts?limit=100`
 
 Planner artifacts:
-- Open files in [artifacts/plans](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/artifacts/plans)
+- Open files in [artifacts/plans](artifacts/plans)
 - These contain the saved refresh plan output for each pipeline run.
 
 ## Database
 
 Use Supabase Postgres for the hosted MVP.
 
-- Setup guide: [docs/supabase_setup.md](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/docs/supabase_setup.md)
-- Schema file: [sql/schema.sql](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/sql/schema.sql)
-- Migration file: [sql/migrations/001_add_symbol_refresh_run_outcome_fields.sql](c:/Users/MartinPabiš/source/repos/playground/stock-ratings/sql/migrations/001_add_symbol_refresh_run_outcome_fields.sql)
+- Setup guide: [docs/supabase_setup.md](docs/supabase_setup.md)
+- Schema file: [sql/schema.sql](sql/schema.sql)
+- Migrations: [sql/migrations](sql/migrations)
+
+## Changelog
+
+- Notable project changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ## Current Scope
 

@@ -62,7 +62,7 @@ def test_build_rating_record_maps_to_schema_shape() -> None:
 
     assert record.symbol == "AAPL"
     assert record.freshness_status == "fresh"
-    assert record.model_version == "v3"
+    assert record.model_version == "v4"
     assert record.rating_label
 
 
@@ -113,7 +113,7 @@ def test_build_rating_record_spreads_labels_for_different_feature_profiles() -> 
     }
 
     assert labels == {
-        "steady": "D / Unattractive",
+        "steady": "C / Neutral",
         "balanced": "C / Neutral",
         "stressed": "F / Very Unattractive",
     }

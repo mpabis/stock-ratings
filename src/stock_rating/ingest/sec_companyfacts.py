@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import date, datetime, UTC
 from decimal import Decimal
 import json
 from typing import Any
@@ -18,7 +18,12 @@ CORE_SEC_METRIC_CONCEPTS = {
 	"operating_cash_flow": ("NetCashProvidedByUsedInOperatingActivities",),
 	"assets": ("Assets",),
 	"liabilities": ("Liabilities",),
+	"stockholders_equity": ("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"),
+	"eps_diluted": ("EarningsPerShareDiluted",),
+	"shares_diluted": ("WeightedAverageNumberOfDilutedSharesOutstanding", "WeightedAverageNumberOfSharesOutstandingDiluted"),
 }
+
+FLOW_METRICS = {"revenue", "net_income", "operating_cash_flow", "eps_diluted", "shares_diluted"}
 
 
 @dataclass(frozen=True)
@@ -40,6 +45,9 @@ class FundamentalFact:
 	value: Decimal
 	unit: str
 	filed_at: datetime | None
+	period_start: date | None = None
+	period_end: date | None = None
+	frame: str | None = None
 	source: str = "sec_edgar"
 
 
@@ -100,22 +108,24 @@ def parse_company_facts(symbol: str, cik: str, payload: dict[str, object]) -> li
 
 	parsed_facts: list[FundamentalFact] = []
 	for metric, concepts in CORE_SEC_METRIC_CONCEPTS.items():
-		observation = _latest_observation(gaap_facts, concepts)
-		if observation is None:
-			continue
-		parsed_facts.append(
-			FundamentalFact(
-				cik=str(cik).zfill(10),
-				symbol=symbol,
-				fiscal_period=str(observation.get("fp", "FY")),
-				fiscal_year=int(observation["fy"]),
-				form=str(observation.get("form", "")),
-				metric=metric,
-				value=Decimal(str(observation["val"])),
-				unit=str(observation.get("unit", "USD")),
-				filed_at=_parse_sec_datetime(observation.get("filed")),
+		observations = _selected_observations_for_metric(metric, _candidate_observations(gaap_facts, concepts))
+		for observation in observations:
+			parsed_facts.append(
+				FundamentalFact(
+					cik=str(cik).zfill(10),
+					symbol=symbol,
+					fiscal_period=str(observation.get("fp", "FY")),
+					fiscal_year=int(observation["fy"]),
+					form=str(observation.get("form", "")),
+					metric=metric,
+					value=Decimal(str(observation["val"])),
+					unit=str(observation.get("unit", "USD")),
+					filed_at=_parse_sec_datetime(observation.get("filed")),
+					period_start=_parse_sec_date(observation.get("start")),
+					period_end=_parse_sec_date(observation.get("end")),
+					frame=str(observation.get("frame")) if observation.get("frame") else None,
+				)
 			)
-		)
 
 	return parsed_facts
 
@@ -140,14 +150,20 @@ def persist_fundamental_facts(database_url: str, facts: list[FundamentalFact], c
 				metric,
 				value,
 				unit,
+				period_start,
+				period_end,
+				frame,
 				filed_at,
 				source
-			) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+			) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 			on conflict (symbol, fiscal_year, fiscal_period, metric, source) do update set
 				cik = excluded.cik,
 				form = excluded.form,
 				value = excluded.value,
 				unit = excluded.unit,
+				period_start = excluded.period_start,
+				period_end = excluded.period_end,
+				frame = excluded.frame,
 				filed_at = excluded.filed_at
 			""",
 			[
@@ -160,6 +176,9 @@ def persist_fundamental_facts(database_url: str, facts: list[FundamentalFact], c
 					fact.metric,
 					fact.value,
 					fact.unit,
+					fact.period_start,
+					fact.period_end,
+					fact.frame,
 					fact.filed_at,
 					fact.source,
 				)
@@ -191,7 +210,7 @@ def _fetch_json(url: str, user_agent: str, urlopen_fn=urlopen) -> dict[str, obje
 		raise SecCompanyFactsResponseError(f"SEC EDGAR request failed with HTTP {error.code}") from error
 
 
-def _latest_observation(gaap_facts: dict[str, object], concepts: tuple[str, ...]) -> dict[str, object] | None:
+def _candidate_observations(gaap_facts: dict[str, object], concepts: tuple[str, ...]) -> list[dict[str, object]]:
 	candidates: list[dict[str, object]] = []
 	for concept in concepts:
 		concept_payload = gaap_facts.get(concept)
@@ -214,17 +233,56 @@ def _latest_observation(gaap_facts: dict[str, object], concepts: tuple[str, ...]
 					continue
 				candidates.append({**observation, "unit": unit})
 
+	return candidates
+
+
+def _selected_observations_for_metric(metric: str, candidates: list[dict[str, object]]) -> list[dict[str, object]]:
 	if not candidates:
-		return None
+		return []
 
-	return max(candidates, key=_observation_sort_key)
+	if metric in FLOW_METRICS:
+		annual_candidates = [candidate for candidate in candidates if _is_annual_observation(candidate)]
+		pool = annual_candidates or candidates
+		ordered = sorted(pool, key=_observation_sort_key, reverse=True)
+		selected: list[dict[str, object]] = []
+		seen_fiscal_years: set[int] = set()
+		for observation in ordered:
+			fiscal_year = int(observation.get("fy", 0) or 0)
+			if fiscal_year in seen_fiscal_years:
+				continue
+			selected.append(observation)
+			seen_fiscal_years.add(fiscal_year)
+			if len(selected) == 2:
+				break
+		return selected
+
+	return [max(candidates, key=_observation_sort_key)]
 
 
-def _observation_sort_key(observation: dict[str, object]) -> tuple[datetime, int, int]:
+def _latest_observation(gaap_facts: dict[str, object], concepts: tuple[str, ...]) -> dict[str, object] | None:
+	selected = _selected_observations_for_metric("latest", _candidate_observations(gaap_facts, concepts))
+	return selected[0] if selected else None
+
+
+def _observation_sort_key(observation: dict[str, object]) -> tuple[int, date, datetime, int]:
 	filed_at = _parse_sec_datetime(observation.get("filed")) or datetime(1970, 1, 1, tzinfo=UTC)
 	fiscal_year = int(observation.get("fy", 0) or 0)
 	form_priority = 1 if str(observation.get("form", "")).startswith("10-K") or str(observation.get("form", "")).startswith("20-F") else 0
-	return (filed_at, fiscal_year, form_priority)
+	period_end = _parse_sec_date(observation.get("end")) or date(fiscal_year or 1970, 1, 1)
+	return (fiscal_year, period_end, filed_at, form_priority)
+
+
+def _is_annual_observation(observation: dict[str, object]) -> bool:
+	if str(observation.get("fp", "")).upper() == "FY":
+		return True
+	if str(observation.get("form", "")).startswith(("10-K", "20-F")):
+		return True
+	start = _parse_sec_date(observation.get("start"))
+	end = _parse_sec_date(observation.get("end"))
+	if start is not None and end is not None and (end - start).days >= 300:
+		return True
+	frame = str(observation.get("frame", ""))
+	return frame.startswith("CY") and "Q" not in frame
 
 
 def _parse_sec_datetime(value: object) -> datetime | None:
@@ -234,3 +292,9 @@ def _parse_sec_datetime(value: object) -> datetime | None:
 	if len(text) == 10:
 		return datetime.fromisoformat(text).replace(tzinfo=UTC)
 	return datetime.fromisoformat(text.replace("Z", "+00:00"))
+
+
+def _parse_sec_date(value: object) -> date | None:
+	if not value:
+		return None
+	return date.fromisoformat(str(value)[:10])

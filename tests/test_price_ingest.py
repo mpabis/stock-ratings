@@ -229,10 +229,12 @@ def test_build_stooq_daily_url_normalizes_exchange_prefixes() -> None:
     us_url = build_stooq_daily_url("SKYW", "stooq-key")
     tsx_url = build_stooq_daily_url("TSE:FFH", "stooq-key")
     xetr_url = build_stooq_daily_url("ETR:AIXA", "stooq-key")
+    stockholm_url = build_stooq_daily_url("TEL2-B.ST", "stooq-key")
 
     assert "s=skyw.us" in us_url
     assert "s=ffh.ca" in tsx_url
     assert "s=aixa.de" in xetr_url
+    assert "s=tel2-b.st" in stockholm_url
     assert "apikey=stooq-key" in tsx_url
 
 

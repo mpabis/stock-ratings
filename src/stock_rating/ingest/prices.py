@@ -143,8 +143,12 @@ def normalize_symbol_for_twelve_data(symbol: str) -> str:
 
 
 def normalize_symbol_for_stooq(symbol: str) -> str:
+    lowered = symbol.lower()
+    if lowered.endswith(".st"):
+        return lowered
+
     if ":" not in symbol:
-        return f"{symbol.lower()}.us"
+        return f"{lowered}.us"
 
     exchange, raw_symbol = symbol.split(":", 1)
     normalized_symbol = raw_symbol.lower()

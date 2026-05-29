@@ -2,6 +2,8 @@ from datetime import date, datetime, UTC
 from decimal import Decimal
 
 from stock_rating.pipeline.daily import (
+    MAX_FUNDAMENTAL_AGE_BY_TIER,
+    SymbolPeriodicRefreshState,
     SymbolRefreshState,
     build_symbol_refresh_run_records,
     execute_analyst_refresh_plan,
@@ -11,7 +13,10 @@ from stock_rating.pipeline.daily import (
     execute_stooq_refresh_plan,
     execute_twelve_data_refresh_plan,
     plan_price_refreshes,
+    plan_periodic_refreshes,
     pipeline_status_for,
+    preferred_provider_name,
+    rating_task_for_features,
     resolve_git_sha,
 )
 from stock_rating.ingest.prices import AlphaVantageRateLimitError, DailyPriceBar, TwelveDataRateLimitError
@@ -63,12 +68,68 @@ def test_refresh_plan_prioritizes_tier_then_staleness() -> None:
 def test_refresh_plan_marks_stale_symbols() -> None:
     as_of = date(2026, 5, 27)
     symbols = [
-        SymbolRefreshState(symbol="OLD", refresh_tier=3, last_price_date=date(2026, 5, 20)),
+        SymbolRefreshState(symbol="OLD", refresh_tier=3, last_price_date=date(2026, 5, 19)),
     ]
 
     planned = plan_price_refreshes(symbols, as_of=as_of, budget=1)
 
     assert planned[0].freshness_status == "stale"
+
+
+def test_refresh_plan_uses_trading_day_age() -> None:
+    as_of = date(2026, 6, 1)
+    symbols = [
+        SymbolRefreshState(symbol="FRIDAY", refresh_tier=1, last_price_date=date(2026, 5, 29)),
+    ]
+
+    planned = plan_price_refreshes(symbols, as_of=as_of, budget=1)
+
+    assert planned[0].age_in_days == 1
+    assert planned[0].freshness_status == "fresh"
+
+
+def test_periodic_refresh_plan_only_includes_due_symbols() -> None:
+    as_of = date(2026, 5, 27)
+    planned = plan_periodic_refreshes(
+        [
+            SymbolPeriodicRefreshState(symbol="DUE", refresh_tier=1, last_refresh_date=date(2026, 1, 1)),
+            SymbolPeriodicRefreshState(symbol="RECENT", refresh_tier=1, last_refresh_date=date(2026, 5, 1)),
+        ],
+        as_of=as_of,
+        budget=5,
+        max_age_by_tier=MAX_FUNDAMENTAL_AGE_BY_TIER,
+    )
+
+    assert [task.symbol for task in planned] == ["DUE"]
+
+
+def test_preferred_provider_name_returns_stooq_when_only_stooq_configured() -> None:
+    assert preferred_provider_name(False, False, True) == "stooq"
+
+
+def test_rating_task_for_features_recomputes_freshness_from_latest_feature_date() -> None:
+    task = plan_price_refreshes(
+        [SymbolRefreshState(symbol="AAPL", refresh_tier=1, last_price_date=date(2026, 5, 20))],
+        as_of=date(2026, 5, 27),
+        budget=1,
+    )[0]
+
+    rating_task = rating_task_for_features(
+        task,
+        [
+            FeatureValue(
+                symbol="AAPL",
+                date=date(2026, 5, 27),
+                feature_name="daily_volume",
+                feature_value=Decimal("1"),
+                source_version="v1",
+            )
+        ],
+        as_of=date(2026, 5, 27),
+    )
+
+    assert task.freshness_status == "stale"
+    assert rating_task.freshness_status == "fresh"
 
 
 def test_symbol_refresh_run_records_are_created_from_plan() -> None:
@@ -331,6 +392,28 @@ def test_execute_fundamental_refresh_plan_marks_failure_on_sec_error() -> None:
     assert records[0].provider == "sec_edgar"
     assert records[0].status == "failed"
     assert records[0].provider_error_code == "sec_edgar_error"
+
+
+def test_execute_fundamental_refresh_plan_skips_symbols_missing_sec_mapping() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="ETR:AIXA", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_fundamental_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="postgresql://example",
+        user_agent="stock-rating-test@example.com",
+        fetch_mapping_fn=lambda user_agent: {},
+    )
+
+    assert len(records) == 1
+    assert records[0].status == "skipped"
+    assert records[0].provider_error_code == "sec_mapping_missing"
+    assert pipeline_status_for(records) == "planned"
 
 
 def test_execute_analyst_refresh_plan_marks_success_with_missing_consensus() -> None:

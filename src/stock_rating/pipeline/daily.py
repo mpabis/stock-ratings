@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 import os
 import subprocess
 import time
@@ -47,6 +47,7 @@ from stock_rating.repository.runs import (
     write_plan_artifact,
 )
 from stock_rating.repository.ratings import persist_ratings
+from stock_rating.repository.analyst import load_latest_analyst_dates
 from stock_rating.repository.fundamentals import load_latest_fundamental_facts
 from stock_rating.repository.macro import load_latest_macro_observations
 from stock_rating.repository.symbols import load_symbol_seeds, update_symbol_last_price_refresh_at
@@ -63,12 +64,31 @@ MAX_PRICE_AGE_BY_TIER = {
     3: 5,
 }
 
+MAX_FUNDAMENTAL_AGE_BY_TIER = {
+    1: 90,
+    2: 120,
+    3: 180,
+}
+
+MAX_ANALYST_AGE_BY_TIER = {
+    1: 7,
+    2: 14,
+    3: 30,
+}
+
 
 @dataclass(frozen=True)
 class SymbolRefreshState:
     symbol: str
     refresh_tier: int
     last_price_date: date
+
+
+@dataclass(frozen=True)
+class SymbolPeriodicRefreshState:
+    symbol: str
+    refresh_tier: int
+    last_refresh_date: date | None
 
 
 @dataclass(frozen=True)
@@ -80,17 +100,36 @@ class RefreshTask:
 
 
 def age_in_days(as_of: date, last_price_date: date) -> int:
-    return max(0, (as_of - last_price_date).days)
+    if last_price_date >= as_of:
+        return 0
+
+    age = 0
+    current = last_price_date + timedelta(days=1)
+    while current <= as_of:
+        if current.weekday() < 5:
+            age += 1
+        current += timedelta(days=1)
+    return age
 
 
-def freshness_status_for(symbol: SymbolRefreshState, as_of: date) -> str:
-    age = age_in_days(as_of, symbol.last_price_date)
-    max_age = MAX_PRICE_AGE_BY_TIER[symbol.refresh_tier]
+def calendar_age_in_days(as_of: date, last_refresh_date: date | None) -> int:
+    if last_refresh_date is None:
+        return 9999
+    return max(0, (as_of - last_refresh_date).days)
+
+
+def freshness_status_for_age(refresh_tier: int, age: int) -> str:
+    max_age = MAX_PRICE_AGE_BY_TIER.get(refresh_tier, MAX_PRICE_AGE_BY_TIER[3])
     if age <= 1:
         return "fresh"
     if age <= max_age:
         return "aging"
     return "stale"
+
+
+def freshness_status_for(symbol: SymbolRefreshState, as_of: date) -> str:
+    age = age_in_days(as_of, symbol.last_price_date)
+    return freshness_status_for_age(symbol.refresh_tier, age)
 
 
 def plan_price_refreshes(
@@ -117,6 +156,57 @@ def plan_price_refreshes(
     return planned
 
 
+def plan_periodic_refreshes(
+    symbols: list[SymbolPeriodicRefreshState],
+    as_of: date,
+    budget: int,
+    max_age_by_tier: dict[int, int],
+) -> list[RefreshTask]:
+    if budget <= 0:
+        return []
+
+    due_symbols = [
+        symbol
+        for symbol in symbols
+        if calendar_age_in_days(as_of, symbol.last_refresh_date)
+        >= max_age_by_tier.get(symbol.refresh_tier, max_age_by_tier[3])
+    ]
+    ordered_symbols = sorted(
+        due_symbols,
+        key=lambda item: (
+            item.refresh_tier,
+            -calendar_age_in_days(as_of, item.last_refresh_date),
+            item.symbol,
+        ),
+    )
+
+    planned: list[RefreshTask] = []
+    for symbol in ordered_symbols[:budget]:
+        age = calendar_age_in_days(as_of, symbol.last_refresh_date)
+        planned.append(
+            RefreshTask(
+                symbol=symbol.symbol,
+                refresh_tier=symbol.refresh_tier,
+                age_in_days=age,
+                freshness_status="due" if age < 9999 else "missing",
+            )
+        )
+
+    return planned
+
+
+def rating_task_for_features(task: RefreshTask, features, as_of: date | None = None) -> RefreshTask:
+    latest_date = max(feature.date for feature in features)
+    effective_as_of = as_of or date.today()
+    age = age_in_days(effective_as_of, latest_date)
+    return RefreshTask(
+        symbol=task.symbol,
+        refresh_tier=task.refresh_tier,
+        age_in_days=age,
+        freshness_status=freshness_status_for_age(task.refresh_tier, age),
+    )
+
+
 def build_default_refresh_plan() -> list[RefreshTask]:
     settings = get_settings()
     seeds = load_symbol_seeds(
@@ -134,13 +224,61 @@ def build_default_refresh_plan() -> list[RefreshTask]:
     return plan_price_refreshes(symbol_states, as_of=date.today(), budget=min(settings.symbol_limit, len(symbol_states)))
 
 
+def build_default_fundamental_refresh_plan() -> list[RefreshTask]:
+    settings = get_settings()
+    seeds = load_symbol_seeds(
+        database_url=settings.database_url,
+        seed_path=settings.symbol_seed_path or None,
+    )
+    symbol_states = [
+        SymbolPeriodicRefreshState(
+            symbol=seed.symbol,
+            refresh_tier=seed.refresh_tier,
+            last_refresh_date=seed.last_fundamental_date,
+        )
+        for seed in seeds
+    ]
+    return plan_periodic_refreshes(
+        symbol_states,
+        as_of=date.today(),
+        budget=min(settings.fundamental_symbol_limit, len(symbol_states)),
+        max_age_by_tier=MAX_FUNDAMENTAL_AGE_BY_TIER,
+    )
+
+
+def build_default_analyst_refresh_plan() -> list[RefreshTask]:
+    settings = get_settings()
+    if settings.analyst_symbol_limit <= 0:
+        return []
+
+    seeds = load_symbol_seeds(
+        database_url=settings.database_url,
+        seed_path=settings.symbol_seed_path or None,
+    )
+    latest_analyst_dates = load_latest_analyst_dates(settings.database_url, [seed.symbol for seed in seeds])
+    symbol_states = [
+        SymbolPeriodicRefreshState(
+            symbol=seed.symbol,
+            refresh_tier=seed.refresh_tier,
+            last_refresh_date=latest_analyst_dates.get(seed.symbol),
+        )
+        for seed in seeds
+    ]
+    return plan_periodic_refreshes(
+        symbol_states,
+        as_of=date.today(),
+        budget=min(settings.analyst_symbol_limit, len(symbol_states)),
+        max_age_by_tier=MAX_ANALYST_AGE_BY_TIER,
+    )
+
+
 def preferred_provider_name(alpha_vantage_configured: bool, twelve_data_configured: bool, stooq_configured: bool) -> str:
     if alpha_vantage_configured:
         return "alpha_vantage"
     if twelve_data_configured:
         return "twelve_data"
     if stooq_configured:
-        return "twelve_data"
+        return "stooq"
     return "stooq"
 
 
@@ -159,8 +297,13 @@ def build_symbol_features(
         return []
 
     latest_date = max(feature.date for feature in price_features)
+    latest_bar = max(bars, key=lambda bar: bar.date)
+    latest_price = latest_bar.adjusted_close or latest_bar.close
     fundamental_facts = load_fundamental_facts_fn(database_url, task.symbol)
-    fundamental_features = compute_fundamental_features_fn(task.symbol, latest_date, fundamental_facts)
+    try:
+        fundamental_features = compute_fundamental_features_fn(task.symbol, latest_date, fundamental_facts, latest_price)
+    except TypeError:
+        fundamental_features = compute_fundamental_features_fn(task.symbol, latest_date, fundamental_facts)
     macro_observations = load_macro_observations_fn(database_url, CORE_FRED_SERIES)
     macro_features = compute_macro_features_fn(task.symbol, latest_date, macro_observations)
     return price_features + fundamental_features + macro_features
@@ -169,11 +312,16 @@ def build_symbol_features(
 def summarize_symbol_runs(source: str, symbol_runs: list[SymbolRefreshRunRecord]) -> SourceRefreshSummaryRecord:
     calls = len(symbol_runs)
     succeeded = sum(1 for record in symbol_runs if record.status == "succeeded")
-    failed = calls - succeeded
+    failed = sum(1 for record in symbol_runs if record.status in {"failed", "rate_limited"})
+    skipped = sum(1 for record in symbol_runs if record.status == "skipped")
     if calls == 0:
         status = "skipped"
-    elif failed == 0:
+    elif succeeded == calls:
         status = "succeeded"
+    elif skipped == calls:
+        status = "skipped"
+    elif failed == 0:
+        status = "partial"
     elif succeeded == 0:
         status = "failed"
     else:
@@ -281,6 +429,21 @@ def execute_fundamental_refresh_plan(
     for task in tasks:
         mapping = mappings.get(normalize_symbol_for_sec(task.symbol))
         if mapping is None:
+            attempted_at = utc_now()
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="fundamental",
+                    provider="sec_edgar",
+                    status="skipped",
+                    attempted_at=attempted_at,
+                    completed_at=attempted_at,
+                    error_message="No SEC ticker mapping found for symbol.",
+                    fetched_bar_count=0,
+                    provider_error_code="sec_mapping_missing",
+                )
+            )
             continue
 
         attempted_at = utc_now()
@@ -452,7 +615,8 @@ def execute_stooq_refresh_plan(
                 features_persisted = persist_features_fn(database_url, features)
                 if features and not features_persisted:
                     raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
-                rating_record = build_rating_record_fn(task, features)
+                rating_task = rating_task_for_features(task, features)
+                rating_record = build_rating_record_fn(rating_task, features)
                 rating_persisted = persist_ratings_fn(database_url, [rating_record])
                 if not rating_persisted:
                     raise RuntimeError(f"Failed to persist rating for {task.symbol}")
@@ -554,7 +718,8 @@ def execute_alpha_vantage_refresh_plan(
                 features_persisted = persist_features_fn(database_url, features)
                 if features and not features_persisted:
                     raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
-                rating_record = build_rating_record_fn(task, features)
+                rating_task = rating_task_for_features(task, features)
+                rating_record = build_rating_record_fn(rating_task, features)
                 rating_persisted = persist_ratings_fn(database_url, [rating_record])
                 if not rating_persisted:
                     raise RuntimeError(f"Failed to persist rating for {task.symbol}")
@@ -647,7 +812,8 @@ def execute_twelve_data_refresh_plan(
                 features_persisted = persist_features_fn(database_url, features)
                 if features and not features_persisted:
                     raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
-                rating_record = build_rating_record_fn(task, features)
+                rating_task = rating_task_for_features(task, features)
+                rating_record = build_rating_record_fn(rating_task, features)
                 rating_persisted = persist_ratings_fn(database_url, [rating_record])
                 if not rating_persisted:
                     raise RuntimeError(f"Failed to persist rating for {task.symbol}")
@@ -904,6 +1070,8 @@ def main() -> None:
         stooq_api_key=settings.stooq_api_key,
     )
     refresh_plan = build_default_refresh_plan()
+    fundamental_plan = build_default_fundamental_refresh_plan()
+    analyst_plan = build_default_analyst_refresh_plan()
     provider_name = preferred_provider_name(
         alpha_vantage_configured=providers[0].configured,
         twelve_data_configured=providers[1].configured,
@@ -911,16 +1079,9 @@ def main() -> None:
     )
     fundamental_runs = execute_fundamental_refresh_plan(
         run_id=run_id,
-        tasks=refresh_plan,
+        tasks=fundamental_plan,
         database_url=settings.database_url,
         user_agent=settings.sec_user_agent,
-    )
-    analyst_runs = execute_analyst_refresh_plan(
-        run_id=run_id,
-        tasks=refresh_plan,
-        database_url=settings.database_url,
-        api_key=settings.alpha_vantage_api_key,
-        request_pause_seconds=settings.alpha_vantage_min_interval_seconds,
     )
     if provider_name in {"alpha_vantage", "twelve_data", "stooq"}:
         price_runs = execute_price_refresh_plan(
@@ -933,7 +1094,6 @@ def main() -> None:
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
         )
-        symbol_runs = fundamental_runs + analyst_runs + price_runs
     else:
         price_runs = build_symbol_refresh_run_records(
             run_id=run_id,
@@ -941,7 +1101,14 @@ def main() -> None:
             provider=provider_name,
             attempted_at=started_at,
         )
-        symbol_runs = fundamental_runs + analyst_runs + price_runs
+    analyst_runs = execute_analyst_refresh_plan(
+        run_id=run_id,
+        tasks=analyst_plan,
+        database_url=settings.database_url,
+        api_key=settings.alpha_vantage_api_key,
+        request_pause_seconds=settings.alpha_vantage_min_interval_seconds,
+    )
+    symbol_runs = fundamental_runs + price_runs + analyst_runs
 
     source_refresh_summaries = [
         macro_refresh_summary,
@@ -978,6 +1145,8 @@ def main() -> None:
         print(
             f"- {task.symbol}: tier={task.refresh_tier} age={task.age_in_days} freshness={task.freshness_status}"
         )
+    print(f"Fundamental refresh tasks: {len(fundamental_plan)}")
+    print(f"Analyst refresh tasks: {len(analyst_plan)}")
     print(f"Plan artifact: {artifact_path}")
 
 

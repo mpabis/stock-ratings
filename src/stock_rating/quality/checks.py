@@ -46,7 +46,7 @@ def build_quality_alerts(snapshots: list[SymbolQualitySnapshot], as_of: date) ->
                         symbol=snapshot.symbol,
                         code="stale_price",
                         severity="warning",
-                        message=f"Latest stored price is {age} days old for tier {snapshot.refresh_tier}.",
+                            message=f"Latest stored price is {age} trading days old for tier {snapshot.refresh_tier}.",
                     )
                 )
 

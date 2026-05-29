@@ -87,6 +87,8 @@ def compute_price_features(bars: list[DailyPriceBar]) -> list[FeatureValue]:
         5: "five_day_return",
         10: "ten_day_return",
         20: "twenty_day_return",
+        60: "sixty_day_return",
+        100: "one_hundred_day_return",
     }
     for lookback, feature_name in lookback_feature_map.items():
         if len(ordered) > lookback and ordered[lookback].adjusted_close != 0:
@@ -131,6 +133,27 @@ def compute_price_features(bars: list[DailyPriceBar]) -> list[FeatureValue]:
                     date=latest.date,
                     feature_name="twenty_day_volatility",
                     feature_value=variance.sqrt(),
+                    source_version=feature_version(),
+                )
+            )
+
+        closes = [bar.adjusted_close for bar in reversed(ordered[:20]) if bar.adjusted_close != 0]
+        if closes:
+            peak = closes[0]
+            max_drawdown = Decimal("0")
+            for close in closes:
+                if close > peak:
+                    peak = close
+                if peak != 0:
+                    drawdown = (peak - close) / peak
+                    if drawdown > max_drawdown:
+                        max_drawdown = drawdown
+            features.append(
+                FeatureValue(
+                    symbol=latest.symbol,
+                    date=latest.date,
+                    feature_name="twenty_day_max_drawdown",
+                    feature_value=max_drawdown,
                     source_version=feature_version(),
                 )
             )

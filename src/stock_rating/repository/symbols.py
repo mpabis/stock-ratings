@@ -14,6 +14,7 @@ class SymbolSeed:
     refresh_tier: int
     last_price_date: date
     active: bool
+    last_fundamental_date: date | None = None
 
 
 def default_seed_path() -> Path:
@@ -53,6 +54,7 @@ def load_symbol_seeds_from_csv(seed_path: str | None = None) -> list[SymbolSeed]
                     refresh_tier=int(row["refresh_tier"]),
                     last_price_date=date.fromisoformat(row["last_price_date"]),
                     active=_parse_active(row.get("active", "true")),
+                    last_fundamental_date=None,
                 )
             )
 
@@ -72,6 +74,7 @@ def load_symbol_seeds_from_database(database_url: str, connect_fn=connect_postgr
                 coalesce(exchange, ''),
                 refresh_tier,
                 last_price_refresh_at,
+                last_fundamental_refresh_at,
                 active
             from symbols
             where active = true
@@ -87,7 +90,7 @@ def load_symbol_seeds_from_database(database_url: str, connect_fn=connect_postgr
 
 
 def _seed_from_database_row(row: tuple[object, ...]) -> SymbolSeed:
-    symbol, company_name, exchange, refresh_tier, last_price_refresh_at, active = row
+    symbol, company_name, exchange, refresh_tier, last_price_refresh_at, last_fundamental_refresh_at, active = row
     return SymbolSeed(
         symbol=str(symbol),
         company_name=str(company_name),
@@ -95,6 +98,7 @@ def _seed_from_database_row(row: tuple[object, ...]) -> SymbolSeed:
         refresh_tier=int(refresh_tier),
         last_price_date=_normalize_last_price_date(last_price_refresh_at),
         active=bool(active),
+        last_fundamental_date=_normalize_optional_date(last_fundamental_refresh_at),
     )
 
 
@@ -104,6 +108,14 @@ def _normalize_last_price_date(last_price_refresh_at: object) -> date:
     if isinstance(last_price_refresh_at, date):
         return last_price_refresh_at
     return date.today() - timedelta(days=7)
+
+
+def _normalize_optional_date(value: object) -> date | None:
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return None
 
 
 def update_symbol_last_price_refresh_at(

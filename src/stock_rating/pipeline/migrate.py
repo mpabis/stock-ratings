@@ -8,12 +8,27 @@ def migrations_directory() -> Path:
     return Path(__file__).resolve().parents[3] / "sql" / "migrations"
 
 
+def schema_file_path() -> Path:
+    return Path(__file__).resolve().parents[3] / "sql" / "schema.sql"
+
+
 def list_migration_files(directory: Path) -> list[Path]:
     return sorted((path for path in directory.glob("*.sql") if path.is_file()), key=lambda path: path.name)
 
 
 def pending_migration_files(all_files: list[Path], applied_names: set[str]) -> list[Path]:
     return [path for path in all_files if path.name not in applied_names]
+
+
+def apply_base_schema(connection, schema_path: Path) -> bool:
+    if not schema_path.exists():
+        return False
+
+    sql = schema_path.read_text(encoding="utf-8")
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+    connection.commit()
+    return True
 
 
 def main() -> None:
@@ -36,6 +51,10 @@ def main() -> None:
 
     connection = connect_postgres(config.url)
     try:
+        schema_path = schema_file_path()
+        if apply_base_schema(connection, schema_path):
+            print(f"Applied base schema: {schema_path.name}")
+
         with connection.cursor() as cursor:
             cursor.execute(
                 """

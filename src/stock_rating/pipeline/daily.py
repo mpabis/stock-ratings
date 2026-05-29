@@ -871,7 +871,7 @@ def resolve_git_sha(
     environ: dict[str, str] | None = None,
     git_rev_parse_fn=None,
 ) -> str | None:
-    active_env = environ or os.environ
+    active_env = environ if environ is not None else os.environ
     github_sha = active_env.get("GITHUB_SHA", "").strip()
     if github_sha:
         return github_sha

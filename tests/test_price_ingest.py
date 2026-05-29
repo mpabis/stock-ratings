@@ -102,6 +102,12 @@ def test_build_alpha_vantage_daily_adjusted_url_strips_exchange_prefix() -> None
     assert "symbol=GOOGL" in url
 
 
+def test_build_alpha_vantage_daily_adjusted_url_uses_tsx_override_for_fairfax() -> None:
+    url = build_alpha_vantage_daily_adjusted_url("TSE:FFH", "demo-key")
+
+    assert "symbol=FFH.TRT" in url
+
+
 class _FakeHttpResponse:
     def __init__(self, payload: dict[str, object]) -> None:
         self.payload = payload

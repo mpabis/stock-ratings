@@ -19,6 +19,10 @@ TWELVE_DATA_EXCHANGE_ALIASES = {
     "TSE": "TSX",
 }
 
+ALPHA_VANTAGE_SYMBOL_OVERRIDES = {
+    "TSE:FFH": "FFH.TRT",
+}
+
 
 @dataclass(frozen=True)
 class PriceProviderStatus:
@@ -116,6 +120,10 @@ def parse_alpha_vantage_daily_adjusted(symbol: str, payload: dict[str, object]) 
 
 
 def normalize_symbol_for_alpha_vantage(symbol: str) -> str:
+    override = ALPHA_VANTAGE_SYMBOL_OVERRIDES.get(symbol)
+    if override:
+        return override
+
     if ":" not in symbol:
         return symbol
 

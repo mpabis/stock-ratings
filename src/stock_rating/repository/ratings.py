@@ -23,6 +23,66 @@ class RatingRecord:
     freshest_input_date: date
 
 
+@dataclass(frozen=True)
+class RatingRepairState:
+    symbol: str
+    refresh_tier: int
+    last_price_date: date | None
+    latest_rating_date: date | None
+
+
+def load_rating_repair_states(database_url: str, connect_fn=connect_postgres) -> list[RatingRepairState]:
+    if not is_configured(DatabaseConfig(url=database_url)):
+        return []
+
+    try:
+        connection = connect_fn(database_url)
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            with latest_prices as (
+                select symbol, max(date) as last_price_date
+                from price_daily
+                group by symbol
+            ),
+            latest_ratings as (
+                select symbol, max(date) as latest_rating_date
+                from ratings_daily
+                group by symbol
+            )
+            select
+                s.symbol,
+                s.refresh_tier,
+                lp.last_price_date,
+                lr.latest_rating_date
+            from symbols s
+            left join latest_prices lp on lp.symbol = s.symbol
+            left join latest_ratings lr on lr.symbol = s.symbol
+            where s.active = true
+            order by s.refresh_tier asc, s.symbol asc
+            """
+        )
+        rows = cursor.fetchall()
+    except Exception:
+        return []
+    finally:
+        try:
+            cursor.close()
+            connection.close()
+        except Exception:
+            pass
+
+    return [
+        RatingRepairState(
+            symbol=row[0],
+            refresh_tier=row[1],
+            last_price_date=row[2],
+            latest_rating_date=row[3],
+        )
+        for row in rows
+    ]
+
+
 def persist_ratings(database_url: str, ratings: list[RatingRecord], connect_fn=connect_postgres) -> bool:
     if not ratings:
         return False

@@ -46,7 +46,8 @@ from stock_rating.repository.runs import (
     utc_now,
     write_plan_artifact,
 )
-from stock_rating.repository.ratings import persist_ratings
+from stock_rating.repository.prices import load_recent_price_bars
+from stock_rating.repository.ratings import RatingRepairState, load_rating_repair_states, persist_ratings
 from stock_rating.repository.analyst import load_latest_analyst_dates
 from stock_rating.repository.fundamentals import load_latest_fundamental_facts
 from stock_rating.repository.macro import load_latest_macro_observations
@@ -222,6 +223,41 @@ def build_default_refresh_plan() -> list[RefreshTask]:
         for seed in seeds
     ]
     return plan_price_refreshes(symbol_states, as_of=date.today(), budget=min(settings.symbol_limit, len(symbol_states)))
+
+
+def plan_rating_repairs(
+    symbols: list[RatingRepairState],
+    as_of: date,
+    budget: int | None = None,
+) -> list[RefreshTask]:
+    planned: list[RefreshTask] = []
+    for symbol in symbols:
+        if symbol.last_price_date is None:
+            continue
+        if symbol.latest_rating_date is not None and symbol.latest_rating_date >= symbol.last_price_date:
+            continue
+
+        age = age_in_days(as_of, symbol.last_price_date)
+        planned.append(
+            RefreshTask(
+                symbol=symbol.symbol,
+                refresh_tier=symbol.refresh_tier,
+                age_in_days=age,
+                freshness_status=freshness_status_for_age(symbol.refresh_tier, age),
+            )
+        )
+
+    if budget is not None:
+        return planned[:budget]
+    return planned
+
+
+def build_default_rating_repair_plan() -> list[RefreshTask]:
+    settings = get_settings()
+    return plan_rating_repairs(
+        load_rating_repair_states(settings.database_url),
+        as_of=date.today(),
+    )
 
 
 def build_default_fundamental_refresh_plan() -> list[RefreshTask]:
@@ -680,6 +716,109 @@ def build_symbol_refresh_run_records(
     ]
 
 
+def execute_rating_repair_plan(
+    run_id: str,
+    tasks: list[RefreshTask],
+    database_url: str,
+    load_price_bars_fn=load_recent_price_bars,
+    persist_features_fn=persist_features,
+    compute_features_fn=compute_price_features,
+    load_fundamental_facts_fn=load_latest_fundamental_facts,
+    compute_fundamental_features_fn=compute_fundamental_features,
+    persist_ratings_fn=persist_ratings,
+    build_rating_record_fn=build_rating_record,
+) -> list[SymbolRefreshRunRecord]:
+    symbol_runs: list[SymbolRefreshRunRecord] = []
+
+    for task in tasks:
+        attempted_at = utc_now()
+        try:
+            bars = load_price_bars_fn(database_url, task.symbol)
+            if not bars:
+                symbol_runs.append(
+                    SymbolRefreshRunRecord(
+                        run_id=run_id,
+                        symbol=task.symbol,
+                        data_type="rating",
+                        provider="local_rebuild",
+                        status="skipped",
+                        attempted_at=attempted_at,
+                        completed_at=utc_now(),
+                        error_message="No stored price history available for rating rebuild.",
+                        fetched_bar_count=0,
+                        provider_error_code="missing_price_history",
+                    )
+                )
+                continue
+
+            features = build_symbol_features(
+                database_url,
+                task,
+                bars,
+                compute_price_features_fn=compute_features_fn,
+                load_fundamental_facts_fn=load_fundamental_facts_fn,
+                compute_fundamental_features_fn=compute_fundamental_features_fn,
+            )
+            if not features:
+                symbol_runs.append(
+                    SymbolRefreshRunRecord(
+                        run_id=run_id,
+                        symbol=task.symbol,
+                        data_type="rating",
+                        provider="local_rebuild",
+                        status="skipped",
+                        attempted_at=attempted_at,
+                        completed_at=utc_now(),
+                        error_message="No features available for rating rebuild.",
+                        fetched_bar_count=len(bars),
+                        provider_error_code="missing_features",
+                    )
+                )
+                continue
+
+            features_persisted = persist_features_fn(database_url, features)
+            if not features_persisted:
+                raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
+
+            rating_task = rating_task_for_features(task, features)
+            rating_record = build_rating_record_fn(rating_task, features)
+            rating_persisted = persist_ratings_fn(database_url, [rating_record])
+            if not rating_persisted:
+                raise RuntimeError(f"Failed to persist rating for {task.symbol}")
+
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="rating",
+                    provider="local_rebuild",
+                    status="succeeded",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=None,
+                    fetched_bar_count=len(bars),
+                    provider_error_code=None,
+                )
+            )
+        except Exception as error:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="rating",
+                    provider="local_rebuild",
+                    status="failed",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="rating_rebuild_error",
+                )
+            )
+
+    return symbol_runs
+
+
 def execute_alpha_vantage_refresh_plan(
     run_id: str,
     tasks: list[RefreshTask],
@@ -1020,10 +1159,11 @@ def execute_price_refresh_plan(
 
 
 def pipeline_status_for(symbol_runs: list[SymbolRefreshRunRecord]) -> str:
-    if not symbol_runs:
+    status_runs = [record for record in symbol_runs if record.data_type != "rating"]
+    if not status_runs:
         return "planned"
     symbol_statuses: dict[str, set[str]] = {}
-    for record in symbol_runs:
+    for record in status_runs:
         symbol_statuses.setdefault(record.symbol, set()).add(record.status)
 
     if all("succeeded" in statuses for statuses in symbol_statuses.values()):
@@ -1108,12 +1248,19 @@ def main() -> None:
         api_key=settings.alpha_vantage_api_key,
         request_pause_seconds=settings.alpha_vantage_min_interval_seconds,
     )
-    symbol_runs = fundamental_runs + price_runs + analyst_runs
+    rating_repair_plan = build_default_rating_repair_plan()
+    rating_repair_runs = execute_rating_repair_plan(
+        run_id=run_id,
+        tasks=rating_repair_plan,
+        database_url=settings.database_url,
+    )
+    symbol_runs = fundamental_runs + price_runs + analyst_runs + rating_repair_runs
 
     source_refresh_summaries = [
         macro_refresh_summary,
         summarize_symbol_runs("sec_edgar", fundamental_runs),
         summarize_symbol_runs("alpha_vantage_overview", analyst_runs),
+        summarize_symbol_runs("local_rating_rebuild", rating_repair_runs),
         *summarize_provider_runs(price_runs),
     ]
     finished_at = utc_now()
@@ -1147,6 +1294,7 @@ def main() -> None:
         )
     print(f"Fundamental refresh tasks: {len(fundamental_plan)}")
     print(f"Analyst refresh tasks: {len(analyst_plan)}")
+    print(f"Rating repair tasks: {len(rating_repair_plan)}")
     print(f"Plan artifact: {artifact_path}")
 
 

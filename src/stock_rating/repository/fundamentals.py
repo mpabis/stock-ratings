@@ -35,11 +35,12 @@ def load_latest_fundamental_facts(database_url: str, symbol: str, connect_fn=con
 
     facts: list[FundamentalFact] = []
     for row in rows:
-        period_start = row[9] if len(row) > 10 else None
-        period_end = row[10] if len(row) > 10 else None
-        frame = row[11] if len(row) > 10 else None
-        filed_at = row[12] if len(row) > 10 else row[8]
-        source = row[13] if len(row) > 10 else row[9]
+        has_period_metadata = len(row) >= 13
+        period_start = row[8] if has_period_metadata else None
+        period_end = row[9] if has_period_metadata else None
+        frame = row[10] if has_period_metadata else None
+        filed_at = row[11] if has_period_metadata else row[8]
+        source = row[12] if has_period_metadata else row[9]
         fact = FundamentalFact(
             cik=row[0],
             symbol=row[1],

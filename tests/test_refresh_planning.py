@@ -10,10 +10,12 @@ from stock_rating.pipeline.daily import (
     execute_fundamental_refresh_plan,
     execute_alpha_vantage_refresh_plan,
     execute_price_refresh_plan,
+    execute_rating_repair_plan,
     execute_stooq_refresh_plan,
     execute_twelve_data_refresh_plan,
     plan_price_refreshes,
     plan_periodic_refreshes,
+    plan_rating_repairs,
     pipeline_status_for,
     preferred_provider_name,
     rating_task_for_features,
@@ -21,6 +23,8 @@ from stock_rating.pipeline.daily import (
 )
 from stock_rating.ingest.prices import AlphaVantageRateLimitError, DailyPriceBar, TwelveDataRateLimitError
 from stock_rating.ingest.sec_companyfacts import FundamentalFact, SecCompanyFactsResponseError
+from stock_rating.repository.ratings import RatingRepairState
+from stock_rating.repository.runs import SymbolRefreshRunRecord
 from stock_rating.transform.features import FeatureValue
 
 
@@ -101,6 +105,22 @@ def test_periodic_refresh_plan_only_includes_due_symbols() -> None:
     )
 
     assert [task.symbol for task in planned] == ["DUE"]
+
+
+def test_rating_repair_plan_includes_missing_and_stale_ratings() -> None:
+    as_of = date(2026, 5, 30)
+    planned = plan_rating_repairs(
+        [
+            RatingRepairState("MISSING", 3, date(2026, 5, 29), None),
+            RatingRepairState("STALE", 2, date(2026, 5, 29), date(2026, 5, 28)),
+            RatingRepairState("CURRENT", 1, date(2026, 5, 29), date(2026, 5, 29)),
+            RatingRepairState("NO_PRICE", 3, None, None),
+        ],
+        as_of=as_of,
+    )
+
+    assert [task.symbol for task in planned] == ["MISSING", "STALE"]
+    assert planned[0].freshness_status == "fresh"
 
 
 def test_preferred_provider_name_returns_stooq_when_only_stooq_configured() -> None:
@@ -330,6 +350,54 @@ def test_execute_stooq_refresh_plan_marks_success() -> None:
 
     assert records[0].provider == "stooq"
     assert records[0].status == "succeeded"
+
+
+def test_execute_rating_repair_plan_builds_rating_from_stored_prices() -> None:
+    as_of = date(2026, 5, 29)
+    tasks = plan_rating_repairs(
+        [RatingRepairState("AAPL", 1, as_of, None)],
+        as_of=as_of,
+    )
+    persisted_features: list[FeatureValue] = []
+    persisted_ratings: list[object] = []
+
+    records = execute_rating_repair_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="postgresql://example",
+        load_price_bars_fn=lambda database_url, symbol: [
+            DailyPriceBar(
+                symbol=symbol,
+                date=as_of,
+                open=Decimal("1"),
+                high=Decimal("2"),
+                low=Decimal("1"),
+                close=Decimal("2"),
+                adjusted_close=Decimal("2"),
+                volume=1,
+                source="alpha_vantage",
+            )
+        ],
+        compute_features_fn=lambda bars: [
+            FeatureValue(
+                symbol="AAPL",
+                date=as_of,
+                feature_name="daily_volume",
+                feature_value=Decimal("1"),
+                source_version="v1",
+            )
+        ],
+        persist_features_fn=lambda database_url, features: persisted_features.extend(features) or True,
+        build_rating_record_fn=lambda task, features: {"symbol": task.symbol, "date": task.age_in_days},
+        persist_ratings_fn=lambda database_url, ratings: persisted_ratings.extend(ratings) or True,
+    )
+
+    assert records[0].data_type == "rating"
+    assert records[0].provider == "local_rebuild"
+    assert records[0].status == "succeeded"
+    assert records[0].fetched_bar_count == 1
+    assert persisted_features[0].symbol == "AAPL"
+    assert persisted_ratings == [{"symbol": "AAPL", "date": 0}]
 
 
 def test_execute_fundamental_refresh_plan_marks_success_and_updates_refresh_time() -> None:
@@ -597,4 +665,33 @@ def test_execute_price_refresh_plan_limits_alpha_vantage_requests_and_falls_back
     assert twelve_symbols == ["MSFT"]
     assert [record.provider for record in records] == ["alpha_vantage", "twelve_data"]
     assert pipeline_status_for(records) == "success"
+
+
+def test_pipeline_status_ignores_rating_repair_success_for_price_failure() -> None:
+    attempted_at = datetime(2026, 5, 30, tzinfo=UTC)
+    records = [
+        SymbolRefreshRunRecord(
+            run_id="run",
+            symbol="AAPL",
+            data_type="price",
+            provider="alpha_vantage",
+            status="failed",
+            attempted_at=attempted_at,
+            completed_at=attempted_at,
+            error_message="provider failed",
+        ),
+        SymbolRefreshRunRecord(
+            run_id="run",
+            symbol="AAPL",
+            data_type="rating",
+            provider="local_rebuild",
+            status="succeeded",
+            attempted_at=attempted_at,
+            completed_at=attempted_at,
+            error_message=None,
+            fetched_bar_count=130,
+        ),
+    ]
+
+    assert pipeline_status_for(records) == "partial"
 

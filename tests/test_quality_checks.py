@@ -3,7 +3,7 @@ from datetime import date
 from stock_rating.quality.checks import SymbolQualitySnapshot, build_quality_alerts
 
 
-def test_build_quality_alerts_flags_missing_price_and_rating() -> None:
+def test_build_quality_alerts_flags_missing_price_without_missing_rating() -> None:
     alerts = build_quality_alerts(
         [
             SymbolQualitySnapshot(
@@ -16,7 +16,7 @@ def test_build_quality_alerts_flags_missing_price_and_rating() -> None:
         as_of=date(2026, 5, 27),
     )
 
-    assert [alert.code for alert in alerts] == ["missing_price", "missing_rating"]
+    assert [alert.code for alert in alerts] == ["missing_price"]
 
 
 def test_build_quality_alerts_flags_stale_price_for_tier() -> None:

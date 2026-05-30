@@ -37,6 +37,7 @@ def build_quality_alerts(snapshots: list[SymbolQualitySnapshot], as_of: date) ->
                     message="No stored price history found for active symbol.",
                 )
             )
+            continue
         else:
             max_age = MAX_PRICE_AGE_BY_TIER.get(snapshot.refresh_tier, 5)
             age = age_in_days(as_of, snapshot.last_price_date)
@@ -46,7 +47,7 @@ def build_quality_alerts(snapshots: list[SymbolQualitySnapshot], as_of: date) ->
                         symbol=snapshot.symbol,
                         code="stale_price",
                         severity="warning",
-                            message=f"Latest stored price is {age} trading days old for tier {snapshot.refresh_tier}.",
+                        message=f"Latest stored price is {age} trading days old for tier {snapshot.refresh_tier}.",
                     )
                 )
 

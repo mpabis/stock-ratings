@@ -313,6 +313,15 @@ def test_parse_stooq_daily_csv_returns_bars() -> None:
     assert bars[0].close == Decimal("108.0")
 
 
+def test_parse_stooq_daily_csv_accepts_decimal_volume() -> None:
+    payload = "Date,Open,High,Low,Close,Volume\n2026-05-27,100.0,110.0,99.0,108.0,1496329307.4141\n"
+
+    bars = parse_stooq_daily_csv("MSFT", payload)
+
+    assert len(bars) == 1
+    assert bars[0].volume == 1496329307
+
+
 def test_fetch_stooq_daily_raises_on_missing_api_key_message() -> None:
     try:
         fetch_stooq_daily(

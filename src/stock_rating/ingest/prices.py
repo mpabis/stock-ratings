@@ -76,6 +76,10 @@ def _sleep_backoff(attempt: int, base_seconds: float, sleep_fn=time.sleep) -> No
     sleep_fn(base_seconds * (2 ** (attempt - 1)))
 
 
+def _parse_volume(value: object) -> int:
+    return int(Decimal(str(value or "0")))
+
+
 def get_price_provider_status(
     alpha_vantage_api_key: str,
     twelve_data_api_key: str,
@@ -111,7 +115,7 @@ def parse_alpha_vantage_daily_adjusted(symbol: str, payload: dict[str, object]) 
                 low=Decimal(str(raw_bar["3. low"])),
                 close=Decimal(str(raw_bar["4. close"])),
                 adjusted_close=Decimal(str(raw_bar.get("5. adjusted close", raw_bar["4. close"]))),
-                volume=int(str(volume)),
+                volume=_parse_volume(volume),
                 source="alpha_vantage",
             )
         )
@@ -243,7 +247,7 @@ def parse_twelve_data_time_series(symbol: str, payload: dict[str, object]) -> li
                 low=Decimal(str(raw_bar["low"])),
                 close=close,
                 adjusted_close=close,
-                volume=int(str(raw_bar.get("volume", 0))),
+                volume=_parse_volume(raw_bar.get("volume", 0)),
                 source="twelve_data",
             )
         )
@@ -296,7 +300,7 @@ def parse_stooq_daily_csv(symbol: str, payload: str) -> list[DailyPriceBar]:
                 low=Decimal(str(row["Low"])),
                 close=Decimal(str(close)),
                 adjusted_close=Decimal(str(close)),
-                volume=int(str(volume_value)),
+                volume=_parse_volume(volume_value),
                 source="stooq",
             )
         )

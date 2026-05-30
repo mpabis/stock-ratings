@@ -4,6 +4,28 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-05-30
+
+### Added
+
+- Added a daily rating repair pass that rebuilds missing or stale ratings from stored price history without spending price-provider quota.
+
+### Changed
+
+- Changed data-quality checks so symbols with no price history are not double-counted as missing ratings.
+
+### Fixed
+
+- Fixed latest fundamental fact loading so period metadata rows map `filed_at` and `source` without raising `tuple index out of range` during rating refreshes.
+- Fixed Stooq daily price parsing so decimal-formatted volume values are accepted instead of failing the provider refresh.
+
+### Tests
+
+- Added regression tests for fundamental fact row mapping and Stooq decimal volume parsing.
+- Added tests for rating repair planning, stored-price loading, and rating repair execution.
+- Updated quality alert tests for the missing-price-only behavior.
+- Verified the full suite with `.\.venv\Scripts\python.exe -m pytest`: `107 passed`.
+
 ## 2026-05-29
 
 ### Added

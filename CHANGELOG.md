@@ -4,6 +4,21 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-01
+
+### Added
+
+- Added a weekend slow-input pipeline that refreshes macro, due SEC fundamentals, optional analyst consensus, and rebuilds ratings from stored prices without normal price-provider calls.
+- Added a weekend GitHub Actions workflow scheduled for Saturday and Sunday at 22:30 UTC to publish the refreshed dashboard.
+
+### Documentation
+
+- Documented the weekend refresh command and behavior in README and agent instructions.
+
+### Tests
+
+- Added tests for stored-price rebuild planning, weekend status handling, and weekend pipeline orchestration that verifies price refreshes are skipped.
+
 ## 2026-05-30
 
 ### Added

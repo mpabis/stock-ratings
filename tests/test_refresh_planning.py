@@ -1,8 +1,11 @@
 from datetime import date, datetime, UTC
 from decimal import Decimal
+from types import SimpleNamespace
 
+import stock_rating.pipeline.daily as daily
 from stock_rating.pipeline.daily import (
     MAX_FUNDAMENTAL_AGE_BY_TIER,
+    RefreshTask,
     SymbolPeriodicRefreshState,
     SymbolRefreshState,
     build_symbol_refresh_run_records,
@@ -13,9 +16,11 @@ from stock_rating.pipeline.daily import (
     execute_rating_repair_plan,
     execute_stooq_refresh_plan,
     execute_twelve_data_refresh_plan,
+    age_in_days,
     plan_price_refreshes,
     plan_periodic_refreshes,
     plan_rating_repairs,
+    plan_stored_price_rebuilds,
     pipeline_status_for,
     preferred_provider_name,
     rating_task_for_features,
@@ -24,7 +29,7 @@ from stock_rating.pipeline.daily import (
 from stock_rating.ingest.prices import AlphaVantageRateLimitError, DailyPriceBar, TwelveDataRateLimitError
 from stock_rating.ingest.sec_companyfacts import FundamentalFact, SecCompanyFactsResponseError
 from stock_rating.repository.ratings import RatingRepairState
-from stock_rating.repository.runs import SymbolRefreshRunRecord
+from stock_rating.repository.runs import SourceRefreshSummaryRecord, SymbolRefreshRunRecord
 from stock_rating.transform.features import FeatureValue
 
 
@@ -120,6 +125,21 @@ def test_rating_repair_plan_includes_missing_and_stale_ratings() -> None:
     )
 
     assert [task.symbol for task in planned] == ["MISSING", "STALE"]
+    assert planned[0].freshness_status == "fresh"
+
+
+def test_stored_price_rebuild_plan_includes_all_symbols_with_price_history() -> None:
+    as_of = date(2026, 5, 30)
+    planned = plan_stored_price_rebuilds(
+        [
+            RatingRepairState("TIER2", 2, date(2026, 5, 28), date(2026, 5, 28)),
+            RatingRepairState("TIER1", 1, date(2026, 5, 29), date(2026, 5, 29)),
+            RatingRepairState("NO_PRICE", 1, None, None),
+        ],
+        as_of=as_of,
+    )
+
+    assert [task.symbol for task in planned] == ["TIER1", "TIER2"]
     assert planned[0].freshness_status == "fresh"
 
 
@@ -397,7 +417,7 @@ def test_execute_rating_repair_plan_builds_rating_from_stored_prices() -> None:
     assert records[0].status == "succeeded"
     assert records[0].fetched_bar_count == 1
     assert persisted_features[0].symbol == "AAPL"
-    assert persisted_ratings == [{"symbol": "AAPL", "date": 0}]
+    assert persisted_ratings == [{"symbol": "AAPL", "date": age_in_days(date.today(), as_of)}]
 
 
 def test_execute_fundamental_refresh_plan_marks_success_and_updates_refresh_time() -> None:
@@ -694,4 +714,126 @@ def test_pipeline_status_ignores_rating_repair_success_for_price_failure() -> No
     ]
 
     assert pipeline_status_for(records) == "partial"
+
+
+def test_pipeline_status_can_count_rating_rebuilds_for_weekend_runs() -> None:
+    attempted_at = datetime(2026, 5, 30, tzinfo=UTC)
+    records = [
+        SymbolRefreshRunRecord(
+            run_id="run",
+            symbol="AAPL",
+            data_type="rating",
+            provider="local_rebuild",
+            status="succeeded",
+            attempted_at=attempted_at,
+            completed_at=attempted_at,
+            error_message=None,
+            fetched_bar_count=130,
+        ),
+    ]
+
+    assert pipeline_status_for(records) == "planned"
+    assert pipeline_status_for(records, include_rating_runs=True) == "success"
+
+
+def test_pipeline_status_does_not_hide_failed_slow_input_behind_rating_rebuild() -> None:
+    attempted_at = datetime(2026, 5, 30, tzinfo=UTC)
+    records = [
+        SymbolRefreshRunRecord(
+            run_id="run",
+            symbol="AAPL",
+            data_type="fundamental",
+            provider="sec_edgar",
+            status="failed",
+            attempted_at=attempted_at,
+            completed_at=attempted_at,
+            error_message="SEC failed",
+        ),
+        SymbolRefreshRunRecord(
+            run_id="run",
+            symbol="AAPL",
+            data_type="rating",
+            provider="local_rebuild",
+            status="succeeded",
+            attempted_at=attempted_at,
+            completed_at=attempted_at,
+            error_message=None,
+            fetched_bar_count=130,
+        ),
+    ]
+
+    assert pipeline_status_for(records, include_rating_runs=True) == "partial"
+
+
+def test_weekend_pipeline_skips_price_refresh_and_rebuilds_from_stored_prices(monkeypatch, tmp_path) -> None:
+    run_id = "ddda45d6-d8fa-47c6-8aae-91ab5f50752b"
+    as_of = datetime(2026, 5, 30, tzinfo=UTC)
+    rating_task = plan_stored_price_rebuilds(
+        [RatingRepairState("AAPL", 1, date(2026, 5, 29), date(2026, 5, 29))],
+        as_of=date(2026, 5, 30),
+    )[0]
+    persisted_runs: list[object] = []
+    rebuild_tasks: list[RefreshTask] = []
+
+    monkeypatch.setattr(
+        daily,
+        "get_settings",
+        lambda: SimpleNamespace(
+            database_url="postgresql://example",
+            fred_api_key="fred-key",
+            alpha_vantage_api_key="alpha-key",
+            twelve_data_api_key="twelve-key",
+            stooq_api_key="stooq-key",
+            sec_user_agent="stock-rating-test@example.com",
+            symbol_seed_path="",
+            fundamental_symbol_limit=10,
+            analyst_symbol_limit=0,
+            alpha_vantage_max_requests_per_run=20,
+            alpha_vantage_min_interval_seconds=0,
+            plan_output_dir=str(tmp_path),
+        ),
+    )
+    monkeypatch.setattr(daily, "resolve_git_sha", lambda: "abc123")
+    monkeypatch.setattr(daily, "generate_run_id", lambda: run_id)
+    monkeypatch.setattr(daily, "utc_now", lambda: as_of)
+    monkeypatch.setattr(
+        daily,
+        "execute_macro_refresh",
+        lambda database_url, api_key: SourceRefreshSummaryRecord("fred", 2, 2, 0, "succeeded"),
+    )
+    monkeypatch.setattr(daily, "build_default_refresh_plan", lambda: (_ for _ in ()).throw(AssertionError("price plan should not run")))
+    monkeypatch.setattr(daily, "execute_price_refresh_plan", lambda **kwargs: (_ for _ in ()).throw(AssertionError("price refresh should not run")))
+    monkeypatch.setattr(daily, "build_default_fundamental_refresh_plan", lambda: [])
+    monkeypatch.setattr(daily, "execute_fundamental_refresh_plan", lambda **kwargs: [])
+    monkeypatch.setattr(daily, "build_default_analyst_refresh_plan", lambda: [])
+    monkeypatch.setattr(daily, "execute_analyst_refresh_plan", lambda **kwargs: [])
+    monkeypatch.setattr(daily, "build_default_stored_price_rebuild_plan", lambda: [rating_task])
+    monkeypatch.setattr(
+        daily,
+        "execute_rating_repair_plan",
+        lambda run_id, tasks, database_url: rebuild_tasks.extend(tasks)
+        or [
+            SymbolRefreshRunRecord(
+                run_id=run_id,
+                symbol="AAPL",
+                data_type="rating",
+                provider="local_rebuild",
+                status="succeeded",
+                attempted_at=as_of,
+                completed_at=as_of,
+                error_message=None,
+                fetched_bar_count=130,
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        daily,
+        "persist_run_records",
+        lambda database_url, pipeline_run, symbol_runs: persisted_runs.append((pipeline_run, symbol_runs)) or True,
+    )
+
+    daily.run_pipeline(refresh_prices=False, rebuild_all_stored_ratings=True)
+
+    assert rebuild_tasks == [rating_task]
+    assert persisted_runs[0][0].status == "success"
 

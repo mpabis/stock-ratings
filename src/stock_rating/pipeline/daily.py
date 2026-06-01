@@ -260,6 +260,39 @@ def build_default_rating_repair_plan() -> list[RefreshTask]:
     )
 
 
+def plan_stored_price_rebuilds(
+    symbols: list[RatingRepairState],
+    as_of: date,
+    budget: int | None = None,
+) -> list[RefreshTask]:
+    planned: list[RefreshTask] = []
+    for symbol in sorted(symbols, key=lambda item: (item.refresh_tier, item.symbol)):
+        if symbol.last_price_date is None:
+            continue
+
+        age = age_in_days(as_of, symbol.last_price_date)
+        planned.append(
+            RefreshTask(
+                symbol=symbol.symbol,
+                refresh_tier=symbol.refresh_tier,
+                age_in_days=age,
+                freshness_status=freshness_status_for_age(symbol.refresh_tier, age),
+            )
+        )
+
+    if budget is not None:
+        return planned[:budget]
+    return planned
+
+
+def build_default_stored_price_rebuild_plan() -> list[RefreshTask]:
+    settings = get_settings()
+    return plan_stored_price_rebuilds(
+        load_rating_repair_states(settings.database_url),
+        as_of=date.today(),
+    )
+
+
 def build_default_fundamental_refresh_plan() -> list[RefreshTask]:
     settings = get_settings()
     seeds = load_symbol_seeds(
@@ -1158,18 +1191,29 @@ def execute_price_refresh_plan(
     return []
 
 
-def pipeline_status_for(symbol_runs: list[SymbolRefreshRunRecord]) -> str:
-    status_runs = [record for record in symbol_runs if record.data_type != "rating"]
+def pipeline_status_for(symbol_runs: list[SymbolRefreshRunRecord], include_rating_runs: bool = False) -> str:
+    status_runs = [
+        record
+        for record in symbol_runs
+        if include_rating_runs or record.data_type != "rating"
+    ]
     if not status_runs:
         return "planned"
-    symbol_statuses: dict[str, set[str]] = {}
+    symbol_statuses: dict[tuple[str, str], set[str]] = {}
     for record in status_runs:
-        symbol_statuses.setdefault(record.symbol, set()).add(record.status)
+        symbol_statuses.setdefault((record.symbol, record.data_type), set()).add(record.status)
 
-    if all("succeeded" in statuses for statuses in symbol_statuses.values()):
-        return "success"
-    if any("failed" in statuses or "rate_limited" in statuses for statuses in symbol_statuses.values()):
+    has_success = any("succeeded" in statuses for statuses in symbol_statuses.values())
+    has_unresolved_failure = any(
+        "succeeded" not in statuses and bool(statuses.intersection({"failed", "rate_limited"}))
+        for statuses in symbol_statuses.values()
+    )
+    if has_unresolved_failure:
         return "partial"
+    if all("succeeded" in statuses or statuses == {"skipped"} for statuses in symbol_statuses.values()):
+        if not has_success:
+            return "planned"
+        return "success"
     return "planned"
 
 
@@ -1198,7 +1242,11 @@ def resolve_git_sha(
     return local_sha or None
 
 
-def main() -> None:
+def run_pipeline(
+    *,
+    refresh_prices: bool = True,
+    rebuild_all_stored_ratings: bool = False,
+) -> None:
     settings = get_settings()
     git_sha = resolve_git_sha()
     run_id = generate_run_id()
@@ -1209,21 +1257,22 @@ def main() -> None:
         twelve_data_api_key=settings.twelve_data_api_key,
         stooq_api_key=settings.stooq_api_key,
     )
-    refresh_plan = build_default_refresh_plan()
+    refresh_plan = build_default_refresh_plan() if refresh_prices else []
     fundamental_plan = build_default_fundamental_refresh_plan()
     analyst_plan = build_default_analyst_refresh_plan()
-    provider_name = preferred_provider_name(
-        alpha_vantage_configured=providers[0].configured,
-        twelve_data_configured=providers[1].configured,
-        stooq_configured=providers[2].configured,
-    )
     fundamental_runs = execute_fundamental_refresh_plan(
         run_id=run_id,
         tasks=fundamental_plan,
         database_url=settings.database_url,
         user_agent=settings.sec_user_agent,
     )
-    if provider_name in {"alpha_vantage", "twelve_data", "stooq"}:
+    price_runs: list[SymbolRefreshRunRecord] = []
+    if refresh_prices:
+        provider_name = preferred_provider_name(
+            alpha_vantage_configured=providers[0].configured,
+            twelve_data_configured=providers[1].configured,
+            stooq_configured=providers[2].configured,
+        )
         price_runs = execute_price_refresh_plan(
             run_id=run_id,
             tasks=refresh_plan,
@@ -1234,13 +1283,6 @@ def main() -> None:
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
         )
-    else:
-        price_runs = build_symbol_refresh_run_records(
-            run_id=run_id,
-            tasks=refresh_plan,
-            provider=provider_name,
-            attempted_at=started_at,
-        )
     analyst_runs = execute_analyst_refresh_plan(
         run_id=run_id,
         tasks=analyst_plan,
@@ -1248,7 +1290,11 @@ def main() -> None:
         api_key=settings.alpha_vantage_api_key,
         request_pause_seconds=settings.alpha_vantage_min_interval_seconds,
     )
-    rating_repair_plan = build_default_rating_repair_plan()
+    rating_repair_plan = (
+        build_default_stored_price_rebuild_plan()
+        if rebuild_all_stored_ratings
+        else build_default_rating_repair_plan()
+    )
     rating_repair_runs = execute_rating_repair_plan(
         run_id=run_id,
         tasks=rating_repair_plan,
@@ -1261,14 +1307,25 @@ def main() -> None:
         summarize_symbol_runs("sec_edgar", fundamental_runs),
         summarize_symbol_runs("alpha_vantage_overview", analyst_runs),
         summarize_symbol_runs("local_rating_rebuild", rating_repair_runs),
-        *summarize_provider_runs(price_runs),
     ]
+    if refresh_prices:
+        source_refresh_summaries.extend(summarize_provider_runs(price_runs))
+    else:
+        source_refresh_summaries.append(
+            SourceRefreshSummaryRecord(
+                source="price_refresh",
+                calls=0,
+                succeeded=0,
+                failed=0,
+                status="skipped",
+            )
+        )
     finished_at = utc_now()
     pipeline_run = build_pipeline_run_record(
         run_id=run_id,
         started_at=started_at,
         finished_at=finished_at,
-        status=pipeline_status_for(symbol_runs),
+        status=pipeline_status_for(symbol_runs, include_rating_runs=rebuild_all_stored_ratings),
         git_sha=git_sha,
     )
     database_persisted = persist_run_records(settings.database_url, pipeline_run, symbol_runs)
@@ -1283,19 +1340,28 @@ def main() -> None:
     print(f"Database persistence: {'enabled' if database_persisted else 'skipped'}")
     print(f"Macro refresh: {macro_refresh_summary.status}")
     print(f"Pipeline status: {pipeline_run.status}")
+    print(f"Price refresh: {'enabled' if refresh_prices else 'skipped'}")
     print("Price providers:")
     for provider in providers:
         print(f"- {provider.provider}: {'configured' if provider.configured else 'missing key'}")
 
-    print("Planned refresh order:")
-    for task in refresh_plan:
-        print(
-            f"- {task.symbol}: tier={task.refresh_tier} age={task.age_in_days} freshness={task.freshness_status}"
-        )
+    if refresh_prices:
+        print("Planned refresh order:")
+        for task in refresh_plan:
+            print(
+                f"- {task.symbol}: tier={task.refresh_tier} age={task.age_in_days} freshness={task.freshness_status}"
+            )
+    else:
+        print("Price refresh tasks: 0")
     print(f"Fundamental refresh tasks: {len(fundamental_plan)}")
     print(f"Analyst refresh tasks: {len(analyst_plan)}")
-    print(f"Rating repair tasks: {len(rating_repair_plan)}")
+    rating_task_label = "Stored-price rating rebuild tasks" if rebuild_all_stored_ratings else "Rating repair tasks"
+    print(f"{rating_task_label}: {len(rating_repair_plan)}")
     print(f"Plan artifact: {artifact_path}")
+
+
+def main() -> None:
+    run_pipeline()
 
 
 if __name__ == "__main__":

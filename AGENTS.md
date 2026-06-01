@@ -19,6 +19,7 @@
 - Run tests: `python -m pytest`
 - Run daily pipeline: `python -m stock_rating.daily`
 - Run daily pipeline with original module path: `python -m stock_rating.pipeline.daily`
+- Run weekend slow-input refresh without normal price-provider calls: `python -m stock_rating.pipeline.weekend`
 - Run read-only API locally: `uvicorn stock_rating.api.app:app --host 0.0.0.0 --port 8000`
 - Bootstrap symbols: `python -m stock_rating.pipeline.bootstrap_symbols`
 - Apply pending SQL migrations: `python -m stock_rating.pipeline.migrate`

@@ -16,6 +16,7 @@ Hosted daily stock ratings pipeline scaffold for free-only market data sources.
 - Run tests: `python -m pytest`
 - Run daily pipeline: `python -m stock_rating.daily`
 - Run daily pipeline with the original module path: `python -m stock_rating.pipeline.daily`
+- Run weekend slow-input refresh without price-provider calls: `python -m stock_rating.pipeline.weekend`
 - Run read-only API: `uvicorn stock_rating.api.app:app --host 0.0.0.0 --port 8000`
 - Backfill historical daily prices with Alpha Vantage full-history fetches: `python -m stock_rating.pipeline.backfill`
 - Bootstrap symbols into Postgres: `python -m stock_rating.pipeline.bootstrap_symbols`
@@ -32,6 +33,7 @@ Optional provider note:
 - When `DATABASE_URL` and `FRED_API_KEY` are configured, the daily pipeline also refreshes core FRED macro series and uses the yield-curve slope in scoring.
 - `STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT` caps due SEC fundamentals refreshes per run.
 - `STOCK_RATING_ANALYST_SYMBOL_LIMIT` caps optional Alpha Vantage analyst OVERVIEW calls per run. It defaults to `0` so price refreshes keep first claim on the free Alpha Vantage quota.
+- The weekend pipeline refreshes slow-moving inputs, rebuilds ratings from stored latest prices, and intentionally skips normal price-provider calls.
 - Non-US symbols can be tracked for price-only coverage when the configured providers support them; SEC fundamentals are skipped with an audit record when no SEC mapping exists.
 
 ## How to update tracked stocks
@@ -80,6 +82,11 @@ Typical refresh workflow:
 3. Run `python -m stock_rating.daily`.
 4. Run `python -m stock_rating.pipeline.report` to refresh the presentation layer.
 
+Weekend refresh workflow:
+
+1. Run `python -m stock_rating.pipeline.weekend` to refresh SEC fundamentals, FRED macro data, optional analyst consensus, and rebuild ratings from stored prices.
+2. Run `python -m stock_rating.pipeline.report` to refresh the presentation layer.
+
 Manual fundamentals bootstrap is still available with `python -m stock_rating.pipeline.bootstrap_fundamentals` if you want to backfill SEC facts separately from the daily price run.
 Historical price backfills are available with `python -m stock_rating.pipeline.backfill`.
 
@@ -96,9 +103,9 @@ HTML dashboard:
 - This dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and active data quality alerts for stale prices or missing ratings.
 
 Hosted mobile dashboard (GitHub Pages):
-- The daily workflow can publish the latest dashboard to GitHub Pages.
+- The daily and weekend workflows can publish the latest dashboard to GitHub Pages.
 - URL pattern: `https://<github-username>.github.io/stock-ratings/`
-- This updates after each scheduled or manual run of the daily workflow.
+- This updates after each scheduled or manual dashboard workflow run.
 
 Read-only API (FastAPI):
 - Start: `uvicorn stock_rating.api.app:app --host 0.0.0.0 --port 8000`

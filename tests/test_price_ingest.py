@@ -1,6 +1,8 @@
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from io import BytesIO
 import json
+from urllib.error import HTTPError
 
 from stock_rating.ingest.prices import (
     AlphaVantageResponseError,
@@ -19,6 +21,7 @@ from stock_rating.ingest.prices import (
     parse_stooq_daily_csv,
     parse_twelve_data_time_series,
     persist_price_bars,
+    stooq_supports_symbol,
 )
 from stock_rating.repository.symbols import update_symbol_last_price_refresh_at
 
@@ -227,15 +230,26 @@ def test_build_twelve_data_time_series_url_normalizes_exchange_prefixes() -> Non
 
 def test_build_stooq_daily_url_normalizes_exchange_prefixes() -> None:
     us_url = build_stooq_daily_url("SKYW", "stooq-key")
+    prefixed_us_url = build_stooq_daily_url("NASDAQ:GOOGL", "stooq-key")
+    class_share_url = build_stooq_daily_url("BRK.B", "stooq-key")
     tsx_url = build_stooq_daily_url("TSE:FFH", "stooq-key")
     xetr_url = build_stooq_daily_url("ETR:AIXA", "stooq-key")
     stockholm_url = build_stooq_daily_url("TEL2-B.ST", "stooq-key")
 
     assert "s=skyw.us" in us_url
+    assert "s=googl.us" in prefixed_us_url
+    assert "s=brk-b.us" in class_share_url
     assert "s=ffh.ca" in tsx_url
     assert "s=aixa.de" in xetr_url
     assert "s=tel2-b.st" in stockholm_url
     assert "apikey=stooq-key" in tsx_url
+
+
+def test_stooq_support_marks_known_unsupported_exchanges() -> None:
+    assert stooq_supports_symbol("NASDAQ:GOOGL") is True
+    assert stooq_supports_symbol("ETR:AIXA") is True
+    assert stooq_supports_symbol("TSE:FFH") is False
+    assert stooq_supports_symbol("TEL2-B.ST") is False
 
 
 def test_parse_twelve_data_time_series_returns_bars() -> None:
@@ -363,6 +377,24 @@ def test_fetch_stooq_daily_retries_transient_failure_then_succeeds() -> None:
 
     assert len(bars) == 1
     assert calls["count"] == 3
+
+
+def test_fetch_twelve_data_http_429_is_rate_limit() -> None:
+    def _http_429(_url: str):
+        raise HTTPError(
+            url=_url,
+            code=429,
+            msg="Too Many Requests",
+            hdrs={},
+            fp=BytesIO(b'{"code":429,"message":"quota exceeded"}'),
+        )
+
+    try:
+        fetch_twelve_data_time_series("AAPL", "demo-key", urlopen_fn=_http_429, sleep_fn=lambda _: None)
+    except TwelveDataRateLimitError as error:
+        assert "HTTP 429" in str(error)
+    else:
+        raise AssertionError("Expected TwelveDataRateLimitError")
 
 
 class _FakePriceCursor:

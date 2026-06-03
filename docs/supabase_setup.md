@@ -28,6 +28,7 @@ Create a local `.env` or set environment variables in your shell:
 DATABASE_URL=postgresql://postgres:<password>@<host>:5432/postgres
 ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
 TWELVE_DATA_API_KEY=your_twelve_data_key
+TWELVE_DATA_MAX_REQUESTS_PER_RUN=12
 FRED_API_KEY=your_fred_key
 STOCK_RATING_SYMBOL_LIMIT=100
 STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT=10

@@ -6,6 +6,7 @@ from decimal import Decimal
 from html import escape
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from stock_rating.config import get_settings
 from stock_rating.db import connect_postgres
@@ -65,7 +66,7 @@ def main() -> None:
     try:
         latest_run = fetch_latest_run(cursor)
         latest_run_counts = fetch_run_status_counts(cursor, latest_run[0] if latest_run else None)
-        source_refresh_summaries = fetch_source_refresh_summaries(latest_run[0] if latest_run else None)
+        source_refresh_summaries = fetch_source_refresh_summaries(cursor, latest_run[0] if latest_run else None)
         table_counts = fetch_table_counts(cursor)
         ratings = fetch_latest_ratings(cursor)
         quality_alerts = build_quality_alerts(fetch_quality_snapshots(cursor), date.today())
@@ -135,40 +136,90 @@ def fetch_run_status_counts(cursor: Any, run_id: str | None) -> dict[str, int]:
     return {status: count for status, count in cursor.fetchall()}
 
 
-def fetch_source_refresh_summaries(run_id: str | None) -> list[SourceRefreshSummary]:
+def fetch_source_refresh_summaries(cursor: Any, run_id: str | None) -> list[SourceRefreshSummary]:
     if not run_id:
         return []
 
     artifact_path = Path("artifacts") / "plans" / f"{run_id}.json"
-    if not artifact_path.exists():
-        return []
+    if artifact_path.exists():
+        try:
+            payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+        except Exception:
+            payload = {}
 
+        summaries = payload.get("source_refresh_summaries", [])
+        if isinstance(summaries, list):
+            results: list[SourceRefreshSummary] = []
+            for item in summaries:
+                if not isinstance(item, dict):
+                    continue
+                try:
+                    results.append(
+                        SourceRefreshSummary(
+                            source=str(item.get("source", "unknown")),
+                            calls=int(item.get("calls", 0)),
+                            succeeded=int(item.get("succeeded", 0)),
+                            failed=int(item.get("failed", 0)),
+                            status=str(item.get("status", "unknown")),
+                        )
+                    )
+                except Exception:
+                    continue
+            if results:
+                return results
+
+    return fetch_source_refresh_summaries_from_db(cursor, run_id)
+
+
+def fetch_source_refresh_summaries_from_db(cursor: Any, run_id: str) -> list[SourceRefreshSummary]:
     try:
-        payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+        cursor.execute(
+            """
+            select
+                provider,
+                count(*) as calls,
+                sum(case when status = 'succeeded' then 1 else 0 end) as succeeded,
+                sum(case when status in ('failed', 'rate_limited') then 1 else 0 end) as failed,
+                sum(case when status = 'skipped' then 1 else 0 end) as skipped,
+                min(attempted_at) as first_attempted_at
+            from symbol_refresh_runs
+            where run_id = %s
+            group by provider
+            order by first_attempted_at asc
+            """,
+            (run_id,),
+        )
     except Exception:
         return []
 
-    summaries = payload.get("source_refresh_summaries", [])
-    if not isinstance(summaries, list):
-        return []
-
     results: list[SourceRefreshSummary] = []
-    for item in summaries:
-        if not isinstance(item, dict):
-            continue
-        try:
-            results.append(
-                SourceRefreshSummary(
-                    source=str(item.get("source", "unknown")),
-                    calls=int(item.get("calls", 0)),
-                    succeeded=int(item.get("succeeded", 0)),
-                    failed=int(item.get("failed", 0)),
-                    status=str(item.get("status", "unknown")),
-                )
+    for provider, calls, succeeded, failed, skipped, _ in cursor.fetchall():
+        call_count = int(calls or 0)
+        succeeded_count = int(succeeded or 0)
+        failed_count = int(failed or 0)
+        skipped_count = int(skipped or 0)
+        results.append(
+            SourceRefreshSummary(
+                source=str(provider),
+                calls=call_count,
+                succeeded=succeeded_count,
+                failed=failed_count,
+                status=source_summary_status(call_count, succeeded_count, failed_count, skipped_count),
             )
-        except Exception:
-            continue
+        )
     return results
+
+
+def source_summary_status(calls: int, succeeded: int, failed: int, skipped: int) -> str:
+    if calls == 0:
+        return "skipped"
+    if succeeded == calls:
+        return "succeeded"
+    if skipped == calls:
+        return "skipped"
+    if succeeded == 0 and failed > 0:
+        return "failed"
+    return "partial"
 
 
 def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
@@ -819,6 +870,20 @@ def render_dashboard_html(
             font-weight: 700;
             font-size: 1rem;
         }}
+        .company-link {{
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            color: inherit;
+            text-decoration: none;
+        }}
+        .company-link:hover .symbol,
+        .company-link:hover .company {{
+            color: var(--accent);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }}
         .company {{
             color: var(--muted);
             font-size: 0.85rem;
@@ -1196,6 +1261,27 @@ def short_source_status(status: str) -> str:
     return "Failed"
 
 
+def yahoo_finance_symbol(symbol: str) -> str:
+    if symbol.endswith(".ST"):
+        return symbol
+    if ":" in symbol:
+        exchange, raw_symbol = symbol.split(":", 1)
+        exchange_code = exchange.upper()
+        normalized_symbol = raw_symbol.replace(".", "-")
+        if exchange_code in {"NASDAQ", "NYSE", "AMEX", "ARCA"}:
+            return normalized_symbol
+        if exchange_code in {"TSE", "TSX"}:
+            return f"{normalized_symbol}.TO"
+        if exchange_code in {"ETR", "XETR"}:
+            return f"{normalized_symbol}.DE"
+        return normalized_symbol
+    return symbol.replace(".", "-")
+
+
+def yahoo_finance_url(symbol: str) -> str:
+    return f"https://finance.yahoo.com/quote/{quote(yahoo_finance_symbol(symbol), safe='')}"
+
+
 def render_rating_row(rating: RatingSnapshot) -> str:
     freshness_class = f"freshness-{escape(rating.freshness_status)}"
     rating_ten = format_score_ten(Decimal(rating.rating_score))
@@ -1214,6 +1300,13 @@ def render_rating_row(rating: RatingSnapshot) -> str:
         sell_count=rating.sell_count,
         strong_sell_count=rating.strong_sell_count,
     )
+    finance_url = yahoo_finance_url(rating.symbol)
+    company_link_html = (
+        f'<a class="company-link" href="{escape(finance_url)}" target="_blank" rel="noopener noreferrer">'
+        f'<span class="symbol">{escape(rating.symbol)}</span>'
+        f'<span class="company">{escape(rating.company_name)}</span>'
+        "</a>"
+    )
     factor_cells_html = "".join(
         [
             render_factor_cell("Valuation", rating.valuation_score),
@@ -1225,7 +1318,7 @@ def render_rating_row(rating: RatingSnapshot) -> str:
     )
     return (
         "<tr>"
-        f'<td data-sort="{escape(company_sort)}"><div class="symbol">{escape(rating.symbol)}</div><div class="company">{escape(rating.company_name)}</div></td>'
+        f'<td data-sort="{escape(company_sort)}">{company_link_html}</td>'
         f'<td data-sort="{rating.rating_score}"><span class="score-chip {score_band}"><small>Rating</small><strong>{escape(rating_ten)}</strong></span></td>'
         f'<td data-sort="{escape(rating.freshness_status)}" class="{freshness_class}">{escape(rating.freshness_status.title())}</td>'
         f'{factor_cells_html}'

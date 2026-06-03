@@ -1,10 +1,54 @@
-.pytest_cache/
+# Python bytecode and caches
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
 .venv/
+venv/
+env/
+ENV/
+
+# Local environment and secrets
 .env
-*.pyc
-dist/
+.env.*
+!.env.example
+
+# Build and packaging outputs
 build/
+dist/
 *.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+
+# Test, coverage, and tool caches
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.pyre/
+.ruff_cache/
+.hypothesis/
+
+# Local runtime files
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Generated pipeline artifacts
 artifacts/plans/*.json
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local scratch
 Changes/

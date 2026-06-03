@@ -27,7 +27,9 @@ from stock_rating.ingest.prices import (
     fetch_stooq_daily,
     fetch_twelve_data_time_series,
     get_price_provider_status,
+    prefer_stooq_before_twelve_data,
     persist_price_bars,
+    stooq_supports_symbol,
 )
 from stock_rating.ingest.sec_companyfacts import (
     SecCompanyFactsResponseError,
@@ -667,6 +669,23 @@ def execute_stooq_refresh_plan(
 
     for task in tasks:
         attempted_at = utc_now()
+        if not stooq_supports_symbol(task.symbol):
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="stooq",
+                    status="skipped",
+                    attempted_at=attempted_at,
+                    completed_at=attempted_at,
+                    error_message="Stooq does not support this configured symbol or exchange.",
+                    fetched_bar_count=0,
+                    provider_error_code="stooq_unsupported_symbol",
+                )
+            )
+            continue
+
         try:
             bars = fetch_fn(task.symbol, api_key)
             persisted = persist_fn(database_url, bars)
@@ -1058,11 +1077,17 @@ def execute_price_refresh_plan(
     alpha_vantage_max_requests: int | None = None,
     alpha_vantage_pause_seconds: float = 0.0,
     alpha_vantage_sleep_fn=time.sleep,
+    twelve_data_max_requests: int | None = None,
 ) -> list[SymbolRefreshRunRecord]:
     def unresolved_tasks_from(records: list[SymbolRefreshRunRecord], candidate_tasks: list[RefreshTask]) -> list[RefreshTask]:
         unresolved = {record.symbol for record in records if record.status in {"failed", "rate_limited"}}
         succeeded = {record.symbol for record in records if record.status == "succeeded"}
-        return [task for task in candidate_tasks if task.symbol in unresolved and task.symbol not in succeeded]
+        recorded = {record.symbol for record in records}
+        return [
+            task
+            for task in candidate_tasks
+            if (task.symbol in unresolved or task.symbol not in recorded) and task.symbol not in succeeded
+        ]
 
     if alpha_vantage_api_key:
         alpha_tasks = tasks
@@ -1092,9 +1117,24 @@ def execute_price_refresh_plan(
         ]
 
         if fallback_tasks and twelve_data_api_key:
+            stooq_first_tasks = (
+                [task for task in fallback_tasks if prefer_stooq_before_twelve_data(task.symbol)]
+                if stooq_api_key
+                else []
+            )
+            stooq_first_symbols = {task.symbol for task in stooq_first_tasks}
+            twelve_candidate_tasks = [
+                task for task in fallback_tasks if task.symbol not in stooq_first_symbols
+            ]
+            twelve_tasks = twelve_candidate_tasks
+            over_twelve_budget_tasks: list[RefreshTask] = []
+            if twelve_data_max_requests is not None and twelve_data_max_requests >= 0:
+                twelve_tasks = twelve_candidate_tasks[:twelve_data_max_requests]
+                over_twelve_budget_tasks = twelve_candidate_tasks[twelve_data_max_requests:]
+
             twelve_runs = execute_twelve_data_refresh_plan(
                 run_id=run_id,
-                tasks=fallback_tasks,
+                tasks=twelve_tasks,
                 database_url=database_url,
                 api_key=twelve_data_api_key,
                 fetch_fn=twelve_fetch_fn,
@@ -1105,7 +1145,7 @@ def execute_price_refresh_plan(
                 persist_ratings_fn=persist_ratings_fn,
                 build_rating_record_fn=build_rating_record_fn,
             )
-            stooq_tasks = unresolved_tasks_from(twelve_runs, fallback_tasks)
+            stooq_tasks = stooq_first_tasks + over_twelve_budget_tasks + unresolved_tasks_from(twelve_runs, twelve_tasks)
             if stooq_tasks and stooq_api_key:
                 stooq_runs = execute_stooq_refresh_plan(
                     run_id=run_id,
@@ -1142,9 +1182,22 @@ def execute_price_refresh_plan(
         return alpha_runs
 
     if twelve_data_api_key:
+        stooq_first_tasks = (
+            [task for task in tasks if prefer_stooq_before_twelve_data(task.symbol)]
+            if stooq_api_key
+            else []
+        )
+        stooq_first_symbols = {task.symbol for task in stooq_first_tasks}
+        twelve_candidate_tasks = [task for task in tasks if task.symbol not in stooq_first_symbols]
+        twelve_tasks = twelve_candidate_tasks
+        over_twelve_budget_tasks: list[RefreshTask] = []
+        if twelve_data_max_requests is not None and twelve_data_max_requests >= 0:
+            twelve_tasks = twelve_candidate_tasks[:twelve_data_max_requests]
+            over_twelve_budget_tasks = twelve_candidate_tasks[twelve_data_max_requests:]
+
         twelve_runs = execute_twelve_data_refresh_plan(
             run_id=run_id,
-            tasks=tasks,
+            tasks=twelve_tasks,
             database_url=database_url,
             api_key=twelve_data_api_key,
             fetch_fn=twelve_fetch_fn,
@@ -1155,7 +1208,7 @@ def execute_price_refresh_plan(
             persist_ratings_fn=persist_ratings_fn,
             build_rating_record_fn=build_rating_record_fn,
         )
-        stooq_tasks = unresolved_tasks_from(twelve_runs, tasks)
+        stooq_tasks = stooq_first_tasks + over_twelve_budget_tasks + unresolved_tasks_from(twelve_runs, twelve_tasks)
         if stooq_tasks and stooq_api_key:
             stooq_runs = execute_stooq_refresh_plan(
                 run_id=run_id,
@@ -1282,6 +1335,7 @@ def run_pipeline(
             stooq_api_key=settings.stooq_api_key,
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
+            twelve_data_max_requests=settings.twelve_data_max_requests_per_run,
         )
     analyst_runs = execute_analyst_refresh_plan(
         run_id=run_id,

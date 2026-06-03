@@ -19,6 +19,19 @@ TWELVE_DATA_EXCHANGE_ALIASES = {
     "TSE": "TSX",
 }
 
+STOOQ_EXCHANGE_SUFFIXES = {
+    "NASDAQ": "us",
+    "NYSE": "us",
+    "AMEX": "us",
+    "ARCA": "us",
+    "ETR": "de",
+    "XETR": "de",
+    "TSE": "ca",
+    "TSX": "ca",
+}
+
+TWELVE_DATA_STOOQ_FIRST_EXCHANGES = {"ETR", "XETR"}
+
 ALPHA_VANTAGE_SYMBOL_OVERRIDES = {
     "TSE:FFH": "FFH.TRT",
 }
@@ -152,16 +165,34 @@ def normalize_symbol_for_stooq(symbol: str) -> str:
         return lowered
 
     if ":" not in symbol:
-        return f"{lowered}.us"
+        return f"{lowered.replace('.', '-')}.us"
 
     exchange, raw_symbol = symbol.split(":", 1)
-    normalized_symbol = raw_symbol.lower()
+    normalized_symbol = raw_symbol.lower().replace(".", "-")
     exchange_code = exchange.upper()
-    if exchange_code == "TSE":
-        return f"{normalized_symbol}.ca"
-    if exchange_code == "ETR":
-        return f"{normalized_symbol}.de"
+    suffix = STOOQ_EXCHANGE_SUFFIXES.get(exchange_code)
+    if suffix:
+        return f"{normalized_symbol}.{suffix}"
     return normalized_symbol
+
+
+def stooq_supports_symbol(symbol: str) -> bool:
+    lowered = symbol.lower()
+    if lowered.endswith(".st"):
+        return False
+    if ":" not in symbol:
+        return True
+
+    exchange, _ = symbol.split(":", 1)
+    return exchange.upper() not in {"TSE", "TSX"}
+
+
+def prefer_stooq_before_twelve_data(symbol: str) -> bool:
+    if ":" not in symbol:
+        return False
+
+    exchange, _ = symbol.split(":", 1)
+    return exchange.upper() in TWELVE_DATA_STOOQ_FIRST_EXCHANGES
 
 
 def build_alpha_vantage_daily_adjusted_url(symbol: str, api_key: str, outputsize: str = "compact") -> str:
@@ -364,6 +395,8 @@ def fetch_twelve_data_time_series(
                 payload = json.loads(response.read().decode("utf-8"))
             break
         except HTTPError as error:
+            if error.code == 429:
+                raise TwelveDataRateLimitError("Twelve Data request failed with HTTP 429") from error
             if _is_transient_http_error(error) and attempt < attempts:
                 _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
                 continue

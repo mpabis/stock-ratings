@@ -1,7 +1,31 @@
 from datetime import date, datetime, UTC
 from decimal import Decimal
 
-from stock_rating.pipeline.report import RatingSnapshot, SourceRefreshSummary, render_dashboard_html, render_methodology_html
+from stock_rating.pipeline.report import (
+    fetch_source_refresh_summaries_from_db,
+    RatingSnapshot,
+    SourceRefreshSummary,
+    render_dashboard_html,
+    render_methodology_html,
+    yahoo_finance_symbol,
+    yahoo_finance_url,
+)
+
+
+class _FakeSourceSummaryCursor:
+    def __init__(self) -> None:
+        self.query: str | None = None
+        self.params: tuple[str, ...] | None = None
+
+    def execute(self, query: str, params: tuple[str, ...]) -> None:
+        self.query = query
+        self.params = params
+
+    def fetchall(self):
+        return [
+            ("twelve_data", 3, 1, 1, 1, datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC)),
+            ("stooq", 2, 2, 0, 0, datetime(2026, 5, 28, 23, 5, 14, tzinfo=UTC)),
+        ]
 
 
 def test_render_dashboard_places_ratings_before_portfolio_snapshot() -> None:
@@ -55,6 +79,57 @@ def test_render_dashboard_includes_source_call_summary() -> None:
     assert "4 succeeded, 0 failed" in html
     assert "Alpha Vantage" in html
     assert "1 succeeded, 1 failed" in html
+
+
+def test_fetch_source_refresh_summaries_from_db_aggregates_status() -> None:
+    cursor = _FakeSourceSummaryCursor()
+
+    summaries = fetch_source_refresh_summaries_from_db(cursor, "run-123")
+
+    assert cursor.params == ("run-123",)
+    assert summaries == [
+        SourceRefreshSummary(source="twelve_data", calls=3, succeeded=1, failed=1, status="partial"),
+        SourceRefreshSummary(source="stooq", calls=2, succeeded=2, failed=0, status="succeeded"),
+    ]
+
+
+def test_yahoo_finance_symbol_normalizes_provider_symbols() -> None:
+    assert yahoo_finance_symbol("AAPL") == "AAPL"
+    assert yahoo_finance_symbol("BRK.B") == "BRK-B"
+    assert yahoo_finance_symbol("NASDAQ:GOOGL") == "GOOGL"
+    assert yahoo_finance_symbol("TSE:FFH") == "FFH.TO"
+    assert yahoo_finance_symbol("ETR:AIXA") == "AIXA.DE"
+    assert yahoo_finance_symbol("TEL2-B.ST") == "TEL2-B.ST"
+
+
+def test_render_dashboard_links_company_to_yahoo_finance() -> None:
+    html = render_dashboard_html(
+        ratings=[
+            RatingSnapshot(
+                symbol="NASDAQ:GOOGL",
+                company_name="Alphabet Inc. Class A",
+                rating_score=78,
+                rating_label="B / Attractive",
+                freshness_status="fresh",
+                freshest_input_date=date(2026, 5, 28),
+                valuation_score=Decimal("72.0"),
+                quality_score=Decimal("68.0"),
+                growth_score=Decimal("74.0"),
+                momentum_score=Decimal("79.0"),
+                risk_score=Decimal("41.0"),
+                summary="Strong latest profile.",
+            )
+        ],
+        latest_run=("run-123", "success", datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC), datetime(2026, 5, 28, 23, 4, 52, tzinfo=UTC)),
+        latest_run_counts={"succeeded": 1},
+        source_refresh_summaries=[],
+        table_counts={"symbols": 1, "ratings_daily": 1, "pipeline_runs": 1, "symbol_refresh_runs": 1, "price_daily": 1, "features_daily": 1},
+        quality_alerts=[],
+    )
+
+    assert f'href="{yahoo_finance_url("NASDAQ:GOOGL")}"' in html
+    assert 'target="_blank" rel="noopener noreferrer"' in html
+    assert "Alphabet Inc. Class A" in html
 
 
 def test_render_methodology_includes_factor_and_source_sections() -> None:

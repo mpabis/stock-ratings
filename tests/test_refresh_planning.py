@@ -340,7 +340,7 @@ def test_execute_twelve_data_refresh_plan_marks_success() -> None:
 def test_execute_stooq_refresh_plan_marks_success() -> None:
     as_of = date(2026, 5, 27)
     tasks = plan_price_refreshes(
-        [SymbolRefreshState(symbol="TSE:FFH", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        [SymbolRefreshState(symbol="NASDAQ:GOOGL", refresh_tier=3, last_price_date=date(2026, 5, 20))],
         as_of=as_of,
         budget=1,
     )
@@ -529,7 +529,7 @@ def test_execute_analyst_refresh_plan_marks_success_with_missing_consensus() -> 
 def test_execute_price_refresh_plan_falls_back_to_stooq_after_twelve_failure() -> None:
     as_of = date(2026, 5, 27)
     tasks = plan_price_refreshes(
-        [SymbolRefreshState(symbol="TSE:FFH", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        [SymbolRefreshState(symbol="NASDAQ:GOOGL", refresh_tier=3, last_price_date=date(2026, 5, 20))],
         as_of=as_of,
         budget=1,
     )
@@ -562,10 +562,51 @@ def test_execute_price_refresh_plan_falls_back_to_stooq_after_twelve_failure() -
         compute_features_fn=lambda bars: [],
     )
 
-    assert stooq_symbols == ["TSE:FFH"]
+    assert stooq_symbols == ["NASDAQ:GOOGL"]
     assert [record.provider for record in records] == ["twelve_data", "stooq"]
     assert records[-1].status == "succeeded"
     assert pipeline_status_for(records) == "success"
+
+
+def test_execute_price_refresh_plan_routes_xetra_symbols_to_stooq_first() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="ETR:AIXA", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+    stooq_symbols: list[str] = []
+
+    records = execute_price_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        alpha_vantage_api_key="",
+        twelve_data_api_key="twelve-key",
+        stooq_api_key="stooq-key",
+        twelve_fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Twelve Data should not be called")),
+        stooq_fetch_fn=lambda symbol, api_key: stooq_symbols.append(symbol) or [
+            DailyPriceBar(
+                symbol=symbol,
+                date=as_of,
+                open=Decimal("1"),
+                high=Decimal("2"),
+                low=Decimal("1"),
+                close=Decimal("2"),
+                adjusted_close=Decimal("2"),
+                volume=1,
+                source="stooq",
+            )
+        ],
+        persist_fn=lambda database_url, bars: False,
+        mark_refreshed_fn=lambda database_url, symbol, refreshed_at: True,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+    )
+
+    assert stooq_symbols == ["ETR:AIXA"]
+    assert [record.provider for record in records] == ["stooq"]
+    assert records[0].status == "succeeded"
 
 
 def test_execute_price_refresh_plan_falls_back_to_twelve_data() -> None:
@@ -626,6 +667,84 @@ def test_execute_twelve_data_refresh_plan_marks_rate_limited() -> None:
     )
 
     assert records[0].status == "rate_limited"
+
+
+def test_execute_stooq_refresh_plan_skips_unsupported_symbols() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="TSE:FFH", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_stooq_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        api_key="stooq-key",
+        fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Stooq should not be called")),
+    )
+
+    assert records[0].status == "skipped"
+    assert records[0].provider_error_code == "stooq_unsupported_symbol"
+
+
+def test_execute_price_refresh_plan_caps_twelve_data_and_sends_overflow_to_stooq() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [
+            SymbolRefreshState(symbol="AAPL", refresh_tier=3, last_price_date=date(2026, 5, 20)),
+            SymbolRefreshState(symbol="MSFT", refresh_tier=3, last_price_date=date(2026, 5, 20)),
+        ],
+        as_of=as_of,
+        budget=2,
+    )
+    twelve_symbols: list[str] = []
+    stooq_symbols: list[str] = []
+
+    records = execute_price_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        alpha_vantage_api_key="",
+        twelve_data_api_key="twelve-key",
+        stooq_api_key="stooq-key",
+        twelve_fetch_fn=lambda symbol, api_key: twelve_symbols.append(symbol) or [
+            DailyPriceBar(
+                symbol=symbol,
+                date=as_of,
+                open=Decimal("1"),
+                high=Decimal("2"),
+                low=Decimal("1"),
+                close=Decimal("2"),
+                adjusted_close=Decimal("2"),
+                volume=1,
+                source="twelve_data",
+            )
+        ],
+        stooq_fetch_fn=lambda symbol, api_key: stooq_symbols.append(symbol) or [
+            DailyPriceBar(
+                symbol=symbol,
+                date=as_of,
+                open=Decimal("1"),
+                high=Decimal("2"),
+                low=Decimal("1"),
+                close=Decimal("2"),
+                adjusted_close=Decimal("2"),
+                volume=1,
+                source="stooq",
+            )
+        ],
+        persist_fn=lambda database_url, bars: False,
+        mark_refreshed_fn=lambda database_url, symbol, refreshed_at: True,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+        twelve_data_max_requests=1,
+    )
+
+    assert twelve_symbols == ["AAPL"]
+    assert stooq_symbols == ["MSFT"]
+    assert [record.provider for record in records] == ["twelve_data", "stooq"]
 
 
 def test_execute_price_refresh_plan_limits_alpha_vantage_requests_and_falls_back() -> None:
@@ -790,6 +909,7 @@ def test_weekend_pipeline_skips_price_refresh_and_rebuilds_from_stored_prices(mo
             analyst_symbol_limit=0,
             alpha_vantage_max_requests_per_run=20,
             alpha_vantage_min_interval_seconds=0,
+            twelve_data_max_requests_per_run=12,
             plan_output_dir=str(tmp_path),
         ),
     )

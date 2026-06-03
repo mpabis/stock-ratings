@@ -31,6 +31,7 @@ Optional provider note:
 	Example: `stock-rating/0.1 your-email@example.com`
 - When `DATABASE_URL` and `SEC_USER_AGENT` are configured, the daily pipeline automatically refreshes SEC fundamentals for SEC-covered symbols before scoring.
 - When `DATABASE_URL` and `FRED_API_KEY` are configured, the daily pipeline also refreshes core FRED macro series and uses the yield-curve slope in scoring.
+- `TWELVE_DATA_MAX_REQUESTS_PER_RUN` caps Twelve Data fallback calls per run. It defaults to `12` so the free key can hand overflow to Stooq before hitting HTTP 429.
 - `STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT` caps due SEC fundamentals refreshes per run.
 - `STOCK_RATING_ANALYST_SYMBOL_LIMIT` caps optional Alpha Vantage analyst OVERVIEW calls per run. It defaults to `0` so price refreshes keep first claim on the free Alpha Vantage quota.
 - The weekend pipeline refreshes slow-moving inputs, rebuilds ratings from stored latest prices, and intentionally skips normal price-provider calls.

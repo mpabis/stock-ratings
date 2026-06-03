@@ -31,7 +31,7 @@
 ## Configuration
 
 - Copy `.env.example` locally and configure `.env`; never commit real secrets.
-- Important environment variables include `DATABASE_URL`, `ALPHA_VANTAGE_API_KEY`, `TWELVE_DATA_API_KEY`, `STOOQ_API_KEY`, `SEC_USER_AGENT`, `FRED_API_KEY`, `STOCK_RATING_SYMBOL_LIMIT`, `STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT`, `STOCK_RATING_ANALYST_SYMBOL_LIMIT`, `STOCK_RATING_SYMBOL_SEED_PATH`, and `STOCK_RATING_PLAN_OUTPUT_DIR`.
+- Important environment variables include `DATABASE_URL`, `ALPHA_VANTAGE_API_KEY`, `TWELVE_DATA_API_KEY`, `TWELVE_DATA_MAX_REQUESTS_PER_RUN`, `STOOQ_API_KEY`, `SEC_USER_AGENT`, `FRED_API_KEY`, `STOCK_RATING_SYMBOL_LIMIT`, `STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT`, `STOCK_RATING_ANALYST_SYMBOL_LIMIT`, `STOCK_RATING_SYMBOL_SEED_PATH`, and `STOCK_RATING_PLAN_OUTPUT_DIR`.
 - `SEC_USER_AGENT` should identify the app and include contact information when using SEC EDGAR.
 - `DATABASE_URL` should be the direct Supabase Postgres connection string for hosted runs.
 

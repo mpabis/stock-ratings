@@ -46,9 +46,9 @@ DDOG,Datadog Inc.,NASDAQ,3,2026-05-20,true
 HUBS,HubSpot Inc.,NYSE,3,2026-05-20,true
 APP,AppLovin Corporation,NASDAQ,3,2026-05-20,true
 CELH,Celsius Holdings Inc.,NASDAQ,3,2026-05-20,true
-RAIL.ST,Railcare Group AB,NASDAQ OMX Stockholm,3,2026-05-20,true
+RAIL.ST,Railcare Group AB,NASDAQ OMX Stockholm,3,2026-05-20,false
 KTOS,Kratos Defense & Security Solutions Inc.,NASDAQ,3,2026-05-20,true
-TEL2-B.ST,Tele2 AB,NASDAQ OMX Stockholm,3,2026-05-20,true
+TEL2-B.ST,Tele2 AB,NASDAQ OMX Stockholm,3,2026-05-20,false
 FLUT,Flutter Entertainment plc,NYSE,3,2026-05-20,true
 SLG,SL Green Realty Corp.,NYSE,3,2026-05-20,true
 RYAAY,Ryanair Holdings plc ADR,NASDAQ,3,2026-05-20,true

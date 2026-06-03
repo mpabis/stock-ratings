@@ -4,6 +4,34 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-03
+
+### Changed
+
+- Expanded `.gitignore` coverage for local Python caches, environments, secrets, build artifacts, test/tool outputs, local runtime files, and editor/OS metadata.
+
+## 2026-06-02
+
+### Added
+
+- Added `TWELVE_DATA_MAX_REQUESTS_PER_RUN` to cap Twelve Data fallback calls before overflow routes to Stooq.
+- Added Yahoo Finance links to ticker/company cells in the generated dashboard, using provider-specific ticker normalization.
+
+### Changed
+
+- Changed fallback routing so Xetra symbols go straight to Stooq and Twelve Data overflow is handed to Stooq instead of continuing into rate-limit errors.
+- Marked Stockholm symbols without current Twelve Data or Stooq coverage inactive in `data/symbols.csv`.
+
+### Fixed
+
+- Fixed Twelve Data HTTP 429 responses being recorded as generic provider failures instead of rate-limit events.
+- Fixed Stooq normalization for prefixed US symbols and class-share tickers such as `NASDAQ:GOOGL` and `BRK.B`.
+- Fixed Stooq fallback calls for known unsupported exchanges by recording them as skipped instead of failed provider requests.
+
+### Tests
+
+- Added regression tests for Twelve Data HTTP 429 handling, capped fallback routing, Stooq symbol support, and dashboard Yahoo Finance links.
+
 ## 2026-06-01
 
 ### Added

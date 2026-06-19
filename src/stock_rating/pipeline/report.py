@@ -1316,11 +1316,13 @@ def render_rating_row(rating: RatingSnapshot) -> str:
             render_factor_cell("Risk", rating.risk_score),
         ]
     )
+    freshness_date_title = format_date_readable(rating.freshest_input_date)
+    freshness_title = f"Last updated: {freshness_date_title}"
     return (
         "<tr>"
         f'<td data-sort="{escape(company_sort)}">{company_link_html}</td>'
         f'<td data-sort="{rating.rating_score}"><span class="score-chip {score_band}"><small>Rating</small><strong>{escape(rating_ten)}</strong></span></td>'
-        f'<td data-sort="{escape(rating.freshness_status)}" class="{freshness_class}">{escape(rating.freshness_status.title())}</td>'
+        f'<td data-sort="{escape(rating.freshness_status)}" class="{freshness_class}" title="{escape(freshness_title)}">{escape(rating.freshness_status.title())}</td>'
         f'{factor_cells_html}'
         f'<td data-sort="{analyst_sort_rank}" class="analyst">{analyst_badge_html}</td>'
         f'<td data-sort="{escape(analyst_target_sort)}" class="target-cell">{target_option_one_html}</td>'
@@ -1500,6 +1502,12 @@ def format_date(value: date | None) -> str:
     if value is None:
         return "N/A"
     return value.isoformat()
+
+
+def format_date_readable(value: date | None) -> str:
+    if value is None:
+        return "N/A"
+    return value.strftime("%b %d, %Y")
 
 
 def format_decimal(value: Decimal | None) -> str:

@@ -910,6 +910,9 @@ def test_weekend_pipeline_skips_price_refresh_and_rebuilds_from_stored_prices(mo
             alpha_vantage_max_requests_per_run=20,
             alpha_vantage_min_interval_seconds=0,
             twelve_data_max_requests_per_run=12,
+            finnhub_api_key="",
+            finnhub_analyst_symbol_limit=0,
+            finnhub_analyst_min_interval_seconds=2.0,
             plan_output_dir=str(tmp_path),
         ),
     )

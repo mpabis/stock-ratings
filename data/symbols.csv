@@ -1,6 +1,6 @@
 symbol,company_name,exchange,refresh_tier,last_price_date,active
-AAPL,Apple Inc.,NASDAQ,1,2026-05-26,true
-MSFT,Microsoft Corporation,NASDAQ,1,2026-05-26,true
+AAPL,Apple Inc.,NASDAQ,2,2026-05-26,true
+MSFT,Microsoft Corporation,NASDAQ,2,2026-05-26,true
 NVDA,NVIDIA Corporation,NASDAQ,2,2026-05-24,true
 AMD,Advanced Micro Devices Inc.,NASDAQ,2,2026-05-25,true
 MU,Micron Technology Inc.,NASDAQ,2,2026-05-23,true
@@ -52,3 +52,59 @@ TEL2-B.ST,Tele2 AB,NASDAQ OMX Stockholm,3,2026-05-20,false
 FLUT,Flutter Entertainment plc,NYSE,3,2026-05-20,true
 SLG,SL Green Realty Corp.,NYSE,3,2026-05-20,true
 RYAAY,Ryanair Holdings plc ADR,NASDAQ,3,2026-05-20,true
+MPWR,Monolithic Power Systems Inc.,NASDAQ,2,2026-06-12,true
+AXON,Axon Enterprise Inc.,NASDAQ,2,2026-06-12,true
+VRT,Vertiv Holdings Co.,NYSE,2,2026-06-12,true
+ABNB,Airbnb Inc.,NASDAQ,3,2026-06-12,true
+ADSK,Autodesk Inc.,NASDAQ,3,2026-06-12,true
+APH,Amphenol Corporation,NYSE,3,2026-06-12,true
+META,Meta Platforms Inc.,NASDAQ,2,2026-06-12,true
+NFLX,Netflix Inc.,NASDAQ,2,2026-06-12,true
+AVGO,Broadcom Inc.,NASDAQ,2,2026-06-12,true
+ORCL,Oracle Corporation,NYSE,3,2026-06-12,true
+CRM,Salesforce Inc.,NYSE,3,2026-06-12,true
+ADBE,Adobe Inc.,NASDAQ,3,2026-06-12,true
+INTU,Intuit Inc.,NASDAQ,3,2026-06-12,true
+QCOM,QUALCOMM Incorporated,NASDAQ,3,2026-06-12,true
+AMAT,Applied Materials Inc.,NASDAQ,3,2026-06-12,true
+LRCX,Lam Research Corporation,NASDAQ,3,2026-06-12,true
+KLAC,KLA Corporation,NASDAQ,3,2026-06-12,true
+SNPS,Synopsys Inc.,NASDAQ,3,2026-06-12,true
+CDNS,Cadence Design Systems Inc.,NASDAQ,3,2026-06-12,true
+ADI,Analog Devices Inc.,NASDAQ,3,2026-06-12,true
+MCHP,Microchip Technology Inc.,NASDAQ,3,2026-06-12,true
+CRWD,CrowdStrike Holdings Inc.,NASDAQ,2,2026-06-12,true
+PLTR,Palantir Technologies Inc.,NASDAQ,2,2026-06-12,true
+WDAY,Workday Inc.,NASDAQ,3,2026-06-12,true
+TEAM,Atlassian Corporation,NASDAQ,3,2026-06-12,true
+VEEV,Veeva Systems Inc.,NYSE,3,2026-06-12,true
+FICO,Fair Isaac Corporation,NYSE,3,2026-06-12,true
+TTD,The Trade Desk Inc.,NASDAQ,3,2026-06-12,true
+V,Visa Inc.,NYSE,3,2026-06-12,true
+MA,Mastercard Incorporated,NYSE,3,2026-06-12,true
+AXP,American Express Company,NYSE,3,2026-06-12,true
+FI,Fiserv Inc.,NYSE,3,2026-06-12,true
+TOST,Toast Inc.,NYSE,3,2026-06-12,true
+SOFI,SoFi Technologies Inc.,NASDAQ,3,2026-06-12,true
+JPM,JPMorgan Chase & Co.,NYSE,3,2026-06-12,true
+SPGI,S&P Global Inc.,NYSE,3,2026-06-12,true
+MCO,Moody's Corporation,NYSE,3,2026-06-12,true
+KKR,KKR & Co. Inc.,NYSE,3,2026-06-12,true
+PGR,The Progressive Corporation,NYSE,3,2026-06-12,true
+COST,Costco Wholesale Corporation,NASDAQ,3,2026-06-12,true
+TJX,The TJX Companies Inc.,NYSE,3,2026-06-12,true
+ORLY,O'Reilly Automotive Inc.,NASDAQ,3,2026-06-12,true
+DECK,Deckers Outdoor Corporation,NYSE,3,2026-06-12,true
+CMG,Chipotle Mexican Grill Inc.,NYSE,3,2026-06-12,true
+BKNG,Booking Holdings Inc.,NASDAQ,3,2026-06-12,true
+UBER,Uber Technologies Inc.,NYSE,3,2026-06-12,true
+ISRG,Intuitive Surgical Inc.,NASDAQ,2,2026-06-12,true
+VRTX,Vertex Pharmaceuticals Incorporated,NASDAQ,3,2026-06-12,true
+REGN,Regeneron Pharmaceuticals Inc.,NASDAQ,3,2026-06-12,true
+BSX,Boston Scientific Corporation,NYSE,3,2026-06-12,true
+EW,Edwards Lifesciences Corporation,NYSE,3,2026-06-12,true
+TMO,Thermo Fisher Scientific Inc.,NYSE,3,2026-06-12,true
+GEV,GE Vernova Inc.,NYSE,2,2026-06-12,true
+ETN,Eaton Corporation plc,NYSE,3,2026-06-12,true
+PWR,Quanta Services Inc.,NYSE,3,2026-06-12,true
+GE,GE Aerospace,NYSE,3,2026-06-12,true

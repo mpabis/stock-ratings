@@ -4,6 +4,13 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-19
+
+### Added
+
+- Added six US-listed quality-growth symbols to `data/symbols.csv`: `MPWR` (Monolithic Power Systems, tier 2), `AXON` (Axon Enterprise, tier 2), `VRT` (Vertiv Holdings, tier 2), `ABNB` (Airbnb, tier 3), `ADSK` (Autodesk, tier 3), and `APH` (Amphenol, tier 3). Selected for the model_v1 profile of profitable, low-debt, high-margin growth with positive momentum.
+- Expanded the tracked universe by 50 additional US-listed quality-growth symbols in `data/symbols.csv`, diversified across mega-cap tech/internet, semis & EDA, software/AI/SaaS, payments & fintech, financials, consumer/retail, healthcare/medtech, and industrials/power. Tier 2: `META`, `NFLX`, `AVGO`, `CRWD`, `PLTR`, `ISRG`, `GEV`. Tier 3: `ORCL`, `CRM`, `ADBE`, `INTU`, `QCOM`, `AMAT`, `LRCX`, `KLAC`, `SNPS`, `CDNS`, `ADI`, `MCHP`, `WDAY`, `TEAM`, `VEEV`, `FICO`, `TTD`, `V`, `MA`, `AXP`, `FI`, `TOST`, `SOFI`, `JPM`, `SPGI`, `MCO`, `KKR`, `PGR`, `COST`, `TJX`, `ORLY`, `DECK`, `CMG`, `BKNG`, `UBER`, `VRTX`, `REGN`, `BSX`, `EW`, `TMO`, `ETN`, `PWR`, `GE`. Favored US-domiciled issuers so SEC fundamentals map cleanly into the rating sub-scores. Tracked universe is now 109 active symbols, materially increasing daily free-provider refresh load (handled by tier-based rolling refresh).
+
 ## 2026-06-03
 
 ### Changed

@@ -255,6 +255,149 @@ def persist_analyst_consensus(
             pass
 
 
+class FinnhubAnalystResponseError(RuntimeError):
+    pass
+
+
+class FinnhubAnalystRateLimitError(RuntimeError):
+    pass
+
+
+def build_finnhub_recommendation_url(symbol: str, api_key: str) -> str:
+    query = urlencode({"symbol": symbol, "token": api_key})
+    return f"https://finnhub.io/api/v1/stock/recommendation?{query}"
+
+
+def build_finnhub_price_target_url(symbol: str, api_key: str) -> str:
+    query = urlencode({"symbol": symbol, "token": api_key})
+    return f"https://finnhub.io/api/v1/stock/price-target?{query}"
+
+
+def _fetch_finnhub_json(
+    url: str,
+    symbol: str,
+    urlopen_fn=urlopen,
+    max_attempts: int = 3,
+    base_backoff_seconds: float = 0.5,
+    sleep_fn=time.sleep,
+) -> object:
+    payload = None
+    attempts = max(1, max_attempts)
+    for attempt in range(1, attempts + 1):
+        try:
+            with urlopen_fn(url) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except HTTPError as error:
+            if error.code == 429:
+                raise FinnhubAnalystRateLimitError(f"Finnhub rate limit hit for {symbol}")
+            if _is_transient_http_error(error) and attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise FinnhubAnalystResponseError(f"Finnhub request failed with HTTP {error.code}") from error
+        except (URLError, TimeoutError, ConnectionError) as error:
+            if attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise FinnhubAnalystResponseError(
+                f"Finnhub request failed after {attempts} attempts: {error}"
+            ) from error
+
+    if payload is None:
+        raise FinnhubAnalystResponseError("Finnhub request failed before receiving a payload")
+    return payload
+
+
+def fetch_finnhub_recommendation_trends(
+    symbol: str,
+    api_key: str,
+    urlopen_fn=urlopen,
+    max_attempts: int = 3,
+    base_backoff_seconds: float = 0.5,
+    sleep_fn=time.sleep,
+) -> list[dict[str, object]]:
+    url = build_finnhub_recommendation_url(symbol, api_key)
+    payload = _fetch_finnhub_json(url, symbol, urlopen_fn, max_attempts, base_backoff_seconds, sleep_fn)
+    if isinstance(payload, dict) and "error" in payload:
+        raise FinnhubAnalystResponseError(str(payload["error"]))
+    if not isinstance(payload, list):
+        raise FinnhubAnalystResponseError(f"Unexpected Finnhub recommendation response: {type(payload)}")
+    return payload
+
+
+def fetch_finnhub_price_target(
+    symbol: str,
+    api_key: str,
+    urlopen_fn=urlopen,
+    max_attempts: int = 3,
+    base_backoff_seconds: float = 0.5,
+    sleep_fn=time.sleep,
+) -> dict[str, object]:
+    url = build_finnhub_price_target_url(symbol, api_key)
+    payload = _fetch_finnhub_json(url, symbol, urlopen_fn, max_attempts, base_backoff_seconds, sleep_fn)
+    if not isinstance(payload, dict):
+        raise FinnhubAnalystResponseError(f"Unexpected Finnhub price target response: {type(payload)}")
+    if "error" in payload:
+        raise FinnhubAnalystResponseError(str(payload["error"]))
+    return payload
+
+
+def parse_finnhub_analyst_consensus(
+    symbol: str,
+    recommendation_payload: list[dict[str, object]],
+    price_target_payload: dict[str, object],
+    as_of_date: date,
+) -> AnalystConsensusSnapshot | None:
+    strong_buy_count = None
+    buy_count = None
+    hold_count = None
+    sell_count = None
+    strong_sell_count = None
+
+    if recommendation_payload:
+        latest = recommendation_payload[0]
+        strong_buy_count = _parse_int(latest.get("strongBuy"))
+        buy_count = _parse_int(latest.get("buy"))
+        hold_count = _parse_int(latest.get("hold"))
+        sell_count = _parse_int(latest.get("sell"))
+        strong_sell_count = _parse_int(latest.get("strongSell"))
+
+    target = price_target_payload.get("targetMean") or price_target_payload.get("targetMedian")
+    analyst_target_price = _parse_decimal(target)
+
+    if (
+        analyst_target_price is None
+        and strong_buy_count is None
+        and buy_count is None
+        and hold_count is None
+        and sell_count is None
+        and strong_sell_count is None
+    ):
+        return None
+
+    suggestion_label, suggestion_score = derive_analyst_suggestion(
+        strong_buy_count=strong_buy_count,
+        buy_count=buy_count,
+        hold_count=hold_count,
+        sell_count=sell_count,
+        strong_sell_count=strong_sell_count,
+    )
+
+    return AnalystConsensusSnapshot(
+        symbol=symbol,
+        date=as_of_date,
+        analyst_target_price=analyst_target_price,
+        strong_buy_count=strong_buy_count,
+        buy_count=buy_count,
+        hold_count=hold_count,
+        sell_count=sell_count,
+        strong_sell_count=strong_sell_count,
+        suggestion_label=suggestion_label,
+        suggestion_score=suggestion_score,
+        source="finnhub",
+    )
+
+
 def _parse_decimal(value: object) -> Decimal | None:
     if value in {None, "", "None"}:
         return None

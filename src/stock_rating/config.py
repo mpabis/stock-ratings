@@ -21,6 +21,9 @@ class Settings:
     symbol_limit: int = int(os.getenv("STOCK_RATING_SYMBOL_LIMIT", "100"))
     fundamental_symbol_limit: int = int(os.getenv("STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT", "10"))
     analyst_symbol_limit: int = int(os.getenv("STOCK_RATING_ANALYST_SYMBOL_LIMIT", "0"))
+    finnhub_api_key: str = os.getenv("FINNHUB_API_KEY", "")
+    finnhub_analyst_symbol_limit: int = int(os.getenv("STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT", "0"))
+    finnhub_analyst_min_interval_seconds: float = float(os.getenv("FINNHUB_ANALYST_MIN_INTERVAL_SECONDS", "2.0"))
     symbol_seed_path: str = os.getenv("STOCK_RATING_SYMBOL_SEED_PATH", "")
     plan_output_dir: str = os.getenv("STOCK_RATING_PLAN_OUTPUT_DIR", "")
 

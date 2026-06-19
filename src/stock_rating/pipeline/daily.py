@@ -15,8 +15,12 @@ from stock_rating.ingest.fred_macro import (
 )
 from stock_rating.ingest.analyst import (
     AlphaVantageAnalystRateLimitError,
+    FinnhubAnalystRateLimitError,
     fetch_alpha_vantage_company_overview,
+    fetch_finnhub_recommendation_trends,
+    fetch_finnhub_price_target,
     parse_alpha_vantage_analyst_consensus,
+    parse_finnhub_analyst_consensus,
     persist_analyst_consensus,
 )
 from stock_rating.ingest.prices import (
@@ -50,7 +54,7 @@ from stock_rating.repository.runs import (
 )
 from stock_rating.repository.prices import load_recent_price_bars
 from stock_rating.repository.ratings import RatingRepairState, load_rating_repair_states, persist_ratings
-from stock_rating.repository.analyst import load_latest_analyst_dates
+from stock_rating.repository.analyst import load_latest_analyst_dates, load_latest_analyst_dates_for_source
 from stock_rating.repository.fundamentals import load_latest_fundamental_facts
 from stock_rating.repository.macro import load_latest_macro_observations
 from stock_rating.repository.symbols import load_symbol_seeds, update_symbol_last_price_refresh_at
@@ -326,7 +330,11 @@ def build_default_analyst_refresh_plan() -> list[RefreshTask]:
         database_url=settings.database_url,
         seed_path=settings.symbol_seed_path or None,
     )
-    latest_analyst_dates = load_latest_analyst_dates(settings.database_url, [seed.symbol for seed in seeds])
+    latest_analyst_dates = load_latest_analyst_dates_for_source(
+        settings.database_url,
+        [seed.symbol for seed in seeds],
+        source="alpha_vantage_overview",
+    )
     symbol_states = [
         SymbolPeriodicRefreshState(
             symbol=seed.symbol,
@@ -339,6 +347,36 @@ def build_default_analyst_refresh_plan() -> list[RefreshTask]:
         symbol_states,
         as_of=date.today(),
         budget=min(settings.analyst_symbol_limit, len(symbol_states)),
+        max_age_by_tier=MAX_ANALYST_AGE_BY_TIER,
+    )
+
+
+def build_default_finnhub_analyst_refresh_plan() -> list[RefreshTask]:
+    settings = get_settings()
+    if not settings.finnhub_api_key or settings.finnhub_analyst_symbol_limit <= 0:
+        return []
+
+    seeds = load_symbol_seeds(
+        database_url=settings.database_url,
+        seed_path=settings.symbol_seed_path or None,
+    )
+    latest_analyst_dates = load_latest_analyst_dates_for_source(
+        settings.database_url,
+        [seed.symbol for seed in seeds],
+        source="finnhub",
+    )
+    symbol_states = [
+        SymbolPeriodicRefreshState(
+            symbol=seed.symbol,
+            refresh_tier=seed.refresh_tier,
+            last_refresh_date=latest_analyst_dates.get(seed.symbol),
+        )
+        for seed in seeds
+    ]
+    return plan_periodic_refreshes(
+        symbol_states,
+        as_of=date.today(),
+        budget=min(settings.finnhub_analyst_symbol_limit, len(symbol_states)),
         max_age_by_tier=MAX_ANALYST_AGE_BY_TIER,
     )
 
@@ -641,6 +679,85 @@ def execute_analyst_refresh_plan(
                     error_message=str(error),
                     fetched_bar_count=None,
                     provider_error_code="alpha_vantage_error",
+                )
+            )
+
+        if request_pause_seconds > 0 and index < len(tasks) - 1:
+            sleep_fn(request_pause_seconds)
+
+    return symbol_runs
+
+
+def execute_finnhub_analyst_refresh_plan(
+    run_id: str,
+    tasks: list[RefreshTask],
+    database_url: str,
+    api_key: str,
+    fetch_rec_fn=fetch_finnhub_recommendation_trends,
+    fetch_pt_fn=fetch_finnhub_price_target,
+    parse_fn=parse_finnhub_analyst_consensus,
+    persist_fn=persist_analyst_consensus,
+    request_pause_seconds: float = 0.0,
+    sleep_fn=time.sleep,
+) -> list[SymbolRefreshRunRecord]:
+    if not api_key or not tasks:
+        return []
+
+    symbol_runs: list[SymbolRefreshRunRecord] = []
+    for index, task in enumerate(tasks):
+        attempted_at = utc_now()
+        try:
+            rec_payload = fetch_rec_fn(task.symbol, api_key)
+            pt_payload = fetch_pt_fn(task.symbol, api_key)
+            snapshot = parse_fn(task.symbol, rec_payload, pt_payload, as_of_date=attempted_at.date())
+            if snapshot and database_url:
+                persisted = persist_fn(database_url, [snapshot])
+                if not persisted:
+                    raise RuntimeError(f"Failed to persist Finnhub analyst consensus for {task.symbol}")
+
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="analyst",
+                    provider="finnhub",
+                    status="succeeded",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=None,
+                    fetched_bar_count=1 if snapshot else 0,
+                    provider_error_code=None,
+                )
+            )
+        except FinnhubAnalystRateLimitError as error:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="analyst",
+                    provider="finnhub",
+                    status="rate_limited",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="finnhub_rate_limit",
+                )
+            )
+            break
+        except Exception as error:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="analyst",
+                    provider="finnhub",
+                    status="failed",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="finnhub_error",
                 )
             )
 
@@ -1313,6 +1430,7 @@ def run_pipeline(
     refresh_plan = build_default_refresh_plan() if refresh_prices else []
     fundamental_plan = build_default_fundamental_refresh_plan()
     analyst_plan = build_default_analyst_refresh_plan()
+    finnhub_analyst_plan = build_default_finnhub_analyst_refresh_plan()
     fundamental_runs = execute_fundamental_refresh_plan(
         run_id=run_id,
         tasks=fundamental_plan,
@@ -1344,6 +1462,13 @@ def run_pipeline(
         api_key=settings.alpha_vantage_api_key,
         request_pause_seconds=settings.alpha_vantage_min_interval_seconds,
     )
+    finnhub_analyst_runs = execute_finnhub_analyst_refresh_plan(
+        run_id=run_id,
+        tasks=finnhub_analyst_plan,
+        database_url=settings.database_url,
+        api_key=settings.finnhub_api_key,
+        request_pause_seconds=settings.finnhub_analyst_min_interval_seconds,
+    )
     rating_repair_plan = (
         build_default_stored_price_rebuild_plan()
         if rebuild_all_stored_ratings
@@ -1354,12 +1479,13 @@ def run_pipeline(
         tasks=rating_repair_plan,
         database_url=settings.database_url,
     )
-    symbol_runs = fundamental_runs + price_runs + analyst_runs + rating_repair_runs
+    symbol_runs = fundamental_runs + price_runs + analyst_runs + finnhub_analyst_runs + rating_repair_runs
 
     source_refresh_summaries = [
         macro_refresh_summary,
         summarize_symbol_runs("sec_edgar", fundamental_runs),
         summarize_symbol_runs("alpha_vantage_overview", analyst_runs),
+        summarize_symbol_runs("finnhub", finnhub_analyst_runs),
         summarize_symbol_runs("local_rating_rebuild", rating_repair_runs),
     ]
     if refresh_prices:
@@ -1409,6 +1535,7 @@ def run_pipeline(
         print("Price refresh tasks: 0")
     print(f"Fundamental refresh tasks: {len(fundamental_plan)}")
     print(f"Analyst refresh tasks: {len(analyst_plan)}")
+    print(f"Finnhub analyst refresh tasks: {len(finnhub_analyst_plan)}")
     rating_task_label = "Stored-price rating rebuild tasks" if rebuild_all_stored_ratings else "Rating repair tasks"
     print(f"{rating_task_label}: {len(rating_repair_plan)}")
     print(f"Plan artifact: {artifact_path}")

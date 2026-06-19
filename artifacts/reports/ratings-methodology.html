@@ -191,7 +191,7 @@
                     <tr>
                         <td>Analyst Consensus</td>
                         <td>analyst_target_price, analyst strong_buy/buy/hold/sell/strong_sell counts, suggestion_label</td>
-                        <td>Alpha Vantage OVERVIEW</td>
+                        <td>Alpha Vantage OVERVIEW (source: alpha_vantage_overview), Finnhub recommendation + price target (source: finnhub) — each tracked independently</td>
                         <td>ingest/analyst.py + analyst_consensus_daily</td>
                     </tr>
                     <tr>
@@ -209,7 +209,7 @@
                     <tr><th>Source</th><th>Calls</th><th>Succeeded</th><th>Failed</th><th>Status</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>SEC EDGAR</td><td>8</td><td>2</td><td>0</td><td>Partial</td></tr><tr><td>Alpha Vantage</td><td>20</td><td>20</td><td>0</td><td>Succeeded</td></tr><tr><td>Twelve Data</td><td>33</td><td>12</td><td>21</td><td>Partial</td></tr><tr><td>Stooq</td><td>21</td><td>16</td><td>5</td><td>Partial</td></tr>
+                    <tr><td>FRED</td><td>2</td><td>2</td><td>0</td><td>Succeeded</td></tr><tr><td>SEC EDGAR</td><td>10</td><td>10</td><td>0</td><td>Succeeded</td></tr><tr><td>Alpha Vantage Overview</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr><tr><td>Local Rating Rebuild</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr><tr><td>Alpha Vantage</td><td>20</td><td>19</td><td>1</td><td>Partial</td></tr><tr><td>Twelve Data</td><td>9</td><td>8</td><td>1</td><td>Partial</td></tr><tr><td>Stooq</td><td>73</td><td>0</td><td>71</td><td>Failed</td></tr>
                 </tbody>
             </table>
         </section>

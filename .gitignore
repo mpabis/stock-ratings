@@ -52,3 +52,7 @@ Thumbs.db
 
 # Local scratch
 Changes/
+
+# BMAD tooling artifacts
+_bmad/
+_bmad-output/

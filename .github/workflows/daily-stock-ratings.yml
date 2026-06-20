@@ -48,6 +48,7 @@ jobs:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          STOCK_RATING_ANALYST_SYMBOL_LIMIT: ${{ secrets.STOCK_RATING_ANALYST_SYMBOL_LIMIT }}
           STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT: ${{ secrets.STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT }}
         run: |
           ARGS=""

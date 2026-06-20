@@ -1,6 +1,6 @@
 # Story 1.4: Surface Analyst-Revision, Benchmark Scores & Factor Grades in the Dashboard
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

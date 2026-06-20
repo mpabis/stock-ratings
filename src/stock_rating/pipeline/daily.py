@@ -16,6 +16,7 @@ from stock_rating.ingest.fred_macro import (
 )
 from stock_rating.ingest.analyst import (
     AlphaVantageAnalystRateLimitError,
+    FinnhubAccessDeniedError,
     FinnhubAnalystRateLimitError,
     fetch_alpha_vantage_company_overview,
     fetch_finnhub_recommendation_trends,
@@ -727,7 +728,12 @@ def execute_finnhub_analyst_refresh_plan(
         attempted_at = utc_now()
         try:
             rec_payload = fetch_rec_fn(task.symbol, api_key)
-            pt_payload = fetch_pt_fn(task.symbol, api_key)
+            try:
+                pt_payload = fetch_pt_fn(task.symbol, api_key)
+            except FinnhubAccessDeniedError:
+                # price-target is a premium-only endpoint; fall back to
+                # recommendation-only data when the key lacks access.
+                pt_payload = {}
             snapshot = parse_fn(task.symbol, rec_payload, pt_payload, as_of_date=attempted_at.date())
             if snapshot and database_url:
                 persisted = persist_fn(database_url, [snapshot])

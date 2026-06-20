@@ -107,6 +107,24 @@ class RefreshTask:
     freshness_status: str
 
 
+def format_duration(seconds: float) -> str:
+    total_seconds = max(0, int(round(seconds)))
+    minutes, secs = divmod(total_seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours}h {minutes}m {secs}s"
+    if minutes:
+        return f"{minutes}m {secs}s"
+    return f"{secs}s"
+
+
+def format_symbol_list(symbols: list[str], limit: int = 40) -> str:
+    if len(symbols) <= limit:
+        return ", ".join(symbols)
+    shown = ", ".join(symbols[:limit])
+    return f"{shown}, ... (+{len(symbols) - limit} more)"
+
+
 def age_in_days(as_of: date, last_price_date: date) -> int:
     if last_price_date >= as_of:
         return 0
@@ -1565,14 +1583,29 @@ def run_pipeline(
         source_refresh_summaries,
     )
 
+    elapsed_seconds = (finished_at - started_at).total_seconds()
+
     print(f"Run ID: {run_id}")
     print(f"Database persistence: {'enabled' if database_persisted else 'skipped'}")
     print(f"Macro refresh: {macro_refresh_summary.status}")
     print(f"Pipeline status: {pipeline_run.status}")
     print(f"Price refresh: {'enabled' if refresh_prices else 'skipped'}")
+    print("Timing:")
+    print(f"- Started:  {started_at.isoformat()}")
+    print(f"- Finished: {finished_at.isoformat()}")
+    print(f"- Elapsed:  {format_duration(elapsed_seconds)}")
     print("Price providers:")
     for provider in providers:
         print(f"- {provider.provider}: {'configured' if provider.configured else 'missing key'}")
+
+    print("Source outcomes:")
+    for summary in source_refresh_summaries:
+        skipped = max(0, summary.calls - summary.succeeded - summary.failed)
+        print(
+            f"- {summary.source}: {summary.calls} calls, "
+            f"{summary.succeeded} succeeded, {summary.failed} failed, "
+            f"{skipped} skipped -> {summary.status}"
+        )
 
     if refresh_prices:
         print("Planned refresh order:")
@@ -1582,11 +1615,38 @@ def run_pipeline(
             )
     else:
         print("Price refresh tasks: 0")
-    print(f"Fundamental refresh tasks: {len(fundamental_plan)}")
-    print(f"Analyst refresh tasks: {len(analyst_plan)}")
-    print(f"Finnhub analyst refresh tasks: {len(finnhub_analyst_plan)}")
+
     rating_task_label = "Stored-price rating rebuild tasks" if rebuild_all_stored_ratings else "Rating repair tasks"
-    print(f"{rating_task_label}: {len(rating_repair_plan)}")
+    task_plans = [
+        ("Fundamental refresh tasks", fundamental_plan),
+        ("Analyst refresh tasks", analyst_plan),
+        ("Finnhub analyst refresh tasks", finnhub_analyst_plan),
+        (rating_task_label, rating_repair_plan),
+    ]
+    for label, plan in task_plans:
+        print(f"{label}: {len(plan)}")
+        if plan:
+            print(f"  {format_symbol_list([task.symbol for task in plan])}")
+
+    failures = [
+        record
+        for record in symbol_runs
+        if record.status in {"failed", "rate_limited"}
+    ]
+    skipped_runs = [record for record in symbol_runs if record.status == "skipped"]
+    if failures:
+        print(f"Failures ({len(failures)}):")
+        for record in failures:
+            code = f" ({record.provider_error_code})" if record.provider_error_code else ""
+            message = record.error_message or "no error message"
+            print(f"- {record.symbol} [{record.provider}/{record.data_type}] {record.status}: {message}{code}")
+    if skipped_runs:
+        print(f"Skipped ({len(skipped_runs)}):")
+        for record in skipped_runs:
+            code = f" ({record.provider_error_code})" if record.provider_error_code else ""
+            message = record.error_message or "no reason given"
+            print(f"- {record.symbol} [{record.provider}/{record.data_type}]: {message}{code}")
+
     print(f"Plan artifact: {artifact_path}")
 
 

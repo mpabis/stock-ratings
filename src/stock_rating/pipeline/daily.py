@@ -3,6 +3,7 @@ from datetime import date, timedelta
 import os
 import subprocess
 import time
+from typing import Literal
 
 from stock_rating.config import get_settings
 from stock_rating.db import DatabaseConfig, is_configured
@@ -1195,6 +1196,7 @@ def execute_price_refresh_plan(
     alpha_vantage_pause_seconds: float = 0.0,
     alpha_vantage_sleep_fn=time.sleep,
     twelve_data_max_requests: int | None = None,
+    force_provider: Literal["alpha_vantage", "twelve_data", "stooq"] | None = None,
 ) -> list[SymbolRefreshRunRecord]:
     def unresolved_tasks_from(records: list[SymbolRefreshRunRecord], candidate_tasks: list[RefreshTask]) -> list[RefreshTask]:
         unresolved = {record.symbol for record in records if record.status in {"failed", "rate_limited"}}
@@ -1205,6 +1207,51 @@ def execute_price_refresh_plan(
             for task in candidate_tasks
             if (task.symbol in unresolved or task.symbol not in recorded) and task.symbol not in succeeded
         ]
+
+    if force_provider == "alpha_vantage":
+        return execute_alpha_vantage_refresh_plan(
+            run_id=run_id,
+            tasks=tasks,
+            database_url=database_url,
+            api_key=alpha_vantage_api_key,
+            fetch_fn=alpha_fetch_fn,
+            persist_fn=persist_fn,
+            mark_refreshed_fn=mark_refreshed_fn,
+            persist_features_fn=persist_features_fn,
+            compute_features_fn=compute_features_fn,
+            persist_ratings_fn=persist_ratings_fn,
+            build_rating_record_fn=build_rating_record_fn,
+            request_pause_seconds=alpha_vantage_pause_seconds,
+            sleep_fn=alpha_vantage_sleep_fn,
+        )
+    if force_provider == "twelve_data":
+        return execute_twelve_data_refresh_plan(
+            run_id=run_id,
+            tasks=tasks,
+            database_url=database_url,
+            api_key=twelve_data_api_key,
+            fetch_fn=twelve_fetch_fn,
+            persist_fn=persist_fn,
+            mark_refreshed_fn=mark_refreshed_fn,
+            persist_features_fn=persist_features_fn,
+            compute_features_fn=compute_features_fn,
+            persist_ratings_fn=persist_ratings_fn,
+            build_rating_record_fn=build_rating_record_fn,
+        )
+    if force_provider == "stooq":
+        return execute_stooq_refresh_plan(
+            run_id=run_id,
+            tasks=tasks,
+            database_url=database_url,
+            api_key=stooq_api_key,
+            fetch_fn=stooq_fetch_fn,
+            persist_fn=persist_fn,
+            mark_refreshed_fn=mark_refreshed_fn,
+            persist_features_fn=persist_features_fn,
+            compute_features_fn=compute_features_fn,
+            persist_ratings_fn=persist_ratings_fn,
+            build_rating_record_fn=build_rating_record_fn,
+        )
 
     if alpha_vantage_api_key:
         alpha_tasks = tasks
@@ -1416,6 +1463,7 @@ def run_pipeline(
     *,
     refresh_prices: bool = True,
     rebuild_all_stored_ratings: bool = False,
+    force_price_provider: Literal["alpha_vantage", "twelve_data", "stooq"] | None = None,
 ) -> None:
     settings = get_settings()
     git_sha = resolve_git_sha()
@@ -1454,6 +1502,7 @@ def run_pipeline(
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
             twelve_data_max_requests=settings.twelve_data_max_requests_per_run,
+            force_provider=force_price_provider,
         )
     analyst_runs = execute_analyst_refresh_plan(
         run_id=run_id,
@@ -1542,7 +1591,17 @@ def run_pipeline(
 
 
 def main() -> None:
-    run_pipeline()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--provider",
+        choices=["alpha_vantage", "twelve_data", "stooq"],
+        default=None,
+        help="Force a specific price provider, bypassing the normal cascade.",
+    )
+    args = parser.parse_args()
+    run_pipeline(force_price_provider=args.provider)
 
 
 if __name__ == "__main__":

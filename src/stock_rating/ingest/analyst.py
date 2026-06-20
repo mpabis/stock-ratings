@@ -263,13 +263,20 @@ class FinnhubAnalystRateLimitError(RuntimeError):
     pass
 
 
+def normalize_symbol_for_finnhub(symbol: str) -> str:
+    if ":" in symbol:
+        _, raw_symbol = symbol.split(":", 1)
+        return raw_symbol or symbol
+    return symbol
+
+
 def build_finnhub_recommendation_url(symbol: str, api_key: str) -> str:
-    query = urlencode({"symbol": symbol, "token": api_key})
+    query = urlencode({"symbol": normalize_symbol_for_finnhub(symbol), "token": api_key})
     return f"https://finnhub.io/api/v1/stock/recommendation?{query}"
 
 
 def build_finnhub_price_target_url(symbol: str, api_key: str) -> str:
-    query = urlencode({"symbol": symbol, "token": api_key})
+    query = urlencode({"symbol": normalize_symbol_for_finnhub(symbol), "token": api_key})
     return f"https://finnhub.io/api/v1/stock/price-target?{query}"
 
 

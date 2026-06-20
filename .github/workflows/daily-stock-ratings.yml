@@ -2,6 +2,20 @@ name: daily-stock-ratings
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_prices:
+        description: "Skip the price refresh entirely"
+        type: boolean
+        default: false
+      provider:
+        description: "Force a specific price provider (default = normal cascade)"
+        type: choice
+        default: default
+        options:
+          - default
+          - alpha_vantage
+          - twelve_data
+          - stooq
   schedule:
     - cron: "30 22 * * 1-5"
 
@@ -35,7 +49,16 @@ jobs:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT: ${{ secrets.STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT }}
-        run: python -m stock_rating.pipeline.daily
+        run: |
+          ARGS=""
+          if [ "${{ inputs.skip_prices }}" = "true" ]; then
+            ARGS="$ARGS --skip-prices"
+          fi
+          if [ -n "${{ inputs.provider }}" ] && [ "${{ inputs.provider }}" != "default" ]; then
+            ARGS="$ARGS --provider ${{ inputs.provider }}"
+          fi
+          echo "Running: python -m stock_rating.pipeline.daily$ARGS"
+          python -m stock_rating.pipeline.daily $ARGS
       - name: Generate dashboard html
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

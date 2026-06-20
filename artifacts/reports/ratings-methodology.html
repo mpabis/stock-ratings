@@ -149,22 +149,23 @@
         <section class="hero">
             <div class="eyebrow">Administration</div>
             <h1>Stock Rating Methodology</h1>
-            <p class="lead">This page documents how the v4 ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the factor formulas, and the final weighted score composition.</p>
+            <p class="lead">This page documents how the v6 ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the factor formulas, the weighted composite, and the cross-sectional percentile grading that assigns the final A-F grade relative to the tracked universe.</p>
             <a class="back-link" href="ratings-dashboard.html">Back To Dashboard</a>
         </section>
 
         <section class="section">
             <h2>Rating Scale</h2>
+            <p>Grades are assigned by <strong>percentile rank against the tracked universe</strong> (AAII A+ style) in even 20% buckets, not by absolute score thresholds. The displayed score is the composite percentile rescaled to 0-100, so roughly 20% of symbols fall in each band. Grades are relative: a symbol can change grade as the universe changes even if its own fundamentals do not.</p>
             <table>
                 <thead>
-                    <tr><th>Score</th><th>Label</th></tr>
+                    <tr><th>Score (composite percentile)</th><th>Label</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>90-100</td><td>A / Very Attractive</td></tr>
-                    <tr><td>75-89</td><td>B / Attractive</td></tr>
-                    <tr><td>55-74</td><td>C / Neutral</td></tr>
-                    <tr><td>35-54</td><td>D / Unattractive</td></tr>
-                    <tr><td>0-34</td><td>F / Very Unattractive</td></tr>
+                    <tr><td>80-100 (top 20%)</td><td>A / Very Attractive</td></tr>
+                    <tr><td>60-79</td><td>B / Attractive</td></tr>
+                    <tr><td>40-59</td><td>C / Neutral</td></tr>
+                    <tr><td>20-39</td><td>D / Unattractive</td></tr>
+                    <tr><td>0-19 (bottom 20%)</td><td>F / Very Unattractive</td></tr>
                 </tbody>
             </table>
         </section>
@@ -191,8 +192,20 @@
                     <tr>
                         <td>Analyst Consensus</td>
                         <td>analyst_target_price, analyst strong_buy/buy/hold/sell/strong_sell counts, suggestion_label</td>
-                        <td>Alpha Vantage OVERVIEW (source: alpha_vantage_overview), Finnhub recommendation + price target (source: finnhub) — each tracked independently</td>
+                        <td>Alpha Vantage OVERVIEW</td>
                         <td>ingest/analyst.py + analyst_consensus_daily</td>
+                    </tr>
+                    <tr>
+                        <td>Analyst Revision (composite factor)</td>
+                        <td>analyst_revision_score, analyst_suggestion_score_delta, analyst_target_price_change_pct</td>
+                        <td>analyst_consensus_daily history (Alpha Vantage + Finnhub)</td>
+                        <td>repository/analyst.py + transform/analyst_features.py</td>
+                    </tr>
+                    <tr>
+                        <td>Benchmark scores (diagnostic, NOT in composite)</td>
+                        <td>piotroski_fscore, magic_formula_roic / earnings_yield / combined_rank, acquirers_multiple</td>
+                        <td>SEC EDGAR company facts</td>
+                        <td>transform/benchmark_scores.py + rating/magic_formula.py</td>
                     </tr>
                     <tr>
                         <td>Macro</td>
@@ -209,7 +222,7 @@
                     <tr><th>Source</th><th>Calls</th><th>Succeeded</th><th>Failed</th><th>Status</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>FRED</td><td>2</td><td>2</td><td>0</td><td>Succeeded</td></tr><tr><td>SEC EDGAR</td><td>10</td><td>10</td><td>0</td><td>Succeeded</td></tr><tr><td>Alpha Vantage Overview</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr><tr><td>Local Rating Rebuild</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr><tr><td>Alpha Vantage</td><td>20</td><td>19</td><td>1</td><td>Partial</td></tr><tr><td>Twelve Data</td><td>9</td><td>8</td><td>1</td><td>Partial</td></tr><tr><td>Stooq</td><td>73</td><td>0</td><td>71</td><td>Failed</td></tr>
+                    <tr><td>FRED</td><td>2</td><td>2</td><td>0</td><td>Succeeded</td></tr><tr><td>SEC EDGAR</td><td>10</td><td>5</td><td>0</td><td>Partial</td></tr><tr><td>Alpha Vantage Overview</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr><tr><td>Finnhub</td><td>5</td><td>5</td><td>0</td><td>Succeeded</td></tr><tr><td>Local Rating Rebuild</td><td>106</td><td>106</td><td>0</td><td>Succeeded</td></tr><tr><td>Price Refresh</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr>
                 </tbody>
             </table>
         </section>
@@ -257,14 +270,38 @@ risk = average(price_stability, leverage, cash_generation, profitability)</span>
 
         <section class="section">
             <h2>Final Composite Score</h2>
-            <p>The final score is the weighted sum of the five factor scores, then rounded to an integer and clamped to 0-100.</p>
-            <span class="formula">final = round(valuation*0.25 + quality*0.25 + growth*0.20 + momentum*0.20 + risk*0.10)</span>
+            <p>Scoring runs in two passes. <strong>Pass 1 (per symbol)</strong> computes the weighted composite of the six factor scores. <strong>Pass 2 (cross-sectional)</strong> ranks every symbol's composite against the whole universe and assigns the A-F grade from its percentile; the displayed score is that percentile rescaled to 0-100.</p>
+            <span class="formula">composite = valuation*0.225 + quality*0.225 + growth*0.18 + momentum*0.18 + risk*0.09 + analyst_revision*0.10
+score = round(percentile_rank(composite, universe) * 100)</span>
             <div class="weights">
-                <div class="pill">Valuation: 25%</div>
-                <div class="pill">Quality: 25%</div>
-                <div class="pill">Growth: 20%</div>
-                <div class="pill">Momentum: 20%</div>
-                <div class="pill">Risk: 10%</div>
+                <div class="pill">Valuation: 22.5%</div>
+                <div class="pill">Quality: 22.5%</div>
+                <div class="pill">Growth: 18%</div>
+                <div class="pill">Momentum: 18%</div>
+                <div class="pill">Risk: 9%</div>
+                <div class="pill">Analyst Revision: 10%</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Benchmark Scores</h2>
+            <p>Three externally-validated, fully-specified value/quality scores are shown alongside the composite as <strong>benchmarks</strong>. They are deliberately <strong>excluded from the weighted composite</strong> so they stay directly comparable to their published backtests, and they are diagnostic rather than standalone buy signals.</p>
+            <div class="grid">
+                <article class="card">
+                    <h3>Piotroski F-Score</h3>
+                    <span class="formula">0-9: nine binary profitability / leverage / efficiency signals</span>
+                    <p>Shown as N/9; dimmed when fewer than nine signals were evaluable (low confidence). Designed as a second-stage filter on already-cheap stocks.</p>
+                </article>
+                <article class="card">
+                    <h3>Magic Formula (Greenblatt)</h3>
+                    <span class="formula">rank(ROIC) + rank(EBIT / enterprise value); lowest sum = best (rank 1)</span>
+                    <p>Cross-sectional combined rank across the universe; financials and utilities excluded when sector is known.</p>
+                </article>
+                <article class="card">
+                    <h3>Acquirer's Multiple (Carlisle)</h3>
+                    <span class="formula">enterprise value / EBIT</span>
+                    <p>Deep-value lens; lower is cheaper. EBIT is approximated by us-gaap OperatingIncomeLoss.</p>
+                </article>
             </div>
         </section>
     </main>

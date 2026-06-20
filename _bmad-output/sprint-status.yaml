@@ -29,8 +29,8 @@ development_status:
   # Epic 1 — Rating model improvements (from 2026-06-20 stock-rating-systems research)
   epic-1: in-progress
   1-1-aaii-percentile-ranking: done
-  1-2-piotroski-magic-formula-scores: review
-  1-3-estimate-revisions-factor: ready-for-dev
+  1-2-piotroski-magic-formula-scores: done
+  1-3-estimate-revisions-factor: review
   epic-1-retrospective: optional
 
 # Backlog item detail:

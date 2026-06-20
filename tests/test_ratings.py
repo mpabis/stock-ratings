@@ -50,6 +50,28 @@ def test_compute_rating_breakdown_returns_bounded_score() -> None:
     assert breakdown.risk_score > 0
 
 
+def test_analyst_revision_score_zero_is_not_treated_as_neutral() -> None:
+    # Regression: Decimal("0") is falsy, so `value or Decimal("50")` would wrongly
+    # promote a worst-case analyst-revision score (0) to neutral (50).
+    base = [
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="intraday_return", feature_value=Decimal("0.00"), source_version="v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="one_day_return", feature_value=Decimal("0.01"), source_version="v1"),
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="daily_volume", feature_value=Decimal("1500000"), source_version="v1"),
+    ]
+    worst = base + [
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="analyst_revision_score", feature_value=Decimal("0"), source_version="analyst_v1"),
+    ]
+    neutral = base + [
+        FeatureValue(symbol="AAPL", date=date(2026, 5, 27), feature_name="analyst_revision_score", feature_value=Decimal("50"), source_version="analyst_v1"),
+    ]
+
+    worst_breakdown = compute_rating_breakdown(worst)
+    neutral_breakdown = compute_rating_breakdown(neutral)
+
+    assert worst_breakdown.analyst_revision_score == Decimal("0")
+    assert worst_breakdown.score < neutral_breakdown.score
+
+
 def test_build_rating_record_maps_to_schema_shape() -> None:
     task = RefreshTask(symbol="AAPL", refresh_tier=1, age_in_days=1, freshness_status="fresh")
     features = [
@@ -62,7 +84,7 @@ def test_build_rating_record_maps_to_schema_shape() -> None:
 
     assert record.symbol == "AAPL"
     assert record.freshness_status == "fresh"
-    assert record.model_version == "v5"
+    assert record.model_version == "v6"
     assert record.rating_label
 
 

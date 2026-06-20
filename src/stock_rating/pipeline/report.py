@@ -1785,7 +1785,7 @@ def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]
         <section class="hero">
             <div class="eyebrow">Administration</div>
             <h1>Stock Rating Methodology</h1>
-            <p class="lead">This page documents how the v5 ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the factor formulas, the weighted composite, and the cross-sectional percentile grading that assigns the final A-F grade relative to the tracked universe.</p>
+            <p class="lead">This page documents how the v6 ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the factor formulas, the weighted composite, and the cross-sectional percentile grading that assigns the final A-F grade relative to the tracked universe.</p>
             <a class="back-link" href="ratings-dashboard.html">Back To Dashboard</a>
         </section>
 
@@ -1894,15 +1894,16 @@ risk = average(price_stability, leverage, cash_generation, profitability)</span>
 
         <section class="section">
             <h2>Final Composite Score</h2>
-            <p>Scoring runs in two passes. <strong>Pass 1 (per symbol)</strong> computes the weighted composite of the five factor scores. <strong>Pass 2 (cross-sectional)</strong> ranks every symbol's composite against the whole universe and assigns the A-F grade from its percentile; the displayed score is that percentile rescaled to 0-100.</p>
-            <span class="formula">composite = valuation*0.25 + quality*0.25 + growth*0.20 + momentum*0.20 + risk*0.10
+            <p>Scoring runs in two passes. <strong>Pass 1 (per symbol)</strong> computes the weighted composite of the six factor scores. <strong>Pass 2 (cross-sectional)</strong> ranks every symbol's composite against the whole universe and assigns the A-F grade from its percentile; the displayed score is that percentile rescaled to 0-100.</p>
+            <span class="formula">composite = valuation*0.225 + quality*0.225 + growth*0.18 + momentum*0.18 + risk*0.09 + analyst_revision*0.10
 score = round(percentile_rank(composite, universe) * 100)</span>
             <div class="weights">
-                <div class="pill">Valuation: 25%</div>
-                <div class="pill">Quality: 25%</div>
-                <div class="pill">Growth: 20%</div>
-                <div class="pill">Momentum: 20%</div>
-                <div class="pill">Risk: 10%</div>
+                <div class="pill">Valuation: 22.5%</div>
+                <div class="pill">Quality: 22.5%</div>
+                <div class="pill">Growth: 18%</div>
+                <div class="pill">Momentum: 18%</div>
+                <div class="pill">Risk: 9%</div>
+                <div class="pill">Analyst Revision: 10%</div>
             </div>
         </section>
     </main>

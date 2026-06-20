@@ -11,7 +11,7 @@ from stock_rating.transform.features import FeatureValue
 
 # Current rating model version. Bumped to v5 for story 1.1 (percentile grading);
 # stories 1.2/1.3 build additively on the same v5.
-MODEL_VERSION = "v5"
+MODEL_VERSION = "v6"
 
 
 class RefreshTaskLike(Protocol):
@@ -27,6 +27,7 @@ class RatingBreakdown:
     growth_score: Decimal
     momentum_score: Decimal
     risk_score: Decimal
+    analyst_revision_score: Decimal
 
 
 def build_rating(task: RefreshTaskLike, raw_score: int) -> dict[str, object]:
@@ -144,6 +145,14 @@ def compute_rating_breakdown(features: list[FeatureValue]) -> RatingBreakdown:
         growth_score = _clamp_decimal(growth_score * Decimal("0.75") + macro_growth_score * Decimal("0.25"))
         risk_score = _clamp_decimal(risk_score * Decimal("0.75") + macro_risk_score * Decimal("0.25"))
 
+    # Analyst estimate-revisions / sentiment-momentum factor. Computed upstream in
+    # transform/analyst_features.py and read by name here; neutral 50 when a symbol
+    # has no analyst history so the factor never drops or penalizes such symbols.
+    analyst_revision_raw = _optional_decimal(feature_map, "analyst_revision_score")
+    analyst_revision_score = _clamp_decimal(
+        analyst_revision_raw if analyst_revision_raw is not None else Decimal("50")
+    )
+
     final_score = int(
         round(
             float(
@@ -152,6 +161,7 @@ def compute_rating_breakdown(features: list[FeatureValue]) -> RatingBreakdown:
                 + growth_score * COMPOSITE_WEIGHTS["growth"]
                 + momentum_score * COMPOSITE_WEIGHTS["momentum"]
                 + risk_score * COMPOSITE_WEIGHTS["risk"]
+                + analyst_revision_score * COMPOSITE_WEIGHTS["analyst_revision"]
             )
         )
     )
@@ -163,6 +173,7 @@ def compute_rating_breakdown(features: list[FeatureValue]) -> RatingBreakdown:
         growth_score=growth_score,
         momentum_score=momentum_score,
         risk_score=risk_score,
+        analyst_revision_score=analyst_revision_score,
     )
 
 
@@ -183,6 +194,7 @@ def build_rating_record(task: RefreshTaskLike, features: list[FeatureValue]) -> 
         growth_score=breakdown.growth_score,
         momentum_score=breakdown.momentum_score,
         risk_score=breakdown.risk_score,
+        analyst_revision_score=breakdown.analyst_revision_score,
         explanation_json=explanation,
         model_version=MODEL_VERSION,
         freshness_status=task.freshness_status,

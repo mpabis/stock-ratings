@@ -56,7 +56,11 @@ from stock_rating.repository.runs import (
 )
 from stock_rating.repository.prices import load_recent_price_bars
 from stock_rating.repository.ratings import RatingRepairState, load_rating_repair_states, persist_ratings
-from stock_rating.repository.analyst import load_latest_analyst_dates, load_latest_analyst_dates_for_source
+from stock_rating.repository.analyst import (
+    load_latest_analyst_dates,
+    load_latest_analyst_dates_for_source,
+    load_recent_analyst_consensus_by_source,
+)
 from stock_rating.repository.fundamentals import load_latest_fundamental_facts
 from stock_rating.repository.macro import load_latest_macro_observations
 from stock_rating.repository.symbols import load_symbol_seeds, update_symbol_last_price_refresh_at
@@ -64,6 +68,7 @@ from stock_rating.repository.symbols import update_symbol_last_fundamental_refre
 from stock_rating.rating.magic_formula import apply_magic_formula_ranks
 from stock_rating.rating.model_v1 import MODEL_VERSION, build_rating_record
 from stock_rating.rating.universe_grading import apply_universe_percentile_grades
+from stock_rating.transform.analyst_features import compute_analyst_revision_features
 from stock_rating.transform.benchmark_scores import compute_benchmark_features
 from stock_rating.transform.features import compute_price_features, persist_features
 from stock_rating.transform.fundamentals import compute_fundamental_features
@@ -422,6 +427,8 @@ def build_symbol_features(
     load_fundamental_facts_fn=load_latest_fundamental_facts,
     compute_fundamental_features_fn=compute_fundamental_features,
     compute_benchmark_features_fn=compute_benchmark_features,
+    load_analyst_history_fn=load_recent_analyst_consensus_by_source,
+    compute_analyst_revision_features_fn=compute_analyst_revision_features,
     load_macro_observations_fn=load_latest_macro_observations,
     compute_macro_features_fn=compute_macro_features,
 ):
@@ -438,9 +445,11 @@ def build_symbol_features(
     except TypeError:
         fundamental_features = compute_fundamental_features_fn(task.symbol, latest_date, fundamental_facts)
     benchmark_features = compute_benchmark_features_fn(task.symbol, latest_date, fundamental_facts, latest_price)
+    analyst_snapshots = load_analyst_history_fn(database_url, task.symbol)
+    analyst_features = compute_analyst_revision_features_fn(task.symbol, latest_date, analyst_snapshots)
     macro_observations = load_macro_observations_fn(database_url, CORE_FRED_SERIES)
     macro_features = compute_macro_features_fn(task.symbol, latest_date, macro_observations)
-    return price_features + fundamental_features + benchmark_features + macro_features
+    return price_features + fundamental_features + benchmark_features + analyst_features + macro_features
 
 
 def summarize_symbol_runs(source: str, symbol_runs: list[SymbolRefreshRunRecord]) -> SourceRefreshSummaryRecord:

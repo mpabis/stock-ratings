@@ -17,6 +17,7 @@ class RatingRecord:
     growth_score: Decimal
     momentum_score: Decimal
     risk_score: Decimal
+    analyst_revision_score: Decimal
     explanation_json: dict[str, object]
     model_version: str
     freshness_status: str
@@ -34,6 +35,7 @@ class LatestFactorScore:
     growth_score: Decimal
     momentum_score: Decimal
     risk_score: Decimal
+    analyst_revision_score: Decimal
 
 
 @dataclass(frozen=True)
@@ -51,11 +53,13 @@ class PercentileGradeUpdate:
     growth_percentile: Decimal
     momentum_percentile: Decimal
     risk_percentile: Decimal
+    analyst_revision_percentile: Decimal
     valuation_grade: str
     quality_grade: str
     growth_grade: str
     momentum_grade: str
     risk_grade: str
+    analyst_revision_grade: str
 
 
 def load_latest_factor_scores(
@@ -85,7 +89,8 @@ def load_latest_factor_scores(
                 r.quality_score,
                 r.growth_score,
                 r.momentum_score,
-                r.risk_score
+                r.risk_score,
+                r.analyst_revision_score
             from ratings_daily r
             join symbols s on s.symbol = r.symbol
             where s.active = true
@@ -95,6 +100,7 @@ def load_latest_factor_scores(
               and r.growth_score is not null
               and r.momentum_score is not null
               and r.risk_score is not null
+              and r.analyst_revision_score is not null
             order by r.symbol, r.date desc, r.created_at desc
             """,
             (model_version,),
@@ -120,6 +126,7 @@ def load_latest_factor_scores(
             growth_score=row[4],
             momentum_score=row[5],
             risk_score=row[6],
+            analyst_revision_score=row[7],
         )
         for row in rows
     ]
@@ -152,11 +159,13 @@ def persist_percentile_grades(
                 growth_percentile = %s,
                 momentum_percentile = %s,
                 risk_percentile = %s,
+                analyst_revision_percentile = %s,
                 valuation_grade = %s,
                 quality_grade = %s,
                 growth_grade = %s,
                 momentum_grade = %s,
-                risk_grade = %s
+                risk_grade = %s,
+                analyst_revision_grade = %s
             where symbol = %s and date = %s and model_version = %s
             """,
             [
@@ -169,11 +178,13 @@ def persist_percentile_grades(
                     update.growth_percentile,
                     update.momentum_percentile,
                     update.risk_percentile,
+                    update.analyst_revision_percentile,
                     update.valuation_grade,
                     update.quality_grade,
                     update.growth_grade,
                     update.momentum_grade,
                     update.risk_grade,
+                    update.analyst_revision_grade,
                     update.symbol,
                     update.date,
                     update.model_version,
@@ -276,11 +287,12 @@ def persist_ratings(database_url: str, ratings: list[RatingRecord], connect_fn=c
                 growth_score,
                 momentum_score,
                 risk_score,
+                analyst_revision_score,
                 explanation_json,
                 model_version,
                 freshness_status,
                 freshest_input_date
-            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s)
+            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s)
             on conflict (symbol, date, model_version) do update set
                 rating_score = excluded.rating_score,
                 rating_label = excluded.rating_label,
@@ -289,6 +301,7 @@ def persist_ratings(database_url: str, ratings: list[RatingRecord], connect_fn=c
                 growth_score = excluded.growth_score,
                 momentum_score = excluded.momentum_score,
                 risk_score = excluded.risk_score,
+                analyst_revision_score = excluded.analyst_revision_score,
                 explanation_json = excluded.explanation_json,
                 freshness_status = excluded.freshness_status,
                 freshest_input_date = excluded.freshest_input_date
@@ -304,6 +317,7 @@ def persist_ratings(database_url: str, ratings: list[RatingRecord], connect_fn=c
                     record.growth_score,
                     record.momentum_score,
                     record.risk_score,
+                    record.analyst_revision_score,
                     json.dumps(record.explanation_json),
                     record.model_version,
                     record.freshness_status,

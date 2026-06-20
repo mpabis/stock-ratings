@@ -65,6 +65,13 @@ def load_latest_analyst_consensus(database_url: str, symbol: str, connect_fn=con
     if row is None:
         return None
 
+    return _row_to_analyst_point(row)
+
+
+def _row_to_analyst_point(row) -> AnalystConsensusPoint:
+    """Build an AnalystConsensusPoint from a row selecting the 11 standard columns
+    (symbol, date, analyst_target_price, the five counts, suggestion_label,
+    suggestion_score, source) in that order."""
     return AnalystConsensusPoint(
         symbol=row[0],
         date=row[1],
@@ -78,6 +85,67 @@ def load_latest_analyst_consensus(database_url: str, symbol: str, connect_fn=con
         suggestion_score=row[9],
         source=row[10],
     )
+
+
+def load_recent_analyst_consensus_by_source(
+    database_url: str,
+    symbol: str,
+    limit_per_source: int = 2,
+    connect_fn=connect_postgres,
+) -> dict[str, list[AnalystConsensusPoint]]:
+    """Most-recent snapshots per source for a symbol, newest first.
+
+    Returns up to ``limit_per_source`` dated points per source so the revision
+    transform can compute latest-vs-prior deltas. Empty dict on any failure.
+    """
+    if not is_configured(DatabaseConfig(url=database_url)):
+        return {}
+
+    connection = None
+    cursor = None
+    try:
+        connection = connect_fn(database_url)
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            select
+                symbol,
+                date,
+                analyst_target_price,
+                strong_buy_count,
+                buy_count,
+                hold_count,
+                sell_count,
+                strong_sell_count,
+                suggestion_label,
+                suggestion_score,
+                source
+            from analyst_consensus_daily
+            where symbol = %s
+            order by source asc, date desc, ingested_at desc
+            """,
+            (symbol,),
+        )
+        rows = cursor.fetchall()
+    except Exception:
+        return {}
+    finally:
+        try:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+        except Exception:
+            pass
+
+    by_source: dict[str, list[AnalystConsensusPoint]] = {}
+    for row in rows:
+        source = row[10]
+        points = by_source.setdefault(source, [])
+        if len(points) >= limit_per_source:
+            continue
+        points.append(_row_to_analyst_point(row))
+    return by_source
 
 
 def load_latest_analyst_dates(

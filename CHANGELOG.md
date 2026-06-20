@@ -4,6 +4,24 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-20 (latest)
+
+### Changed
+
+- Upgraded the scoring model to `v6`: added a sixth composite factor, **analyst estimate revisions / sentiment momentum**, derived from `analyst_consensus_daily` history (change in `suggestion_score` and mean target price between the two latest snapshots, averaged across Alpha Vantage + Finnhub). Composite weights rebalanced to 22.5/22.5/18/18/9/10 (valuation/quality/growth/momentum/risk/analyst-revision). Symbols with no analyst history contribute a neutral 50, so the factor never penalizes uncovered names. New modules `transform/analyst_features.py` and loader `repository/analyst.load_recent_analyst_consensus_by_source`.
+
+### Database
+
+- Migration `006_add_analyst_revision_factor.sql`: added `analyst_revision_score`, `analyst_revision_percentile`, and `analyst_revision_grade` columns to `ratings_daily`.
+
+### Documentation
+
+- Documented the analyst-revision factor and new weights in `docs/rating_methodology.md` and the in-report methodology page.
+
+### Tests
+
+- Added `tests/test_analyst_features.py` (rising/falling sentiment, multi-source averaging, single-snapshot/no-history neutral fallback, target-price-missing path, clamping).
+
 ## 2026-06-20 (later)
 
 ### Added

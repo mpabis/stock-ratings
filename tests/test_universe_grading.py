@@ -21,6 +21,7 @@ def _latest(symbol: str, value: Decimal) -> LatestFactorScore:
         growth_score=value,
         momentum_score=value,
         risk_score=value,
+        analyst_revision_score=value,
     )
 
 

@@ -1,7 +1,8 @@
 # Rating Methodology
 
-The current `v5` model grades each stock by **percentile rank against the tracked
+The current `v6` model grades each stock by **percentile rank against the tracked
 universe** (AAII A+ style), replacing the fixed absolute score bands used through `v4`.
+`v6` adds a sixth composite factor — analyst estimate revisions (see below).
 
 ## Two-pass scoring
 
@@ -45,8 +46,24 @@ Current persisted feature families include:
 - Fundamentals: `net_margin`, `cash_flow_margin`, `return_on_assets`, `debt_to_assets`
 - Valuation and growth fundamentals: `earnings_yield`, `book_to_price`, `revenue_growth_yoy`, `net_income_growth_yoy`, `operating_cash_flow_growth_yoy`
 - Macro: `yield_curve_slope`
+- Analyst revision: `analyst_revision_score`, `analyst_suggestion_score_delta`, `analyst_target_price_change_pct`
 
-The score still uses the planned transparent weights: 25% valuation, 25% quality, 20% growth, 20% momentum, and 10% risk. Freshness is calculated from the latest input date used by each rating, not from the stale pre-refresh planning state.
+`v6` composite weights (sum to 1.0): 22.5% valuation, 22.5% quality, 18% growth, 18% momentum, 9% risk, and 10% analyst revision. Freshness is calculated from the latest input date used by each rating, not from the stale pre-refresh planning state.
+
+## Analyst estimate-revisions factor (v6)
+
+The sixth factor is the project's proxy for the estimate-revision momentum that
+drives Zacks/AAII — free data has no true forward EPS-estimate revisions, so it
+uses the trailing change in analyst opinion from `analyst_consensus_daily`:
+
+- `analyst_suggestion_score_delta` — change in `suggestion_score` between the two
+  most recent snapshots, averaged across providers (Alpha Vantage, Finnhub).
+- `analyst_target_price_change_pct` — change in mean analyst target price.
+- `analyst_revision_score` (0-100) = `clamp(50 + suggestion_delta*15 + target_change_pct*100)`.
+
+A symbol with no analyst history (or a single snapshot) contributes a neutral 50,
+so the factor never drops or penalizes uncovered symbols. Computed in
+`transform/analyst_features.py` from `repository/analyst.load_recent_analyst_consensus_by_source`.
 
 ## Benchmark scores (separate from the composite)
 

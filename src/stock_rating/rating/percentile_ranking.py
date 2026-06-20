@@ -26,14 +26,15 @@ from decimal import Decimal
 # model_v1.compute_rating_breakdown so the per-symbol composite and the
 # percentile composite always use identical weights.
 COMPOSITE_WEIGHTS: dict[str, Decimal] = {
-    "valuation": Decimal("0.25"),
-    "quality": Decimal("0.25"),
-    "growth": Decimal("0.20"),
-    "momentum": Decimal("0.20"),
-    "risk": Decimal("0.10"),
+    "valuation": Decimal("0.225"),
+    "quality": Decimal("0.225"),
+    "growth": Decimal("0.18"),
+    "momentum": Decimal("0.18"),
+    "risk": Decimal("0.09"),
+    "analyst_revision": Decimal("0.10"),
 }
 
-FACTORS = ("valuation", "quality", "growth", "momentum", "risk")
+FACTORS = ("valuation", "quality", "growth", "momentum", "risk", "analyst_revision")
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,7 @@ class FactorScores:
     growth: Decimal
     momentum: Decimal
     risk: Decimal
+    analyst_revision: Decimal
 
 
 @dataclass(frozen=True)
@@ -102,6 +104,7 @@ def composite_value(scores: FactorScores) -> Decimal:
         + scores.growth * COMPOSITE_WEIGHTS["growth"]
         + scores.momentum * COMPOSITE_WEIGHTS["momentum"]
         + scores.risk * COMPOSITE_WEIGHTS["risk"]
+        + scores.analyst_revision * COMPOSITE_WEIGHTS["analyst_revision"]
     )
 
 

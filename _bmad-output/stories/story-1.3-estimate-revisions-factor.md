@@ -1,6 +1,6 @@
 # Story 1.3: Estimate-Revisions / Analyst-Sentiment Factor
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -75,8 +75,30 @@ The 2026-06-20 research session (see `M:\ai\sessions\2026-06-20_stock-rating-sys
 
 ### Agent Model Used
 
+claude-opus-4-8[1m]
+
 ### Debug Log References
+
+- `./.venv/Scripts/python.exe -m pytest -q` → 158 passed (151 prior + 7 new).
 
 ### Completion Notes List
 
+- Implemented as a **true sixth composite factor** (per AC #3) rather than folding into an existing one. Composite weights rebalanced from 25/25/20/20/10 to **22.5/22.5/18/18/9 + 10% analyst_revision** (sum 1.0), updated in the single-source `COMPOSITE_WEIGHTS`.
+- **`model_version` bumped to `v6`** — the composite formula changed (new factor + new weights), so v6 ratings differ from v5; this is not purely additive. (Stories 1.1/1.2 were v5; 1.3 is the first to alter the composite.)
+- Factor is the project's **proxy** for estimate-revision momentum (free data has no forward EPS estimates): trailing change in `suggestion_score` + mean target price across the two latest `analyst_consensus_daily` snapshots, averaged across providers. `analyst_revision_score = clamp(50 + suggestion_delta*15 + target_change_pct*100)`.
+- **Graceful degradation (AC #4):** no analyst history → transform emits nothing → `compute_rating_breakdown` defaults the factor to a neutral 50. The sub-score column is therefore always populated, so the percentile pass never drops a symbol.
+- Ripple handled end-to-end: `FactorScores`, `FACTORS`, `RatingBreakdown`, `RatingRecord` + `persist_ratings`, `LatestFactorScore` + loader, `PercentileGradeUpdate` + persister, `universe_grading`, schema + migration `006`.
+- **Bonus signal noted (not done):** Finnhub's `recommendation` endpoint returns a list of monthly periods but `parse_finnhub_analyst_consensus` keeps only `[0]`; persisting prior periods would give revision history from a single API call — left as a follow-up (parser untouched).
+
 ### File List
+
+- `src/stock_rating/transform/analyst_features.py` (new) — revision feature transform
+- `src/stock_rating/repository/analyst.py` — `load_recent_analyst_consensus_by_source`
+- `src/stock_rating/rating/percentile_ranking.py` — 6th factor in weights / FACTORS / FactorScores / composite
+- `src/stock_rating/rating/model_v1.py` — factor in `compute_rating_breakdown` + `RatingBreakdown`; `MODEL_VERSION=v6`
+- `src/stock_rating/rating/universe_grading.py` — 6th factor through the percentile pass
+- `src/stock_rating/repository/ratings.py` — `RatingRecord`/`LatestFactorScore`/`PercentileGradeUpdate` + persist/load
+- `src/stock_rating/pipeline/daily.py` — analyst features in `build_symbol_features`
+- `sql/migrations/006_add_analyst_revision_factor.sql` (new); `sql/schema.sql`
+- `docs/rating_methodology.md`, `src/stock_rating/pipeline/report.py` (methodology page), `CHANGELOG.md`
+- `tests/test_analyst_features.py` (new); updated `tests/test_ratings.py`, `tests/test_percentile_ranking.py`, `tests/test_universe_grading.py` for the 6th factor

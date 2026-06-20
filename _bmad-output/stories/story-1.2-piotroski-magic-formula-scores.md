@@ -1,6 +1,6 @@
 # Story 1.2: Piotroski F-Score, Magic Formula & Acquirer's Multiple
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

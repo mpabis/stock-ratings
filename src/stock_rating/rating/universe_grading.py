@@ -35,6 +35,7 @@ def build_percentile_updates(
             growth=score.growth_score,
             momentum=score.momentum_score,
             risk=score.risk_score,
+            analyst_revision=score.analyst_revision_score,
         )
         for score in latest_scores
     ]
@@ -58,11 +59,13 @@ def build_percentile_updates(
                 growth_percentile=graded.factor_percentiles["growth"],
                 momentum_percentile=graded.factor_percentiles["momentum"],
                 risk_percentile=graded.factor_percentiles["risk"],
+                analyst_revision_percentile=graded.factor_percentiles["analyst_revision"],
                 valuation_grade=graded.factor_grades["valuation"],
                 quality_grade=graded.factor_grades["quality"],
                 growth_grade=graded.factor_grades["growth"],
                 momentum_grade=graded.factor_grades["momentum"],
                 risk_grade=graded.factor_grades["risk"],
+                analyst_revision_grade=graded.factor_grades["analyst_revision"],
             )
         )
     return updates

@@ -11,7 +11,15 @@ from stock_rating.rating.percentile_ranking import (
 
 def _scores(symbol: str, value: Decimal) -> FactorScores:
     # Flat profile so the composite equals `value` and ranking is easy to reason about.
-    return FactorScores(symbol=symbol, valuation=value, quality=value, growth=value, momentum=value, risk=value)
+    return FactorScores(
+        symbol=symbol,
+        valuation=value,
+        quality=value,
+        growth=value,
+        momentum=value,
+        risk=value,
+        analyst_revision=value,
+    )
 
 
 def test_percentile_ranks_orders_values_low_to_high() -> None:

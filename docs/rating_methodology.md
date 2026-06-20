@@ -47,3 +47,28 @@ Current persisted feature families include:
 - Macro: `yield_curve_slope`
 
 The score still uses the planned transparent weights: 25% valuation, 25% quality, 20% growth, 20% momentum, and 10% risk. Freshness is calculated from the latest input date used by each rating, not from the stale pre-refresh planning state.
+
+## Benchmark scores (separate from the composite)
+
+Three externally-validated, fully-specified value/quality scores are computed
+alongside the composite as **benchmarks** — they are persisted as their own
+features and are deliberately **kept out of the weighted composite** so they stay
+directly comparable to their published backtests. They are diagnostic, not
+standalone buy signals (Piotroski was designed as a second-stage filter on
+already-cheap stocks; Magic Formula / Acquirer's Multiple are deep-value tilts
+that have had weak multi-year stretches).
+
+- **Piotroski F-Score** (`piotroski_fscore`, 0-9; `piotroski_signals_available`):
+  nine binary fundamental signals (profitability, leverage/liquidity, operating
+  efficiency). Signals whose inputs are missing are skipped — `signals_available`
+  flags how many of the nine were evaluable, so a low value means low confidence.
+- **Magic Formula** (`magic_formula_roic`, `magic_formula_earnings_yield`,
+  `magic_formula_combined_rank`): ROIC = EBIT / (net working capital + net fixed
+  assets); earnings yield = EBIT / enterprise value. The combined rank is a
+  cross-sectional pass — rank on ROIC plus rank on earnings yield, lowest sum is
+  best (rank 1). Financials and utilities are excluded when the sector is known.
+- **Acquirer's Multiple** (`acquirers_multiple`): enterprise value / EBIT.
+
+EBIT is approximated by us-gaap `OperatingIncomeLoss`; enterprise value =
+market cap (`price × diluted shares`) + total debt − cash. These come from the
+SEC fundamentals path (`transform/benchmark_scores.py`, `rating/magic_formula.py`).

@@ -6,7 +6,12 @@
 - Alpha Vantage company overview: analyst target and recommendation counts (source tag: `alpha_vantage_overview`)
 - Twelve Data: fallback free API for price validation
 - Stooq: additional price sanity check
-- SEC EDGAR: official fundamentals source
+- SEC EDGAR: official fundamentals source. Beyond the core income/balance-sheet
+  metrics, the benchmark scores (story 1.2) also pull `OperatingIncomeLoss` (EBIT
+  proxy), `GrossProfit` / `CostOfRevenue`, `AssetsCurrent`, `LiabilitiesCurrent`,
+  `PropertyPlantAndEquipmentNet`, cash, and long-term-debt concepts. Balance-sheet
+  items used for Piotroski year-over-year signals are retained for two annual
+  periods (latest + prior).
 - SEC company tickers file: symbol-to-CIK mapping
 - FRED: macro series
 - Finnhub: additional analyst consensus source — recommendation trends + price targets (source tag: `finnhub`)

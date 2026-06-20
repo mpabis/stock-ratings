@@ -61,8 +61,10 @@ from stock_rating.repository.fundamentals import load_latest_fundamental_facts
 from stock_rating.repository.macro import load_latest_macro_observations
 from stock_rating.repository.symbols import load_symbol_seeds, update_symbol_last_price_refresh_at
 from stock_rating.repository.symbols import update_symbol_last_fundamental_refresh_at
+from stock_rating.rating.magic_formula import apply_magic_formula_ranks
 from stock_rating.rating.model_v1 import MODEL_VERSION, build_rating_record
 from stock_rating.rating.universe_grading import apply_universe_percentile_grades
+from stock_rating.transform.benchmark_scores import compute_benchmark_features
 from stock_rating.transform.features import compute_price_features, persist_features
 from stock_rating.transform.fundamentals import compute_fundamental_features
 from stock_rating.transform.macro import compute_macro_features
@@ -419,6 +421,7 @@ def build_symbol_features(
     compute_price_features_fn=compute_price_features,
     load_fundamental_facts_fn=load_latest_fundamental_facts,
     compute_fundamental_features_fn=compute_fundamental_features,
+    compute_benchmark_features_fn=compute_benchmark_features,
     load_macro_observations_fn=load_latest_macro_observations,
     compute_macro_features_fn=compute_macro_features,
 ):
@@ -434,9 +437,10 @@ def build_symbol_features(
         fundamental_features = compute_fundamental_features_fn(task.symbol, latest_date, fundamental_facts, latest_price)
     except TypeError:
         fundamental_features = compute_fundamental_features_fn(task.symbol, latest_date, fundamental_facts)
+    benchmark_features = compute_benchmark_features_fn(task.symbol, latest_date, fundamental_facts, latest_price)
     macro_observations = load_macro_observations_fn(database_url, CORE_FRED_SERIES)
     macro_features = compute_macro_features_fn(task.symbol, latest_date, macro_observations)
-    return price_features + fundamental_features + macro_features
+    return price_features + fundamental_features + benchmark_features + macro_features
 
 
 def summarize_symbol_runs(source: str, symbol_runs: list[SymbolRefreshRunRecord]) -> SourceRefreshSummaryRecord:
@@ -1557,6 +1561,8 @@ def run_pipeline(
 
     # Pass 2: assign universe-relative percentile grades across all rated symbols.
     graded_symbol_count = apply_universe_percentile_grades(settings.database_url, MODEL_VERSION)
+    # Magic Formula combined rank across the universe (separate from the composite).
+    magic_formula_ranked_count = apply_magic_formula_ranks(settings.database_url)
 
     source_refresh_summaries = [
         macro_refresh_summary,
@@ -1599,6 +1605,7 @@ def run_pipeline(
     print(f"Database persistence: {'enabled' if database_persisted else 'skipped'}")
     print(f"Macro refresh: {macro_refresh_summary.status}")
     print(f"Percentile grading: {graded_symbol_count} symbols graded")
+    print(f"Magic Formula ranking: {magic_formula_ranked_count} symbols ranked")
     print(f"Pipeline status: {pipeline_run.status}")
     print(f"Price refresh: {'enabled' if refresh_prices else 'skipped'}")
     print("Timing:")

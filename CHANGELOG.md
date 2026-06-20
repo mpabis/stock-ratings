@@ -4,6 +4,24 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-20 (later)
+
+### Added
+
+- Added three externally-validated benchmark scores, computed alongside the composite but deliberately kept **out** of the weighted score so they stay comparable to their published backtests: **Piotroski F-Score** (`piotroski_fscore` 0-9 + `piotroski_signals_available`), **Magic Formula** (`magic_formula_roic`, `magic_formula_earnings_yield`, and a cross-sectional `magic_formula_combined_rank` that excludes financials/utilities), and the **Acquirer's Multiple** (`acquirers_multiple` = EV/EBIT). New modules `transform/benchmark_scores.py` and `rating/magic_formula.py`.
+
+### Changed
+
+- Extended SEC fundamentals ingestion with `OperatingIncomeLoss` (EBIT proxy), `GrossProfit`/`CostOfRevenue`, `AssetsCurrent`, `LiabilitiesCurrent`, `PropertyPlantAndEquipmentNet`, cash, and long-term-debt concepts. Balance-sheet items needed for Piotroski year-over-year signals are now retained for two annual periods.
+
+### Documentation
+
+- Documented the benchmark scores in `docs/rating_methodology.md` and the new SEC fields in `docs/data_sources.md`.
+
+### Tests
+
+- Added `tests/test_benchmark_scores.py` and `tests/test_magic_formula.py` (F-Score full/degraded paths, gross-margin fallback, ROIC/EV guards, combined-rank ordering, sector exclusions, persistence).
+
 ## 2026-06-20
 
 ### Changed

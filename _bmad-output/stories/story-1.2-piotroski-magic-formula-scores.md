@@ -1,6 +1,6 @@
 # Story 1.2: Piotroski F-Score, Magic Formula & Acquirer's Multiple
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -84,8 +84,29 @@ The fundamentals pipeline already exists: SEC concepts → `FundamentalFact` (`i
 
 ### Agent Model Used
 
+claude-opus-4-8[1m]
+
 ### Debug Log References
+
+- `./.venv/Scripts/python.exe -m pytest -q` → 151 passed (136 prior + 15 new).
 
 ### Completion Notes List
 
+- Extended `CORE_SEC_METRIC_CONCEPTS` with EBIT (`OperatingIncomeLoss`), gross profit / cost of revenue, current assets/liabilities, PP&E net, cash, and long-term-debt concepts. Generalized the parser's two-observation retention from `FLOW_METRICS` to `TWO_YEAR_METRICS` (flows + the balance-sheet items needed for Piotroski YoY deltas) — additive, existing `assets` single-obs behavior unchanged where only one period exists.
+- New `transform/benchmark_scores.py`: per-symbol Piotroski F-Score (9 signals, graceful degradation via `signals_available`), Magic Formula ROIC + EBIT earnings yield, and Acquirer's Multiple (EV/EBIT). All guarded for None/zero. EBIT ≈ `OperatingIncomeLoss`; EV = market cap + total debt − cash.
+- **Kept out of the composite** (AC #5): emitted as `features_daily` rows; `compute_rating_breakdown` ignores unrecognized feature names, so the 25/25/20/20/10 weighting is untouched. No rating-schema change needed.
+- New `rating/magic_formula.py`: cross-sectional combined rank (rank ROIC + rank EY, lowest sum = best) reusing the universe-pass pattern from story 1.1; financials/utilities excluded when sector is known. Wired into `run_pipeline` after the percentile pass.
+- **Min-market-cap exclusion**: implicit rather than explicit — only symbols with a positive market cap produce an EBIT earnings yield (`_enterprise_value` returns None otherwise), so micro/no-cap names never reach the rank. Noted in the module docstring.
+- **Migration**: none required — all three scores are name/value `features_daily` rows; the combined rank is too.
+- Coordinated with story 1.1: no `model_version` bump (these are not composite inputs), no new SQL migration.
+- **Code-review fixes applied** (high-effort review, 3 angles): (1) added `liabilities` + `stockholders_equity` to `BALANCE_SHEET_HISTORY_METRICS` so every balance-sheet item the composite consumes resolves to the same latest-annual period — fixes a silent period mismatch in `debt_to_assets` introduced when `assets` moved to annual-only; (2) extracted the shared `annual_values_by_metric` helper in `fundamentals.py`, used by both `compute_fundamental_features` and `benchmark_scores._annual_metrics` (removes duplicated group/sort/dedupe logic); (3) `rank_magic_formula` now drops entries with `None` roic/earnings_yield (defensive — `features_daily.feature_value` is nullable). 151 tests pass.
+
 ### File List
+
+- `src/stock_rating/transform/benchmark_scores.py` (new) — per-symbol F-Score / Magic Formula inputs / Acquirer's Multiple
+- `src/stock_rating/rating/magic_formula.py` (new) — cross-sectional combined rank + exclusions
+- `src/stock_rating/ingest/sec_companyfacts.py` — new GAAP concepts + `TWO_YEAR_METRICS` history retention
+- `src/stock_rating/transform/features.py` — `MagicFormulaInput` + `load_latest_magic_formula_inputs`
+- `src/stock_rating/pipeline/daily.py` — benchmark features in `build_symbol_features`; Magic Formula pass in `run_pipeline`
+- `docs/rating_methodology.md`, `docs/data_sources.md`, `CHANGELOG.md`
+- `tests/test_benchmark_scores.py` (new), `tests/test_magic_formula.py` (new)

@@ -16,14 +16,51 @@ CORE_SEC_METRIC_CONCEPTS = {
 	"revenue": ("RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"),
 	"net_income": ("NetIncomeLoss",),
 	"operating_cash_flow": ("NetCashProvidedByUsedInOperatingActivities",),
+	"operating_income": ("OperatingIncomeLoss",),
+	"gross_profit": ("GrossProfit",),
+	"cost_of_revenue": ("CostOfRevenue", "CostOfGoodsAndServicesSold"),
 	"assets": ("Assets",),
 	"liabilities": ("Liabilities",),
+	"current_assets": ("AssetsCurrent",),
+	"current_liabilities": ("LiabilitiesCurrent",),
+	"ppe_net": ("PropertyPlantAndEquipmentNet",),
+	"cash": ("CashAndCashEquivalentsAtCarryingValue", "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"),
+	"long_term_debt": ("LongTermDebtNoncurrent", "LongTermDebt"),
+	"long_term_debt_current": ("LongTermDebtCurrent",),
 	"stockholders_equity": ("StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"),
 	"eps_diluted": ("EarningsPerShareDiluted",),
 	"shares_diluted": ("WeightedAverageNumberOfDilutedSharesOutstanding", "WeightedAverageNumberOfSharesOutstandingDiluted"),
 }
 
-FLOW_METRICS = {"revenue", "net_income", "operating_cash_flow", "eps_diluted", "shares_diluted"}
+# Income-statement / cash-flow flows: keep up to two most recent annual periods.
+FLOW_METRICS = {
+	"revenue",
+	"net_income",
+	"operating_cash_flow",
+	"operating_income",
+	"gross_profit",
+	"cost_of_revenue",
+	"eps_diluted",
+	"shares_diluted",
+}
+
+# Balance-sheet point-in-time items retained for two annual periods. Some are
+# needed for Piotroski year-over-year signals (ΔROA, Δleverage, Δcurrent ratio,
+# Δturnover); `liabilities` and `stockholders_equity` are included so that every
+# balance-sheet item the composite consumes resolves to the same (latest annual)
+# period — keeping debt_to_assets / book_to_price period-consistent rather than
+# mixing an annual numerator with a possibly-quarterly denominator.
+BALANCE_SHEET_HISTORY_METRICS = {
+	"assets",
+	"liabilities",
+	"stockholders_equity",
+	"current_assets",
+	"current_liabilities",
+	"long_term_debt",
+}
+
+# Metrics for which we retain two annual observations (latest + prior).
+TWO_YEAR_METRICS = FLOW_METRICS | BALANCE_SHEET_HISTORY_METRICS
 
 
 @dataclass(frozen=True)
@@ -240,7 +277,7 @@ def _selected_observations_for_metric(metric: str, candidates: list[dict[str, ob
 	if not candidates:
 		return []
 
-	if metric in FLOW_METRICS:
+	if metric in TWO_YEAR_METRICS:
 		annual_candidates = [candidate for candidate in candidates if _is_annual_observation(candidate)]
 		pool = annual_candidates or candidates
 		ordered = sorted(pool, key=_observation_sort_key, reverse=True)

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 
 from stock_rating.db import DatabaseConfig, connect_postgres, is_configured
@@ -12,6 +13,69 @@ class FeatureValue:
     feature_name: str
     feature_value: Decimal
     source_version: str
+
+
+@dataclass(frozen=True)
+class MagicFormulaInput:
+    """Latest Magic Formula rank inputs for one symbol (read from features_daily)."""
+
+    symbol: str
+    date: date
+    roic: Decimal
+    earnings_yield: Decimal
+    sector: str | None = None
+
+
+def load_latest_magic_formula_inputs(database_url: str, connect_fn=connect_postgres) -> list[MagicFormulaInput]:
+    """Latest magic_formula_roic + magic_formula_earnings_yield per active symbol.
+
+    Only symbols that have both features participate in the ranking.
+    """
+    if not is_configured(DatabaseConfig(url=database_url)):
+        return []
+
+    connection = None
+    cursor = None
+    try:
+        connection = connect_fn(database_url)
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            with latest_roic as (
+                select distinct on (symbol) symbol, date, feature_value as roic
+                from features_daily
+                where feature_name = 'magic_formula_roic'
+                order by symbol, date desc
+            ),
+            latest_ey as (
+                select distinct on (symbol) symbol, feature_value as earnings_yield
+                from features_daily
+                where feature_name = 'magic_formula_earnings_yield'
+                order by symbol, date desc
+            )
+            select s.symbol, r.date, r.roic, e.earnings_yield, s.sector
+            from symbols s
+            join latest_roic r on r.symbol = s.symbol
+            join latest_ey e on e.symbol = s.symbol
+            where s.active = true
+            """
+        )
+        rows = cursor.fetchall()
+    except Exception:
+        return []
+    finally:
+        try:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+        except Exception:
+            pass
+
+    return [
+        MagicFormulaInput(symbol=row[0], date=row[1], roic=row[2], earnings_yield=row[3], sector=row[4])
+        for row in rows
+    ]
 
 
 def feature_version() -> str:

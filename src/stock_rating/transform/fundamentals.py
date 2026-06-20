@@ -23,25 +23,11 @@ def compute_fundamental_features(
     facts: list[FundamentalFact],
     latest_price: Decimal | None = None,
 ) -> list[FeatureValue]:
-    facts_by_metric: dict[str, list[FundamentalFact]] = {}
-    for fact in facts:
-        if fact.metric in CORE_FUNDAMENTAL_METRICS:
-            facts_by_metric.setdefault(fact.metric, []).append(fact)
-
-    for metric_facts in facts_by_metric.values():
-        metric_facts.sort(
-            key=lambda fact: (
-                fact.fiscal_year,
-                fact.period_end or date(fact.fiscal_year or 1970, 1, 1),
-                fact.filed_at.date() if fact.filed_at else date(fact.fiscal_year or 1970, 1, 1),
-            ),
-            reverse=True,
-        )
-
+    values_by_metric = annual_values_by_metric(facts)
     metric_map = {
-        metric: metric_facts[0].value
-        for metric, metric_facts in facts_by_metric.items()
-        if metric_facts
+        metric: values[0]
+        for metric, values in values_by_metric.items()
+        if values and metric in CORE_FUNDAMENTAL_METRICS
     }
 
     revenue = metric_map.get("revenue")
@@ -131,7 +117,7 @@ def compute_fundamental_features(
         "net_income": "net_income_growth_yoy",
         "operating_cash_flow": "operating_cash_flow_growth_yoy",
     }.items():
-        growth_value = _year_over_year_growth(facts_by_metric.get(metric, []))
+        growth_value = _year_over_year_growth(values_by_metric.get(metric, []))
         if growth_value is not None:
             features.append(
                 FeatureValue(
@@ -146,12 +132,45 @@ def compute_fundamental_features(
     return features
 
 
-def _year_over_year_growth(facts: list[FundamentalFact]) -> Decimal | None:
-    if len(facts) < 2:
+def annual_values_by_metric(facts: list[FundamentalFact]) -> dict[str, list[Decimal]]:
+    """Values per metric, newest fiscal year first, one value per fiscal year.
+
+    Shared by the fundamental feature computation and the benchmark scores so
+    both resolve "latest" / "prior" annual values identically (no drift).
+    """
+    grouped: dict[str, list[FundamentalFact]] = {}
+    for fact in facts:
+        grouped.setdefault(fact.metric, []).append(fact)
+
+    values_by_metric: dict[str, list[Decimal]] = {}
+    for metric, metric_facts in grouped.items():
+        ordered = sorted(
+            metric_facts,
+            key=lambda fact: (
+                fact.fiscal_year or 0,
+                fact.period_end or date(fact.fiscal_year or 1970, 1, 1),
+                fact.filed_at.date() if fact.filed_at else date(fact.fiscal_year or 1970, 1, 1),
+            ),
+            reverse=True,
+        )
+        values: list[Decimal] = []
+        seen_years: set[int] = set()
+        for fact in ordered:
+            year = int(fact.fiscal_year or 0)
+            if year in seen_years:
+                continue
+            seen_years.add(year)
+            values.append(fact.value)
+        values_by_metric[metric] = values
+    return values_by_metric
+
+
+def _year_over_year_growth(values: list[Decimal]) -> Decimal | None:
+    if len(values) < 2:
         return None
 
-    latest = facts[0].value
-    previous = facts[1].value
+    latest = values[0]
+    previous = values[1]
     if previous == 0:
         return None
     return (latest - previous) / abs(previous)

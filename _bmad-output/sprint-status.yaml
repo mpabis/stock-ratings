@@ -27,8 +27,8 @@ story_location: "_bmad-output/stories"
 
 development_status:
   # Epic 1 — Rating model improvements (from 2026-06-20 stock-rating-systems research)
-  epic-1: backlog
-  1-1-aaii-percentile-ranking: ready-for-dev
+  epic-1: in-progress
+  1-1-aaii-percentile-ranking: review
   1-2-piotroski-magic-formula-scores: ready-for-dev
   1-3-estimate-revisions-factor: ready-for-dev
   epic-1-retrospective: optional

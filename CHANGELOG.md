@@ -4,6 +4,24 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-20
+
+### Changed
+
+- Upgraded the scoring model to `v5`: grades are now assigned by cross-sectional **percentile rank against the tracked universe** (AAII A+ style, even 20% buckets) instead of fixed absolute score bands. Scoring runs in two passes — per-symbol weighted composite (unchanged 25/25/20/20/10 weights), then a universe-wide percentile pass that assigns the final A-F grade and rescales `rating_score` to the composite percentile (0-100). Grades are relative: a symbol can change grade as the universe shifts even if its own inputs do not.
+
+### Database
+
+- Migration `005_add_rating_percentile_grades.sql`: added `composite_percentile` and per-factor `*_percentile` / `*_grade` columns to `ratings_daily`.
+
+### Documentation
+
+- Rewrote `docs/rating_methodology.md` and the in-report methodology page for v5 percentile grading.
+
+### Tests
+
+- Added `tests/test_percentile_ranking.py` and `tests/test_universe_grading.py` covering percentile assignment, even-bucket boundaries, ties, single-symbol/empty universes, the relative-not-absolute property, and the persistence path.
+
 ## 2026-06-19
 
 ### Added

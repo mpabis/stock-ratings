@@ -1785,22 +1785,23 @@ def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]
         <section class="hero">
             <div class="eyebrow">Administration</div>
             <h1>Stock Rating Methodology</h1>
-            <p class="lead">This page documents how the v4 ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the factor formulas, and the final weighted score composition.</p>
+            <p class="lead">This page documents how the v5 ratings are calculated in production from the current code path: which features are derived, which data sources feed each feature family, the factor formulas, the weighted composite, and the cross-sectional percentile grading that assigns the final A-F grade relative to the tracked universe.</p>
             <a class="back-link" href="ratings-dashboard.html">Back To Dashboard</a>
         </section>
 
         <section class="section">
             <h2>Rating Scale</h2>
+            <p>Grades are assigned by <strong>percentile rank against the tracked universe</strong> (AAII A+ style) in even 20% buckets, not by absolute score thresholds. The displayed score is the composite percentile rescaled to 0-100, so roughly 20% of symbols fall in each band. Grades are relative: a symbol can change grade as the universe changes even if its own fundamentals do not.</p>
             <table>
                 <thead>
-                    <tr><th>Score</th><th>Label</th></tr>
+                    <tr><th>Score (composite percentile)</th><th>Label</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>90-100</td><td>A / Very Attractive</td></tr>
-                    <tr><td>75-89</td><td>B / Attractive</td></tr>
-                    <tr><td>55-74</td><td>C / Neutral</td></tr>
-                    <tr><td>35-54</td><td>D / Unattractive</td></tr>
-                    <tr><td>0-34</td><td>F / Very Unattractive</td></tr>
+                    <tr><td>80-100 (top 20%)</td><td>A / Very Attractive</td></tr>
+                    <tr><td>60-79</td><td>B / Attractive</td></tr>
+                    <tr><td>40-59</td><td>C / Neutral</td></tr>
+                    <tr><td>20-39</td><td>D / Unattractive</td></tr>
+                    <tr><td>0-19 (bottom 20%)</td><td>F / Very Unattractive</td></tr>
                 </tbody>
             </table>
         </section>
@@ -1893,8 +1894,9 @@ risk = average(price_stability, leverage, cash_generation, profitability)</span>
 
         <section class="section">
             <h2>Final Composite Score</h2>
-            <p>The final score is the weighted sum of the five factor scores, then rounded to an integer and clamped to 0-100.</p>
-            <span class="formula">final = round(valuation*0.25 + quality*0.25 + growth*0.20 + momentum*0.20 + risk*0.10)</span>
+            <p>Scoring runs in two passes. <strong>Pass 1 (per symbol)</strong> computes the weighted composite of the five factor scores. <strong>Pass 2 (cross-sectional)</strong> ranks every symbol's composite against the whole universe and assigns the A-F grade from its percentile; the displayed score is that percentile rescaled to 0-100.</p>
+            <span class="formula">composite = valuation*0.25 + quality*0.25 + growth*0.20 + momentum*0.20 + risk*0.10
+score = round(percentile_rank(composite, universe) * 100)</span>
             <div class="weights">
                 <div class="pill">Valuation: 25%</div>
                 <div class="pill">Quality: 25%</div>

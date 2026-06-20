@@ -61,7 +61,8 @@ from stock_rating.repository.fundamentals import load_latest_fundamental_facts
 from stock_rating.repository.macro import load_latest_macro_observations
 from stock_rating.repository.symbols import load_symbol_seeds, update_symbol_last_price_refresh_at
 from stock_rating.repository.symbols import update_symbol_last_fundamental_refresh_at
-from stock_rating.rating.model_v1 import build_rating_record
+from stock_rating.rating.model_v1 import MODEL_VERSION, build_rating_record
+from stock_rating.rating.universe_grading import apply_universe_percentile_grades
 from stock_rating.transform.features import compute_price_features, persist_features
 from stock_rating.transform.fundamentals import compute_fundamental_features
 from stock_rating.transform.macro import compute_macro_features
@@ -1554,6 +1555,9 @@ def run_pipeline(
     )
     symbol_runs = fundamental_runs + price_runs + analyst_runs + finnhub_analyst_runs + rating_repair_runs
 
+    # Pass 2: assign universe-relative percentile grades across all rated symbols.
+    graded_symbol_count = apply_universe_percentile_grades(settings.database_url, MODEL_VERSION)
+
     source_refresh_summaries = [
         macro_refresh_summary,
         summarize_symbol_runs("sec_edgar", fundamental_runs),
@@ -1594,6 +1598,7 @@ def run_pipeline(
     print(f"Run ID: {run_id}")
     print(f"Database persistence: {'enabled' if database_persisted else 'skipped'}")
     print(f"Macro refresh: {macro_refresh_summary.status}")
+    print(f"Percentile grading: {graded_symbol_count} symbols graded")
     print(f"Pipeline status: {pipeline_run.status}")
     print(f"Price refresh: {'enabled' if refresh_prices else 'skipped'}")
     print("Timing:")

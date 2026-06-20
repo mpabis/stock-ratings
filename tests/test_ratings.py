@@ -62,7 +62,7 @@ def test_build_rating_record_maps_to_schema_shape() -> None:
 
     assert record.symbol == "AAPL"
     assert record.freshness_status == "fresh"
-    assert record.model_version == "v4"
+    assert record.model_version == "v5"
     assert record.rating_label
 
 

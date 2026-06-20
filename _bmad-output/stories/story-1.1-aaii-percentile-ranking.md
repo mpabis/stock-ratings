@@ -1,6 +1,6 @@
 # Story 1.1: AAII-Style Percentile Ranking of Factors
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -72,8 +72,29 @@ The factor sub-scores already exist and are already persisted per symbol: `valua
 
 ### Agent Model Used
 
+claude-opus-4-8[1m]
+
 ### Debug Log References
+
+- `pytest -q` → 136 passed (includes new percentile + universe-grading suites). Run with the project `.venv` (`./.venv/Scripts/python.exe -m pytest`).
 
 ### Completion Notes List
 
+- Implemented the two-pass design from the story: per-symbol pass unchanged (still emits absolute sub-scores + provisional `map_score_to_label` label), new cross-sectional pass assigns universe-relative percentiles + A-F grades and overwrites `rating_label`/`rating_score` on the same `v5` row.
+- **Decisions settled** (were flagged as cross-story collisions): `model_version` = `v5` via new `MODEL_VERSION` constant in `model_v1.py`; migration number = `005` (004 was already taken by `004_add_fundamental_period_metadata.sql`). Composite = weight-then-percentile (weights unchanged 0.25/0.25/0.20/0.20/0.10). Percentile = mid-rank `(below + 0.5·equal)/n`; singleton → 0.5 → C.
+- `rating_score` is now the composite percentile rescaled to 0-100, so `report.fetch_latest_ratings`' `order by rating_score desc` still ranks the universe correctly. The report picks the latest-`created_at` row per symbol (no `model_version` filter), so the pass-2 update to the v5 row wins over legacy v4 rows automatically.
+- Per-factor percentiles + grades are persisted as new `ratings_daily` columns (`*_percentile`, `*_grade`). Surfacing them in the HTML report / explanation_json is a small follow-up (data layer is done, satisfying AC #3's "explanation *can* show" capability).
+- Risk-direction confirmed: high `risk_score` = safer in `model_v1`, so all five factors share "higher is better" — percentile direction is uniform.
+- **Code-review fixes applied** (high-effort review, 8 angles): (1) updated the in-report methodology page (`report.py`) — lead, Rating Scale table, and Final Composite Score section — for v5 percentile grading; (2) added the `2026-06-20` CHANGELOG entry (AGENTS.md §"Record … changes in CHANGELOG.md"); (3) deduped `COMPOSITE_WEIGHTS` to a single source in `percentile_ranking.py`, imported by `model_v1`; (4) switched `rating_score` rescale to Decimal `ROUND_HALF_UP` (no float round-trip). Not done: integration test for the `run_pipeline` pass-2 path (noted as low-priority follow-up); the generated `artifacts/reports/ratings-methodology.html` is stale until the next report run regenerates it from the fixed `report.py`.
+
 ### File List
+
+- `src/stock_rating/rating/percentile_ranking.py` (new) — pure percentile/grade logic
+- `src/stock_rating/rating/universe_grading.py` (new) — pass-2 orchestration (pure `build_percentile_updates` + `apply_universe_percentile_grades`)
+- `src/stock_rating/rating/scoring.py` — added `GRADE_LABELS` + `label_for_grade`
+- `src/stock_rating/rating/model_v1.py` — `MODEL_VERSION="v5"` constant; bumped both write sites
+- `src/stock_rating/repository/ratings.py` — `LatestFactorScore`, `PercentileGradeUpdate`, `load_latest_factor_scores`, `persist_percentile_grades`
+- `src/stock_rating/pipeline/daily.py` — wired pass-2 into `run_pipeline` after rating writes
+- `sql/migrations/005_add_rating_percentile_grades.sql` (new); `sql/schema.sql` — new columns
+- `docs/rating_methodology.md` — rewritten for v5 percentile grading
+- `tests/test_percentile_ranking.py` (new), `tests/test_universe_grading.py` (new), `tests/test_ratings.py` (v4→v5 assertion)

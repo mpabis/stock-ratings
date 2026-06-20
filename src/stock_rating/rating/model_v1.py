@@ -3,9 +3,15 @@ from decimal import Decimal
 from typing import Protocol
 
 from stock_rating.rating.explanations import build_rating_explanation
+from stock_rating.rating.percentile_ranking import COMPOSITE_WEIGHTS
 from stock_rating.rating.scoring import map_score_to_label
 from stock_rating.repository.ratings import RatingRecord
 from stock_rating.transform.features import FeatureValue
+
+
+# Current rating model version. Bumped to v5 for story 1.1 (percentile grading);
+# stories 1.2/1.3 build additively on the same v5.
+MODEL_VERSION = "v5"
 
 
 class RefreshTaskLike(Protocol):
@@ -31,7 +37,7 @@ def build_rating(task: RefreshTaskLike, raw_score: int) -> dict[str, object]:
         "label": mapped.label,
         "freshness_status": task.freshness_status,
         "explanation": build_rating_explanation(task.symbol, task.freshness_status),
-        "model_version": "v4",
+        "model_version": MODEL_VERSION,
     }
 
 
@@ -141,11 +147,11 @@ def compute_rating_breakdown(features: list[FeatureValue]) -> RatingBreakdown:
     final_score = int(
         round(
             float(
-                valuation_score * Decimal("0.25")
-                + quality_score * Decimal("0.25")
-                + growth_score * Decimal("0.20")
-                + momentum_score * Decimal("0.20")
-                + risk_score * Decimal("0.10")
+                valuation_score * COMPOSITE_WEIGHTS["valuation"]
+                + quality_score * COMPOSITE_WEIGHTS["quality"]
+                + growth_score * COMPOSITE_WEIGHTS["growth"]
+                + momentum_score * COMPOSITE_WEIGHTS["momentum"]
+                + risk_score * COMPOSITE_WEIGHTS["risk"]
             )
         )
     )
@@ -178,7 +184,7 @@ def build_rating_record(task: RefreshTaskLike, features: list[FeatureValue]) -> 
         momentum_score=breakdown.momentum_score,
         risk_score=breakdown.risk_score,
         explanation_json=explanation,
-        model_version="v4",
+        model_version=MODEL_VERSION,
         freshness_status=task.freshness_status,
         freshest_input_date=latest_date,
     )

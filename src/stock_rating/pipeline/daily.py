@@ -1600,8 +1600,17 @@ def main() -> None:
         default=None,
         help="Force a specific price provider, bypassing the normal cascade.",
     )
+    parser.add_argument(
+        "--skip-prices",
+        action="store_true",
+        default=False,
+        help="Skip the price refresh entirely.",
+    )
     args = parser.parse_args()
-    run_pipeline(force_price_provider=args.provider)
+    run_pipeline(
+        refresh_prices=not args.skip_prices,
+        force_price_provider=args.provider,
+    )
 
 
 if __name__ == "__main__":

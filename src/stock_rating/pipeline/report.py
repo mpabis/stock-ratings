@@ -1097,10 +1097,13 @@ def render_dashboard_html(
             white-space: nowrap;
         }}
         .factor-grade {{
-            margin-left: 5px;
-            font-size: 0.72rem;
-            font-weight: 600;
+            position: relative;
+            top: -0.4em;
+            left: 2px;
+            font-size: 0.52rem;
+            font-weight: 700;
             color: var(--muted);
+            opacity: 0.75;
         }}
         .benchmark-cell {{
             font-variant-numeric: tabular-nums;
@@ -1679,7 +1682,7 @@ def render_factor_cell(name: str, value: Decimal | None, grade: str | None = Non
     fill_class = factor_fill_class(value)
     sort_value = factor_sort_value(value)
     short_name = factor_short_name(name)
-    grade_html = f'<span class="factor-grade">{escape(grade)}</span>' if grade else ""
+    grade_html = f'<sup class="factor-grade">{escape(grade)}</sup>' if grade else ""
     return (
         f'<td class="factor-cell" data-sort="{sort_value}">'
         '<div class="factor-chip">'

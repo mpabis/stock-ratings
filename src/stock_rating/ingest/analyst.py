@@ -263,6 +263,13 @@ class FinnhubAnalystRateLimitError(RuntimeError):
     pass
 
 
+class FinnhubAccessDeniedError(FinnhubAnalystResponseError):
+    """Raised when Finnhub returns 403 for an endpoint the API key cannot access
+    (e.g. premium-only endpoints such as price-target on the free tier)."""
+
+    pass
+
+
 def normalize_symbol_for_finnhub(symbol: str) -> str:
     if ":" in symbol:
         _, raw_symbol = symbol.split(":", 1)
@@ -298,6 +305,10 @@ def _fetch_finnhub_json(
         except HTTPError as error:
             if error.code == 429:
                 raise FinnhubAnalystRateLimitError(f"Finnhub rate limit hit for {symbol}")
+            if error.code == 403:
+                raise FinnhubAccessDeniedError(
+                    f"Finnhub request for {symbol} denied with HTTP 403 (no access to this resource)"
+                ) from error
             if _is_transient_http_error(error) and attempt < attempts:
                 _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
                 continue

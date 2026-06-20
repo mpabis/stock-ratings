@@ -10,6 +10,7 @@ from stock_rating.pipeline.daily import (
     SymbolRefreshState,
     build_symbol_refresh_run_records,
     execute_analyst_refresh_plan,
+    execute_finnhub_analyst_refresh_plan,
     execute_fundamental_refresh_plan,
     execute_alpha_vantage_refresh_plan,
     execute_price_refresh_plan,
@@ -26,6 +27,7 @@ from stock_rating.pipeline.daily import (
     rating_task_for_features,
     resolve_git_sha,
 )
+from stock_rating.ingest.analyst import FinnhubAccessDeniedError
 from stock_rating.ingest.prices import AlphaVantageRateLimitError, DailyPriceBar, TwelveDataRateLimitError
 from stock_rating.ingest.sec_companyfacts import FundamentalFact, SecCompanyFactsResponseError
 from stock_rating.repository.ratings import RatingRepairState
@@ -524,6 +526,38 @@ def test_execute_analyst_refresh_plan_marks_success_with_missing_consensus() -> 
     assert records[0].provider == "alpha_vantage_overview"
     assert records[0].status == "succeeded"
     assert records[0].fetched_bar_count == 0
+
+
+def test_execute_finnhub_analyst_refresh_plan_succeeds_when_price_target_denied() -> None:
+    as_of = date(2026, 6, 20)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="AAPL", refresh_tier=1, last_price_date=date(2026, 6, 19))],
+        as_of=as_of,
+        budget=1,
+    )
+    persisted_snapshots: list = []
+
+    def deny_price_target(symbol: str, api_key: str):
+        raise FinnhubAccessDeniedError("denied")
+
+    records = execute_finnhub_analyst_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="postgres://localhost/test",
+        api_key="demo-key",
+        fetch_rec_fn=lambda symbol, api_key: [
+            {"symbol": symbol, "strongBuy": 10, "buy": 5, "hold": 2, "sell": 1, "strongSell": 0}
+        ],
+        fetch_pt_fn=deny_price_target,
+        persist_fn=lambda database_url, snapshots: persisted_snapshots.extend(snapshots) or True,
+    )
+
+    assert len(records) == 1
+    assert records[0].provider == "finnhub"
+    assert records[0].status == "succeeded"
+    assert len(persisted_snapshots) == 1
+    assert persisted_snapshots[0].analyst_target_price is None
+    assert persisted_snapshots[0].strong_buy_count == 10
 
 
 def test_execute_price_refresh_plan_falls_back_to_stooq_after_twelve_failure() -> None:

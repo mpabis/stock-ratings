@@ -34,6 +34,11 @@ development_status:
   1-4-surface-scores-in-dashboard: done
   epic-1-retrospective: optional
 
+  # Epic 2 — Data-pipeline resilience
+  epic-2: in-progress
+  2-1-stooq-rate-limit-resilience: ready-for-dev
+  epic-2-retrospective: optional
+
 # Backlog item detail:
 #   1-1  Adopt AAII-style percentile ranking — rank each factor family against the
 #        universe and bucket into A-F, replacing the fixed 0-100 thresholds in v4

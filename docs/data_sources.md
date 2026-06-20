@@ -5,7 +5,11 @@
 - Alpha Vantage: primary free API for daily prices
 - Alpha Vantage company overview: analyst target and recommendation counts (source tag: `alpha_vantage_overview`)
 - Twelve Data: fallback free API for price validation
-- Stooq: additional price sanity check
+- Stooq: additional price sanity check / last-resort price fallback. Its keyless
+  CSV endpoint IP-throttles bulk requests (returns HTTP 404/429 when blocked), so
+  the pipeline paces Stooq calls (`STOOQ_MIN_INTERVAL_SECONDS`), caps them per run
+  (`STOOQ_MAX_REQUESTS_PER_RUN`), and treats a throttle response as retryable
+  rather than a hard failure.
 - SEC EDGAR: official fundamentals source. Beyond the core income/balance-sheet
   metrics, the benchmark scores (story 1.2) also pull `OperatingIncomeLoss` (EBIT
   proxy), `GrossProfit` / `CostOfRevenue`, `AssetsCurrent`, `LiabilitiesCurrent`,

@@ -27,6 +27,7 @@ from stock_rating.ingest.analyst import (
 )
 from stock_rating.ingest.prices import (
     AlphaVantageRateLimitError,
+    StooqRateLimitError,
     StooqResponseError,
     TwelveDataRateLimitError,
     fetch_alpha_vantage_daily_adjusted,
@@ -820,10 +821,14 @@ def execute_stooq_refresh_plan(
     compute_fundamental_features_fn=compute_fundamental_features,
     persist_ratings_fn=persist_ratings,
     build_rating_record_fn=build_rating_record,
+    request_pause_seconds: float = 0.0,
+    sleep_fn=time.sleep,
+    max_requests: int | None = None,
 ) -> list[SymbolRefreshRunRecord]:
     symbol_runs: list[SymbolRefreshRunRecord] = []
+    requests_made = 0
 
-    for task in tasks:
+    for index, task in enumerate(tasks):
         attempted_at = utc_now()
         if not stooq_supports_symbol(task.symbol):
             symbol_runs.append(
@@ -842,7 +847,16 @@ def execute_stooq_refresh_plan(
             )
             continue
 
+        # Per-run budget: stop issuing Stooq calls once the cap is hit so an
+        # exhausted-upstream cascade can't get the whole batch IP-throttled.
+        # Remaining tasks are left unrecorded -> retried on a later run.
+        if max_requests is not None and requests_made >= max_requests:
+            deferred = [t.symbol for t in tasks[index:] if stooq_supports_symbol(t.symbol)]
+            print(f"Stooq per-run cap reached ({max_requests}); deferring {len(deferred)} symbol(s) to a later run.")
+            break
+
         try:
+            requests_made += 1
             bars = fetch_fn(task.symbol, api_key)
             persisted = persist_fn(database_url, bars)
             if database_url and not persisted:
@@ -879,10 +893,26 @@ def execute_stooq_refresh_plan(
                     provider_error_code=None,
                 )
             )
+        except StooqRateLimitError as error:
+            # Throttled by Stooq — further requests will also be blocked. Record
+            # this symbol as rate_limited (retryable, not failed) and stop the
+            # batch; unresolved tasks are re-attempted on a later run.
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="stooq",
+                    status="rate_limited",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code="stooq_rate_limit",
+                )
+            )
+            break
         except Exception as error:
-            error_code = "stooq_error"
-            if isinstance(error, StooqResponseError):
-                error_code = "stooq_error"
             symbol_runs.append(
                 SymbolRefreshRunRecord(
                     run_id=run_id,
@@ -894,9 +924,12 @@ def execute_stooq_refresh_plan(
                     completed_at=utc_now(),
                     error_message=str(error),
                     fetched_bar_count=None,
-                    provider_error_code=error_code,
+                    provider_error_code="stooq_error",
                 )
             )
+
+        if request_pause_seconds > 0 and index < len(tasks) - 1:
+            sleep_fn(request_pause_seconds)
 
     return symbol_runs
 
@@ -1234,6 +1267,9 @@ def execute_price_refresh_plan(
     alpha_vantage_pause_seconds: float = 0.0,
     alpha_vantage_sleep_fn=time.sleep,
     twelve_data_max_requests: int | None = None,
+    stooq_pause_seconds: float = 0.0,
+    stooq_sleep_fn=time.sleep,
+    stooq_max_requests: int | None = None,
     force_provider: Literal["alpha_vantage", "twelve_data", "stooq"] | None = None,
 ) -> list[SymbolRefreshRunRecord]:
     def unresolved_tasks_from(records: list[SymbolRefreshRunRecord], candidate_tasks: list[RefreshTask]) -> list[RefreshTask]:
@@ -1289,6 +1325,9 @@ def execute_price_refresh_plan(
             compute_features_fn=compute_features_fn,
             persist_ratings_fn=persist_ratings_fn,
             build_rating_record_fn=build_rating_record_fn,
+            request_pause_seconds=stooq_pause_seconds,
+            sleep_fn=stooq_sleep_fn,
+            max_requests=stooq_max_requests,
         )
 
     if alpha_vantage_api_key:
@@ -1361,6 +1400,9 @@ def execute_price_refresh_plan(
                     compute_features_fn=compute_features_fn,
                     persist_ratings_fn=persist_ratings_fn,
                     build_rating_record_fn=build_rating_record_fn,
+                    request_pause_seconds=stooq_pause_seconds,
+                    sleep_fn=stooq_sleep_fn,
+                    max_requests=stooq_max_requests,
                 )
                 return alpha_runs + twelve_runs + stooq_runs
             return alpha_runs + twelve_runs
@@ -1378,6 +1420,9 @@ def execute_price_refresh_plan(
                 compute_features_fn=compute_features_fn,
                 persist_ratings_fn=persist_ratings_fn,
                 build_rating_record_fn=build_rating_record_fn,
+                request_pause_seconds=stooq_pause_seconds,
+                sleep_fn=stooq_sleep_fn,
+                max_requests=stooq_max_requests,
             )
             return alpha_runs + stooq_runs
 
@@ -1424,6 +1469,9 @@ def execute_price_refresh_plan(
                 compute_features_fn=compute_features_fn,
                 persist_ratings_fn=persist_ratings_fn,
                 build_rating_record_fn=build_rating_record_fn,
+                request_pause_seconds=stooq_pause_seconds,
+                sleep_fn=stooq_sleep_fn,
+                max_requests=stooq_max_requests,
             )
             return twelve_runs + stooq_runs
         return twelve_runs
@@ -1441,6 +1489,9 @@ def execute_price_refresh_plan(
             compute_features_fn=compute_features_fn,
             persist_ratings_fn=persist_ratings_fn,
             build_rating_record_fn=build_rating_record_fn,
+            request_pause_seconds=stooq_pause_seconds,
+            sleep_fn=stooq_sleep_fn,
+            max_requests=stooq_max_requests,
         )
 
     return []
@@ -1540,6 +1591,8 @@ def run_pipeline(
             alpha_vantage_max_requests=settings.alpha_vantage_max_requests_per_run,
             alpha_vantage_pause_seconds=settings.alpha_vantage_min_interval_seconds,
             twelve_data_max_requests=settings.twelve_data_max_requests_per_run,
+            stooq_pause_seconds=settings.stooq_min_interval_seconds,
+            stooq_max_requests=settings.stooq_max_requests_per_run,
             force_provider=force_price_provider,
         )
     analyst_runs = execute_analyst_refresh_plan(

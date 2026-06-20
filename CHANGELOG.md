@@ -4,6 +4,16 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-20 (stooq-resilience)
+
+### Changed
+
+- Made the Stooq price fallback resilient to rate-limiting. Stooq's keyless CSV endpoint returns HTTP 404/429/403 when it throttles an IP (a genuinely missing symbol returns HTTP 200 + "No data"); these are now raised as a new `StooqRateLimitError` and recorded as `rate_limited` (retryable next run) instead of hard `failed`. Added inter-symbol pacing (`STOOQ_MIN_INTERVAL_SECONDS`, default 1.0s) and a per-run request cap (`STOOQ_MAX_REQUESTS_PER_RUN`, default 40) so an exhausted-upstream cascade can't dump the whole universe onto Stooq at once. Mirrors the existing Alpha Vantage pacing/cap/rate-limit handling.
+
+### Tests
+
+- Added Stooq 404/429 → rate-limit and 200-"No data" → response-error ingest tests, plus plan-level tests for retryable rate-limit (stops the batch), the per-run cap, and inter-symbol pacing.
+
 ## 2026-06-20 (dashboard)
 
 ### Added

@@ -76,7 +76,20 @@ class StooqResponseError(RuntimeError):
     pass
 
 
+class StooqRateLimitError(RuntimeError):
+    """Stooq's keyless CSV endpoint throttled/blocked the request.
+
+    Stooq returns HTTP 404 (and 429/403) once it rate-limits an IP, even for
+    valid symbols — a genuinely missing symbol returns HTTP 200 with "No data".
+    Treated as transient/retryable so the symbol is re-attempted on a later run.
+    """
+
+
 TRANSIENT_HTTP_STATUS_CODES = {408, 429, 500, 502, 503, 504}
+
+# Codes Stooq returns when it is throttling/blocking the caller (not a real
+# missing-symbol response, which is HTTP 200 + "No data").
+STOOQ_RATE_LIMIT_STATUS_CODES = {403, 404, 429}
 
 
 def _is_transient_http_error(error: HTTPError) -> bool:
@@ -355,6 +368,10 @@ def fetch_stooq_daily(
                 payload = response.read().decode("utf-8")
             break
         except HTTPError as error:
+            if error.code in STOOQ_RATE_LIMIT_STATUS_CODES:
+                raise StooqRateLimitError(
+                    f"Stooq rate-limited or blocked the request (HTTP {error.code}) for {symbol}"
+                ) from error
             if _is_transient_http_error(error) and attempt < attempts:
                 _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
                 continue

@@ -28,7 +28,12 @@ from stock_rating.pipeline.daily import (
     resolve_git_sha,
 )
 from stock_rating.ingest.analyst import FinnhubAccessDeniedError
-from stock_rating.ingest.prices import AlphaVantageRateLimitError, DailyPriceBar, TwelveDataRateLimitError
+from stock_rating.ingest.prices import (
+    AlphaVantageRateLimitError,
+    DailyPriceBar,
+    StooqRateLimitError,
+    TwelveDataRateLimitError,
+)
 from stock_rating.ingest.sec_companyfacts import FundamentalFact, SecCompanyFactsResponseError
 from stock_rating.repository.ratings import RatingRepairState
 from stock_rating.repository.runs import SourceRefreshSummaryRecord, SymbolRefreshRunRecord
@@ -372,6 +377,91 @@ def test_execute_stooq_refresh_plan_marks_success() -> None:
 
     assert records[0].provider == "stooq"
     assert records[0].status == "succeeded"
+
+
+def _stooq_tasks(*symbols: str) -> list[RefreshTask]:
+    return [RefreshTask(symbol=s, refresh_tier=1, age_in_days=10, freshness_status="stale") for s in symbols]
+
+
+def _stooq_bars(symbol: str) -> list[DailyPriceBar]:
+    return [
+        DailyPriceBar(
+            symbol=symbol,
+            date=date(2026, 5, 27),
+            open=Decimal("1"),
+            high=Decimal("2"),
+            low=Decimal("1"),
+            close=Decimal("2"),
+            adjusted_close=Decimal("2"),
+            volume=1,
+            source="stooq",
+        )
+    ]
+
+
+def test_execute_stooq_refresh_plan_rate_limit_is_retryable_and_stops_batch() -> None:
+    def _throttled(symbol: str, api_key: str):
+        raise StooqRateLimitError(f"throttled {symbol}")
+
+    records = execute_stooq_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=_stooq_tasks("AAA", "BBB"),
+        database_url="",
+        api_key="stooq-key",
+        fetch_fn=_throttled,
+        persist_fn=lambda database_url, bars: False,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+    )
+
+    # Throttle on the first symbol -> record it as retryable, then stop the batch.
+    assert len(records) == 1
+    assert records[0].status == "rate_limited"
+    assert records[0].provider_error_code == "stooq_rate_limit"
+
+
+def test_execute_stooq_refresh_plan_respects_per_run_cap() -> None:
+    calls: list[str] = []
+
+    def _fetch(symbol: str, api_key: str):
+        calls.append(symbol)
+        return _stooq_bars(symbol)
+
+    records = execute_stooq_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=_stooq_tasks("AAA", "BBB", "CCC"),
+        database_url="",
+        api_key="stooq-key",
+        fetch_fn=_fetch,
+        persist_fn=lambda database_url, bars: False,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+        max_requests=1,
+    )
+
+    assert calls == ["AAA"]  # cap stops further requests
+    assert len(records) == 1
+    assert records[0].status == "succeeded"
+
+
+def test_execute_stooq_refresh_plan_paces_between_symbols() -> None:
+    sleeps: list[float] = []
+
+    records = execute_stooq_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=_stooq_tasks("AAA", "BBB"),
+        database_url="",
+        api_key="stooq-key",
+        fetch_fn=lambda symbol, api_key: _stooq_bars(symbol),
+        persist_fn=lambda database_url, bars: False,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+        request_pause_seconds=0.5,
+        sleep_fn=lambda seconds: sleeps.append(seconds),
+    )
+
+    assert len(records) == 2
+    assert sleeps == [0.5]  # one pause between the two symbols, none after the last
 
 
 def test_execute_rating_repair_plan_builds_rating_from_stored_prices() -> None:

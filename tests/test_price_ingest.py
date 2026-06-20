@@ -8,6 +8,7 @@ from stock_rating.ingest.prices import (
     AlphaVantageResponseError,
     AlphaVantageRateLimitError,
     DailyPriceBar,
+    StooqRateLimitError,
     StooqResponseError,
     TwelveDataRateLimitError,
     build_alpha_vantage_daily_adjusted_url,
@@ -437,6 +438,42 @@ class _FakeHttpResponseString:
 
     def __exit__(self, exc_type, exc, tb) -> None:
         return None
+
+
+def _raise_http_error(code: int):
+    def _urlopen(_):
+        raise HTTPError("https://stooq.com/q/d/l/", code, "err", {}, None)
+    return _urlopen
+
+
+def test_fetch_stooq_daily_raises_rate_limit_on_404() -> None:
+    try:
+        fetch_stooq_daily("AMZN", "", urlopen_fn=_raise_http_error(404), sleep_fn=lambda _: None)
+    except StooqRateLimitError as error:
+        assert "AMZN" in str(error)
+    else:
+        raise AssertionError("Expected StooqRateLimitError on HTTP 404")
+
+
+def test_fetch_stooq_daily_raises_rate_limit_on_429() -> None:
+    try:
+        fetch_stooq_daily("AMZN", "", urlopen_fn=_raise_http_error(429), sleep_fn=lambda _: None)
+    except StooqRateLimitError:
+        pass
+    else:
+        raise AssertionError("Expected StooqRateLimitError on HTTP 429")
+
+
+def test_fetch_stooq_daily_no_data_is_response_error_not_rate_limit() -> None:
+    # A genuinely missing symbol returns HTTP 200 with a "No data" body -> no bars.
+    try:
+        fetch_stooq_daily("FAKE", "", urlopen_fn=lambda _: _FakeHttpResponseString("No data\n"))
+    except StooqRateLimitError:
+        raise AssertionError("HTTP 200 'No data' must not be treated as a rate limit")
+    except StooqResponseError:
+        pass
+    else:
+        raise AssertionError("Expected StooqResponseError for an empty Stooq response")
 
 
 def test_persist_price_bars_inserts_rows() -> None:

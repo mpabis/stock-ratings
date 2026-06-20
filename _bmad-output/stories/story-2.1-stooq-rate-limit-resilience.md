@@ -1,6 +1,6 @@
 # Story 2.1: Stooq Rate-Limit Resilience
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -70,8 +70,26 @@ Relevant code:
 
 ### Agent Model Used
 
+claude-opus-4-8[1m]
+
 ### Debug Log References
+
+- `./.venv/Scripts/python.exe -m pytest -q` → 169 passed (163 prior + 6 new). Imports clean.
 
 ### Completion Notes List
 
+- New `StooqRateLimitError` in `ingest/prices.py`; `fetch_stooq_daily` raises it on HTTP 403/404/429 (`STOOQ_RATE_LIMIT_STATUS_CODES`) — the throttle signal — while a genuine `200 "No data"` still raises `StooqResponseError` (no-bars). AC #5 distinction preserved.
+- `execute_stooq_refresh_plan` gained `request_pause_seconds` + `sleep_fn` (inter-symbol pacing, mirroring the AV plan), a `max_requests` per-run cap (defers overflow with a logged line, leaving it unrecorded → retried next run), and a `StooqRateLimitError` handler that records `rate_limited` and `break`s the batch (further requests would also be blocked). `unresolved_tasks_from` already treats `rate_limited` as retryable.
+- Config: `STOOQ_MIN_INTERVAL_SECONDS` (1.0s) and `STOOQ_MAX_REQUESTS_PER_RUN` (40), threaded `run_pipeline → execute_price_refresh_plan → execute_stooq_refresh_plan` across all five Stooq call sites.
+- Not a symbol-format change — `normalize_symbol_for_stooq` (`.us` suffix) left untouched.
+- Tests: 404/429 → rate-limit, 200-"No data" → response-error (ingest); rate-limit-stops-batch, per-run cap, inter-symbol pacing (plan).
+- Docs: CHANGELOG entry + Stooq note in `docs/data_sources.md`.
+- **Code-review fixes applied** (high-effort review): (1) **real bug** — the twelve-data-only → Stooq fallback call site in `execute_price_refresh_plan` was missed by the initial edit (different indentation), so pacing + the per-run cap were silently disabled on that cascade path; now all 5 Stooq call sites thread `request_pause_seconds`/`sleep_fn`/`max_requests` (verified 5/5). (2) Documented `STOOQ_MIN_INTERVAL_SECONDS` / `STOOQ_MAX_REQUESTS_PER_RUN` in `.env.example` (AGENTS.md requires important env vars there). Considered-and-dropped: 429 now raising rate-limit immediately (intended — it's a throttle signal); the per-run cap counting only real fetch attempts (correct, not an off-by-one); `rate_limited` counting in summaries (pre-existing, consistent with AV/Twelve); `print` for cap deferral (house style for the CLI pipeline).
+
 ### File List
+
+- `src/stock_rating/ingest/prices.py` — `StooqRateLimitError`, `STOOQ_RATE_LIMIT_STATUS_CODES`, 404/429/403 handling in `fetch_stooq_daily`
+- `src/stock_rating/pipeline/daily.py` — `execute_stooq_refresh_plan` pacing/cap/rate-limit; threaded settings through `execute_price_refresh_plan` (5 call sites) + `run_pipeline`
+- `src/stock_rating/config.py` — `stooq_min_interval_seconds`, `stooq_max_requests_per_run`
+- `docs/data_sources.md`, `CHANGELOG.md`
+- `tests/test_price_ingest.py`, `tests/test_refresh_planning.py`

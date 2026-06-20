@@ -16,6 +16,8 @@ class Settings:
     twelve_data_api_key: str = os.getenv("TWELVE_DATA_API_KEY", "")
     twelve_data_max_requests_per_run: int = int(os.getenv("TWELVE_DATA_MAX_REQUESTS_PER_RUN", "12"))
     stooq_api_key: str = os.getenv("STOOQ_API_KEY", "")
+    stooq_min_interval_seconds: float = float(os.getenv("STOOQ_MIN_INTERVAL_SECONDS", "1.0"))
+    stooq_max_requests_per_run: int = int(os.getenv("STOOQ_MAX_REQUESTS_PER_RUN", "40"))
     sec_user_agent: str = os.getenv("SEC_USER_AGENT", "stock-rating/0.1 research@localhost")
     fred_api_key: str = os.getenv("FRED_API_KEY", "")
     symbol_limit: int = int(os.getenv("STOCK_RATING_SYMBOL_LIMIT", "100"))

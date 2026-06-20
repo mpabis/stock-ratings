@@ -47,6 +47,17 @@ class RatingSnapshot:
         hold_count: int | None = None
         sell_count: int | None = None
         strong_sell_count: int | None = None
+        analyst_revision_score: Decimal | None = None
+        valuation_grade: str | None = None
+        quality_grade: str | None = None
+        growth_grade: str | None = None
+        momentum_grade: str | None = None
+        risk_grade: str | None = None
+        analyst_revision_grade: str | None = None
+        piotroski_fscore: Decimal | None = None
+        piotroski_signals_available: Decimal | None = None
+        magic_formula_combined_rank: Decimal | None = None
+        acquirers_multiple: Decimal | None = None
 
 
 @dataclass(frozen=True)
@@ -240,6 +251,13 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                     r.momentum_score,
                     r.risk_score,
                     r.explanation_json,
+                    r.analyst_revision_score,
+                    r.valuation_grade,
+                    r.quality_grade,
+                    r.growth_grade,
+                    r.momentum_grade,
+                    r.risk_grade,
+                    r.analyst_revision_grade,
                     row_number() over (
                         partition by r.symbol
                         order by r.date desc, r.created_at desc
@@ -266,6 +284,30 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                     coalesce(adjusted_close, close) as latest_price_close
                 from price_daily
                 order by symbol, date desc, ingested_at desc
+            ),
+            latest_feature_rows as (
+                select distinct on (symbol, feature_name)
+                    symbol,
+                    feature_name,
+                    feature_value
+                from features_daily
+                where feature_name in (
+                    'piotroski_fscore',
+                    'piotroski_signals_available',
+                    'magic_formula_combined_rank',
+                    'acquirers_multiple'
+                )
+                order by symbol, feature_name, date desc, source_version desc
+            ),
+            latest_features as (
+                select
+                    symbol,
+                    max(feature_value) filter (where feature_name = 'piotroski_fscore') as piotroski_fscore,
+                    max(feature_value) filter (where feature_name = 'piotroski_signals_available') as piotroski_signals_available,
+                    max(feature_value) filter (where feature_name = 'magic_formula_combined_rank') as magic_formula_combined_rank,
+                    max(feature_value) filter (where feature_name = 'acquirers_multiple') as acquirers_multiple
+                from latest_feature_rows
+                group by symbol
             )
             select
                 rr.symbol,
@@ -287,10 +329,22 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 la.buy_count,
                 la.hold_count,
                 la.sell_count,
-                la.strong_sell_count
+                la.strong_sell_count,
+                rr.analyst_revision_score,
+                rr.valuation_grade,
+                rr.quality_grade,
+                rr.growth_grade,
+                rr.momentum_grade,
+                rr.risk_grade,
+                rr.analyst_revision_grade,
+                lf.piotroski_fscore,
+                lf.piotroski_signals_available,
+                lf.magic_formula_combined_rank,
+                lf.acquirers_multiple
             from ranked_ratings rr
             left join latest_analyst la on la.symbol = rr.symbol
             left join latest_prices lp on lp.symbol = rr.symbol
+            left join latest_features lf on lf.symbol = rr.symbol
             where rr.row_number = 1
             order by rr.rating_score desc, rr.symbol asc
             """
@@ -346,7 +400,18 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 null as buy_count,
                 null as hold_count,
                 null as sell_count,
-                null as strong_sell_count
+                null as strong_sell_count,
+                null as analyst_revision_score,
+                null as valuation_grade,
+                null as quality_grade,
+                null as growth_grade,
+                null as momentum_grade,
+                null as risk_grade,
+                null as analyst_revision_grade,
+                null as piotroski_fscore,
+                null as piotroski_signals_available,
+                null as magic_formula_combined_rank,
+                null as acquirers_multiple
             from ranked_ratings rr
             left join latest_prices lp on lp.symbol = rr.symbol
             where row_number = 1
@@ -378,6 +443,17 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 hold_count=row[17],
                 sell_count=row[18],
                 strong_sell_count=row[19],
+                analyst_revision_score=row[20],
+                valuation_grade=row[21],
+                quality_grade=row[22],
+                growth_grade=row[23],
+                momentum_grade=row[24],
+                risk_grade=row[25],
+                analyst_revision_grade=row[26],
+                piotroski_fscore=row[27],
+                piotroski_signals_available=row[28],
+                magic_formula_combined_rank=row[29],
+                acquirers_multiple=row[30],
                 summary=explanation_json.get("summary", "No explanation available."),
             )
         )
@@ -494,7 +570,7 @@ def render_dashboard_html(
         ) or '<li><strong>Healthy</strong><span>No active data quality alerts.</span></li>'
 
         rows_html = "".join(render_rating_row(rating) for rating in ratings) or (
-            '<tr><td colspan="10" class="empty">No ratings found in ratings_daily.</td></tr>'
+            '<tr><td colspan="14" class="empty">No ratings found in ratings_daily.</td></tr>'
         )
 
         run_summary = render_run_summary(latest_run, latest_run_counts)
@@ -1020,6 +1096,21 @@ def render_dashboard_html(
             line-height: 1;
             white-space: nowrap;
         }}
+        .factor-grade {{
+            margin-left: 5px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--muted);
+        }}
+        .benchmark-cell {{
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            text-align: right;
+            color: var(--muted);
+        }}
+        .benchmark-low-confidence {{
+            opacity: 0.55;
+        }}
         .factor-track {{
             width: 100%;
             height: 7px;
@@ -1119,8 +1210,12 @@ def render_dashboard_html(
                                                 <th><button type="button" data-sort-index="5" data-sort-kind="number">Growth</button></th>
                                                 <th><button type="button" data-sort-index="6" data-sort-kind="number">Mom</button></th>
                                                 <th><button type="button" data-sort-index="7" data-sort-kind="number">Risk</button></th>
-                                                <th><button type="button" data-sort-index="8" data-sort-kind="number">Analyst</button></th>
-                                                <th><button type="button" data-sort-index="9" data-sort-kind="number">Target</button></th>
+                                                <th><button type="button" data-sort-index="8" data-sort-kind="number">Rev</button></th>
+                                                <th><button type="button" data-sort-index="9" data-sort-kind="number">Analyst</button></th>
+                                                <th><button type="button" data-sort-index="10" data-sort-kind="number">Target</button></th>
+                                                <th title="Piotroski F-Score (0-9; higher is better)"><button type="button" data-sort-index="11" data-sort-kind="number">F-Score</button></th>
+                                                <th title="Magic Formula combined rank (1 = best)"><button type="button" data-sort-index="12" data-sort-kind="number">Magic</button></th>
+                                                <th title="Acquirer's Multiple, EV/EBIT (lower is cheaper)"><button type="button" data-sort-index="13" data-sort-kind="number">EV/EBIT</button></th>
                     </tr>
                 </thead>
                                 <tbody id="ratings-table-body">
@@ -1309,11 +1404,19 @@ def render_rating_row(rating: RatingSnapshot) -> str:
     )
     factor_cells_html = "".join(
         [
-            render_factor_cell("Valuation", rating.valuation_score),
-            render_factor_cell("Quality", rating.quality_score),
-            render_factor_cell("Growth", rating.growth_score),
-            render_factor_cell("Momentum", rating.momentum_score),
-            render_factor_cell("Risk", rating.risk_score),
+            render_factor_cell("Valuation", rating.valuation_score, rating.valuation_grade),
+            render_factor_cell("Quality", rating.quality_score, rating.quality_grade),
+            render_factor_cell("Growth", rating.growth_score, rating.growth_grade),
+            render_factor_cell("Momentum", rating.momentum_score, rating.momentum_grade),
+            render_factor_cell("Risk", rating.risk_score, rating.risk_grade),
+            render_factor_cell("Analyst Rev", rating.analyst_revision_score, rating.analyst_revision_grade),
+        ]
+    )
+    benchmark_cells_html = "".join(
+        [
+            render_fscore_cell(rating.piotroski_fscore, rating.piotroski_signals_available),
+            render_benchmark_cell(rating.magic_formula_combined_rank, fmt="int"),
+            render_benchmark_cell(rating.acquirers_multiple, fmt="ratio"),
         ]
     )
     freshness_date_title = format_date_readable(rating.freshest_input_date)
@@ -1326,6 +1429,7 @@ def render_rating_row(rating: RatingSnapshot) -> str:
         f'{factor_cells_html}'
         f'<td data-sort="{analyst_sort_rank}" class="analyst">{analyst_badge_html}</td>'
         f'<td data-sort="{escape(analyst_target_sort)}" class="target-cell">{target_option_one_html}</td>'
+        f'{benchmark_cells_html}'
         "</tr>"
     )
 
@@ -1569,20 +1673,52 @@ def score_band_class(value: Decimal | None) -> str:
     return "score-band-low"
 
 
-def render_factor_cell(name: str, value: Decimal | None) -> str:
+def render_factor_cell(name: str, value: Decimal | None, grade: str | None = None) -> str:
     score_text = format_score_ten(value)
     width = factor_width(value)
     fill_class = factor_fill_class(value)
     sort_value = factor_sort_value(value)
     short_name = factor_short_name(name)
+    grade_html = f'<span class="factor-grade">{escape(grade)}</span>' if grade else ""
     return (
         f'<td class="factor-cell" data-sort="{sort_value}">'
         '<div class="factor-chip">'
-        f'<div class="factor-head"><span>{escape(short_name)}</span><strong>{escape(score_text)}</strong></div>'
+        f'<div class="factor-head"><span>{escape(short_name)}</span><strong>{escape(score_text)}{grade_html}</strong></div>'
         f'<div class="factor-track"><div class="factor-fill {fill_class}" style="width: {width}%"></div></div>'
         '</div>'
         '</td>'
     )
+
+
+def render_benchmark_cell(value: Decimal | None, fmt: str = "number", sort_floor: str = "-1") -> str:
+    """Render a benchmark-score cell (F-Score, Magic Formula rank, EV/EBIT).
+
+    Missing values render an em dash and sort last. ``fmt`` controls display:
+    "int" for whole numbers, "ratio" for two-decimal multiples, else as-is.
+    """
+    if value is None:
+        return f'<td class="benchmark-cell" data-sort="{escape(sort_floor)}">—</td>'
+    if fmt == "int":
+        display = str(int(value))
+    elif fmt == "ratio":
+        display = f"{float(value):.1f}x"
+    else:
+        display = str(value)
+    return f'<td class="benchmark-cell" data-sort="{escape(str(value))}">{escape(display)}</td>'
+
+
+def render_fscore_cell(score: Decimal | None, signals_available: Decimal | None) -> str:
+    """Piotroski F-Score as N/9, dimmed when fewer than 9 signals were evaluable."""
+    if score is None:
+        return '<td class="benchmark-cell" data-sort="-1">—</td>'
+    low_confidence = signals_available is not None and signals_available < Decimal("9")
+    cell_class = "benchmark-cell benchmark-low-confidence" if low_confidence else "benchmark-cell"
+    title = (
+        f' title="{escape(str(int(signals_available)))} of 9 signals evaluable"'
+        if signals_available is not None
+        else ""
+    )
+    return f'<td class="{cell_class}" data-sort="{escape(str(score))}"{title}>{int(score)}/9</td>'
 
 
 def factor_width(value: Decimal | None) -> int:
@@ -1616,6 +1752,7 @@ def factor_short_name(name: str) -> str:
         "Growth": "Growth",
         "Momentum": "Mom",
         "Risk": "Risk",
+        "Analyst Rev": "Rev",
     }
     return labels.get(name, name)
 
@@ -1832,6 +1969,18 @@ def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]
                         <td>ingest/analyst.py + analyst_consensus_daily</td>
                     </tr>
                     <tr>
+                        <td>Analyst Revision (composite factor)</td>
+                        <td>analyst_revision_score, analyst_suggestion_score_delta, analyst_target_price_change_pct</td>
+                        <td>analyst_consensus_daily history (Alpha Vantage + Finnhub)</td>
+                        <td>repository/analyst.py + transform/analyst_features.py</td>
+                    </tr>
+                    <tr>
+                        <td>Benchmark scores (diagnostic, NOT in composite)</td>
+                        <td>piotroski_fscore, magic_formula_roic / earnings_yield / combined_rank, acquirers_multiple</td>
+                        <td>SEC EDGAR company facts</td>
+                        <td>transform/benchmark_scores.py + rating/magic_formula.py</td>
+                    </tr>
+                    <tr>
                         <td>Macro</td>
                         <td>yield_curve_slope</td>
                         <td>FRED series DGS10 and DGS2</td>
@@ -1904,6 +2053,28 @@ score = round(percentile_rank(composite, universe) * 100)</span>
                 <div class="pill">Momentum: 18%</div>
                 <div class="pill">Risk: 9%</div>
                 <div class="pill">Analyst Revision: 10%</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Benchmark Scores</h2>
+            <p>Three externally-validated, fully-specified value/quality scores are shown alongside the composite as <strong>benchmarks</strong>. They are deliberately <strong>excluded from the weighted composite</strong> so they stay directly comparable to their published backtests, and they are diagnostic rather than standalone buy signals.</p>
+            <div class="grid">
+                <article class="card">
+                    <h3>Piotroski F-Score</h3>
+                    <span class="formula">0-9: nine binary profitability / leverage / efficiency signals</span>
+                    <p>Shown as N/9; dimmed when fewer than nine signals were evaluable (low confidence). Designed as a second-stage filter on already-cheap stocks.</p>
+                </article>
+                <article class="card">
+                    <h3>Magic Formula (Greenblatt)</h3>
+                    <span class="formula">rank(ROIC) + rank(EBIT / enterprise value); lowest sum = best (rank 1)</span>
+                    <p>Cross-sectional combined rank across the universe; financials and utilities excluded when sector is known.</p>
+                </article>
+                <article class="card">
+                    <h3>Acquirer's Multiple (Carlisle)</h3>
+                    <span class="formula">enterprise value / EBIT</span>
+                    <p>Deep-value lens; lower is cheaper. EBIT is approximated by us-gaap OperatingIncomeLoss.</p>
+                </article>
             </div>
         </section>
     </main>

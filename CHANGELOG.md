@@ -4,6 +4,16 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-20 (dashboard)
+
+### Added
+
+- Surfaced the v6 outputs in the ratings dashboard: an **Analyst Rev** factor column, **A-F grade badges** on all six factor cells, and three benchmark columns — **Piotroski F-Score** (N/9, dimmed when fewer than nine signals were evaluable), **Magic Formula** combined rank, and **Acquirer's Multiple** (EV/EBIT). Missing values render an em dash.
+
+### Documentation
+
+- Expanded `docs/architecture.md` from a stub into a full description of the layered design and the two-pass v6 rating calculation. Added a "Where to see results" section to `docs/rating_methodology.md` and a Benchmark Scores section to the in-report methodology page.
+
 ## 2026-06-20 (latest)
 
 ### Changed

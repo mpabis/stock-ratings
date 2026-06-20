@@ -1,6 +1,6 @@
 # Story 1.4: Surface Analyst-Revision, Benchmark Scores & Factor Grades in the Dashboard
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -72,8 +72,26 @@ The dashboard is generated entirely by `src/stock_rating/pipeline/report.py` (ru
 
 ### Agent Model Used
 
+claude-opus-4-8[1m]
+
 ### Debug Log References
+
+- `./.venv/Scripts/python.exe -m pytest -q` → 163 passed (159 prior + 4 new). `import stock_rating.pipeline.report` clean (f-string brace check).
 
 ### Completion Notes List
 
+- **Presentation-only**, as scoped — no model/scoring/schema changes.
+- **SQL columns appended at the end** (indices 20-30) of both `fetch_latest_ratings` variants rather than inserted, so the existing `row[6..19]` mapping is untouched. The fallback (`except`) variant selects the same 11 columns as `null` to keep row width uniform on pre-v6 schemas.
+- Benchmark scores live in `features_daily`, so the primary query gains a `latest_feature_rows` (distinct-on per symbol+feature) + `latest_features` (filtered-aggregate pivot) CTE pair, left-joined.
+- Dashboard table grew 10→14 columns: added an **Analyst Rev** factor cell (6th factor) and three benchmark columns (F-Score N/9, Magic rank, EV/EBIT). Header `data-sort-index` re-numbered (Rev=8, Analyst→9, Target→10, benchmarks 11-13); the JS sorter keys off these indices and stays aligned. `render_factor_cell` extended with an optional A-F grade badge; new `render_benchmark_cell` / `render_fscore_cell` helpers (F-Score dimmed when `signals_available < 9`).
+- All new fields optional → render `—` placeholders when null (no analyst history / no SEC fundamentals / sector-excluded). Verified mobile view is safe (stacked `display:block`, no position-based `::before` labels).
+- **Docs (per user request):** rewrote the stub `docs/architecture.md` to describe the layered design + two-pass v6 rating system; added a "Where to see results" section to `docs/rating_methodology.md`; updated the in-report methodology page (`render_methodology_html`) with an Analyst-Revision + Benchmark-Scores source row and a new Benchmark Scores section.
+- **Generated artifact note:** `artifacts/reports/ratings-methodology.html` / `ratings-dashboard.html` regenerate from `report.py` on the next `python -m stock_rating.pipeline.report` run (needs `DATABASE_URL`); not hand-edited.
+- **Code-review fixes applied** (high-effort review): (A) empty-ratings row `colspan` 10→14 to match the now-14-column table; (B) added `"Analyst Rev" → "Rev"` to `factor_short_name` so the 6th factor cell stays compact; (C) escaped the F-Score `title` attribute; (D) added clarifying `title` tooltips to the F-Score/Magic/EV-EBIT headers (rank/multiple direction); (E) added the CHANGELOG entry (AGENTS.md requires recording user-facing + documentation changes). Verifiers confirmed SQL column counts (31 in both query variants), header↔row index alignment (14 each), f-string brace escaping, and null-placeholder paths were already correct. 163 tests pass.
+
 ### File List
+
+- `src/stock_rating/pipeline/report.py` — SQL (both variants), `RatingSnapshot` + row mapping, `render_rating_row`, `render_factor_cell`, new `render_benchmark_cell`/`render_fscore_cell`, table header, CSS, methodology HTML
+- `docs/architecture.md` — expanded from stub to full architecture
+- `docs/rating_methodology.md` — "Where to see results" section
+- `tests/test_report.py` — grade badge, full-render, null-placeholder, low-confidence F-Score tests

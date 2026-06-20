@@ -6,10 +6,72 @@ from stock_rating.pipeline.report import (
     RatingSnapshot,
     SourceRefreshSummary,
     render_dashboard_html,
+    render_factor_cell,
     render_methodology_html,
+    render_rating_row,
     yahoo_finance_symbol,
     yahoo_finance_url,
 )
+
+
+def _snapshot(**overrides) -> RatingSnapshot:
+    base = dict(
+        symbol="AAPL",
+        company_name="Apple Inc.",
+        rating_score=78,
+        rating_label="B / Attractive",
+        freshness_status="fresh",
+        freshest_input_date=date(2026, 5, 28),
+        valuation_score=Decimal("72.0"),
+        quality_score=Decimal("68.0"),
+        growth_score=Decimal("74.0"),
+        momentum_score=Decimal("79.0"),
+        risk_score=Decimal("41.0"),
+        summary="Strong latest profile.",
+    )
+    base.update(overrides)
+    return RatingSnapshot(**base)
+
+
+def test_factor_cell_shows_grade_when_provided() -> None:
+    assert '<span class="factor-grade">A</span>' in render_factor_cell("Valuation", Decimal("90"), "A")
+    assert "factor-grade" not in render_factor_cell("Valuation", Decimal("90"), None)
+
+
+def test_rating_row_renders_analyst_revision_grades_and_benchmarks() -> None:
+    row = render_rating_row(
+        _snapshot(
+            analyst_revision_score=Decimal("62"),
+            valuation_grade="A",
+            analyst_revision_grade="B",
+            piotroski_fscore=Decimal("7"),
+            piotroski_signals_available=Decimal("9"),
+            magic_formula_combined_rank=Decimal("3"),
+            acquirers_multiple=Decimal("8.4"),
+        )
+    )
+    assert "Rev" in row  # analyst-revision factor cell (short name)
+    assert '<span class="factor-grade">A</span>' in row  # valuation grade
+    assert '<span class="factor-grade">B</span>' in row  # analyst revision grade
+    assert "7/9" in row
+    assert "3" in row  # magic formula rank
+    assert "8.4x" in row  # acquirer's multiple
+
+
+def test_rating_row_renders_placeholders_when_benchmarks_missing() -> None:
+    row = render_rating_row(_snapshot())  # all new fields default to None
+    assert "Rev" in row  # analyst-revision factor cell still present (score None -> renders)
+    assert "—" in row  # benchmark placeholders
+    # Low-confidence dimming only applies when signals_available < 9.
+    assert "benchmark-low-confidence" not in row
+
+
+def test_rating_row_dims_low_confidence_fscore() -> None:
+    row = render_rating_row(
+        _snapshot(piotroski_fscore=Decimal("5"), piotroski_signals_available=Decimal("6"))
+    )
+    assert "benchmark-low-confidence" in row
+    assert "5/9" in row
 
 
 class _FakeSourceSummaryCursor:

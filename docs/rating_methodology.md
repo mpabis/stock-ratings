@@ -65,6 +65,16 @@ A symbol with no analyst history (or a single snapshot) contributes a neutral 50
 so the factor never drops or penalizes uncovered symbols. Computed in
 `transform/analyst_features.py` from `repository/analyst.load_recent_analyst_consensus_by_source`.
 
+## Where to see results
+
+Run `python -m stock_rating.pipeline.report` to (re)generate
+`artifacts/reports/ratings-dashboard.html`. The dashboard shows each symbol's
+composite score, all six factor sub-scores with their A-F grades, the analyst
+badge/target, and the benchmark scores (Piotroski F-Score, Magic Formula rank,
+Acquirer's Multiple). The companion `ratings-methodology.html` documents this
+methodology. Full detail (per-factor percentiles, all benchmark features) lives
+in the `ratings_daily` and `features_daily` tables.
+
 ## Benchmark scores (separate from the composite)
 
 Three externally-validated, fully-specified value/quality scores are computed

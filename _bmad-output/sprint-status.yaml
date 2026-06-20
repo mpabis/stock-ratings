@@ -35,8 +35,8 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2 — Data-pipeline resilience
-  epic-2: in-progress
-  2-1-stooq-rate-limit-resilience: review
+  epic-2: done
+  2-1-stooq-rate-limit-resilience: done
   epic-2-retrospective: optional
 
 # Backlog item detail:

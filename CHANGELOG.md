@@ -14,7 +14,7 @@ This project uses dated entries because it has not adopted public semantic versi
 
 ### Changed
 
-- Made partial Piotroski F-Score values more explicit in generated reports by showing the available-signal denominator and an in-cell low-confidence label.
+- Made Piotroski F-Score confidence clearer in generated reports: full 9-signal values are highlighted, while partial values stay compact and use muted styling plus tooltips.
 
 ### Documentation
 

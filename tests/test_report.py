@@ -59,6 +59,7 @@ def test_rating_row_renders_analyst_revision_grades_and_benchmarks() -> None:
     assert '<sup class="factor-grade">A</sup>' in row  # valuation grade
     assert '<sup class="factor-grade">B</sup>' in row  # analyst revision grade
     assert "7/9" in row
+    assert "benchmark-high-confidence" in row
     assert "3" in row  # magic formula rank
     assert "8.4x" in row  # acquirer's multiple
 
@@ -76,9 +77,9 @@ def test_rating_row_dims_low_confidence_fscore() -> None:
         _snapshot(piotroski_fscore=Decimal("5"), piotroski_signals_available=Decimal("6"))
     )
     assert "benchmark-low-confidence" in row
-    assert "5/6" in row
-    assert "Low conf." in row
-    assert "Low confidence: only 6 of 9 Piotroski signals evaluable" in row
+    assert "5/9" in row
+    assert "Low confidence: 5 positive signals out of only 6 evaluable; 9 required for full confidence" in row
+    assert "Low conf." not in row
 
 
 class _FakeSourceSummaryCursor:

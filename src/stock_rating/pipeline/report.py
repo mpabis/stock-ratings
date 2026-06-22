@@ -1152,25 +1152,18 @@ def render_dashboard_html(
             white-space: nowrap;
             text-align: right;
             color: var(--muted);
-            width: 96px;
+            width: 76px;
+        }}
+        .benchmark-high-confidence {{
+            color: #047857;
+            font-weight: 800;
         }}
         .benchmark-low-confidence {{
-            color: #9a3412;
-            font-weight: 700;
+            color: #b45309;
+            opacity: 0.72;
         }}
         .benchmark-value {{
-            display: block;
-            line-height: 1.05;
-        }}
-        .benchmark-warning {{
-            display: block;
-            margin-top: 2px;
-            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-            font-size: 0.58rem;
-            font-weight: 700;
             line-height: 1;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
         }}
         .factor-track {{
             width: 100%;
@@ -1277,7 +1270,7 @@ def render_dashboard_html(
                                                 <th><button type="button" data-sort-index="8" data-sort-kind="number">Rev</button></th>
                                                 <th><button type="button" data-sort-index="9" data-sort-kind="number">Analyst</button></th>
                                                 <th><button type="button" data-sort-index="10" data-sort-kind="number">Target</button></th>
-                                                <th title="Piotroski F-Score. Full confidence requires all 9 signals; partial values are labeled low confidence."><button type="button" data-sort-index="11" data-sort-kind="number">F-Score</button></th>
+                                                <th title="Piotroski F-Score. Green values use all 9 signals; amber values are partial and low confidence."><button type="button" data-sort-index="11" data-sort-kind="number">F-Score</button></th>
                                                 <th title="Magic Formula combined rank (1 = best)"><button type="button" data-sort-index="12" data-sort-kind="number">Magic</button></th>
                                                 <th title="Acquirer's Multiple, EV/EBIT (lower is cheaper)"><button type="button" data-sort-index="13" data-sort-kind="number">EV/EBIT</button></th>
                     </tr>
@@ -2015,7 +2008,7 @@ def fscore_markdown(score: Decimal | None, signals_available: Decimal | None) ->
     if signals_available is None:
         return str(int(score))
     if signals_available < Decimal("9"):
-        return markdown_cell(f"{int(score)}/{int(signals_available)} low confidence")
+        return markdown_cell(f"{int(score)}/9 low confidence; {int(signals_available)}/9 signals")
     return markdown_cell(f"{int(score)}/9")
 
 
@@ -2080,24 +2073,27 @@ def render_benchmark_cell(value: Decimal | None, fmt: str = "number", sort_floor
 
 
 def render_fscore_cell(score: Decimal | None, signals_available: Decimal | None) -> str:
-    """Piotroski F-Score with explicit low-confidence labeling for partial coverage."""
+    """Piotroski F-Score with confidence communicated by color and tooltip."""
     if score is None:
         return '<td class="benchmark-cell" data-sort="-1">—</td>'
     low_confidence = signals_available is not None and signals_available < Decimal("9")
-    cell_class = "benchmark-cell benchmark-low-confidence" if low_confidence else "benchmark-cell"
-    display_denominator = int(signals_available) if low_confidence and signals_available is not None else 9
-    display = f"{int(score)}/{display_denominator}"
-    confidence_html = '<span class="benchmark-warning">Low conf.</span>' if low_confidence else ""
+    high_confidence = signals_available == Decimal("9")
+    if high_confidence:
+        cell_class = "benchmark-cell benchmark-high-confidence"
+    elif low_confidence:
+        cell_class = "benchmark-cell benchmark-low-confidence"
+    else:
+        cell_class = "benchmark-cell"
+    display = f"{int(score)}/9"
     if low_confidence and signals_available is not None:
-        title = f' title="{escape(f"Low confidence: only {int(signals_available)} of 9 Piotroski signals evaluable")}"'
+        title = f' title="{escape(f"Low confidence: {int(score)} positive signals out of only {int(signals_available)} evaluable; 9 required for full confidence")}"'
     elif signals_available is not None:
-        title = f' title="{escape(str(int(signals_available)))} of 9 Piotroski signals evaluable"'
+        title = f' title="{escape(f"Full confidence: all {int(signals_available)} of 9 Piotroski signals evaluable")}"'
     else:
         title = ""
     return (
         f'<td class="{cell_class}" data-sort="{escape(str(score))}"{title}>'
         f'<span class="benchmark-value">{escape(display)}</span>'
-        f"{confidence_html}"
         "</td>"
     )
 
@@ -2262,7 +2258,7 @@ def render_methodology_markdown(source_refresh_summaries: list[SourceRefreshSumm
             "",
             "| Benchmark | Formula | Interpretation |",
             "|---|---|---|",
-            "| Piotroski F-Score | 0-9 binary profitability / leverage / efficiency signals | Higher is better; partial-coverage values are labeled low confidence when fewer than nine signals are evaluable. |",
+            "| Piotroski F-Score | 0-9 binary profitability / leverage / efficiency signals | Higher is better; full-confidence values are highlighted in HTML, while partial values are muted and explain coverage in the tooltip. |",
             "| Magic Formula | rank(ROIC) + rank(EBIT / enterprise value) | Lower combined rank is better; financials and utilities are excluded when sector is known. |",
             "| Acquirer's Multiple | enterprise value / EBIT | Lower is cheaper. EBIT is approximated with OperatingIncomeLoss. |",
         ]
@@ -2577,7 +2573,7 @@ score = round(percentile_rank(composite, universe) * 100)</span>
                 <article class="card">
                     <h3>Piotroski F-Score</h3>
                     <span class="formula">0-9: nine binary profitability / leverage / efficiency signals</span>
-                    <p>Shown as N/9 when all signals are evaluable. Partial-coverage values show the available denominator and a low-confidence label, for example 3/3 Low conf. Designed as a second-stage filter on already-cheap stocks.</p>
+                    <p>Shown as N/9. Full-confidence values use all nine signals and are highlighted; partial values are muted and explain their lower confidence in the tooltip. Designed as a second-stage filter on already-cheap stocks.</p>
                 </article>
                 <article class="card">
                     <h3>Magic Formula (Greenblatt)</h3>

@@ -4,6 +4,12 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-22 (indicator-docs)
+
+### Documentation
+
+- Added `docs/indicators-explained.md` as a practical reference for using Piotroski F-Score, Magic Formula rank, and EV/EBIT / Acquirer's Multiple when buying and selling stocks.
+
 ## 2026-06-22 (dashboard-targets)
 
 ### Added

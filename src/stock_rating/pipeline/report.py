@@ -617,7 +617,7 @@ def render_dashboard_html(
             min-height: 100vh;
         }}
         .page {{
-            width: min(1180px, calc(100vw - 32px));
+            width: min(1760px, calc(100vw - 32px));
             margin: 0 auto;
             padding: 32px 0 40px;
         }}
@@ -913,16 +913,21 @@ def render_dashboard_html(
             font-size: 0.92rem;
             line-height: 1.45;
         }}
+        .table-scroll {{
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #ffffff;
+        }}
         table {{
             width: 100%;
+            min-width: 1580px;
             border-collapse: collapse;
-            overflow: hidden;
-            border-radius: 10px;
-            border: 1px solid var(--line);
         }}
         th, td {{
             text-align: left;
-            padding: 14px 12px;
+            padding: 14px 10px;
             border-bottom: 1px solid var(--line);
             vertical-align: top;
         }}
@@ -1005,7 +1010,7 @@ def render_dashboard_html(
             color: #7c6f5b;
         }}
         .target-cell {{
-            min-width: 252px;
+            width: 270px;
         }}
         .target-option-one {{
             display: grid;
@@ -1118,6 +1123,7 @@ def render_dashboard_html(
             white-space: nowrap;
             text-align: right;
             color: var(--muted);
+            width: 76px;
         }}
         .benchmark-low-confidence {{
             opacity: 0.55;
@@ -1165,8 +1171,10 @@ def render_dashboard_html(
             .factor-cell {{ min-width: 72px; }}
         }}
         @media (max-width: 720px) {{
-            .page {{ width: min(100vw - 20px, 1180px); padding-top: 20px; }}
+            .page {{ width: min(100vw - 20px, 1760px); padding-top: 20px; }}
             .hero-inner, .section {{ padding: 18px; }}
+            .table-scroll {{ overflow-x: visible; border: 0; }}
+            table {{ min-width: 0; border: 0; }}
             table, thead, tbody, th, td, tr {{ display: block; }}
             thead {{ display: none; }}
             tbody tr {{ padding: 12px 0; border-bottom: 1px solid var(--line); }}
@@ -1210,6 +1218,7 @@ def render_dashboard_html(
                 <h2>Latest ratings</h2>
                 <p>Sorted by score descending so the strongest names surface first.</p>
             </div>
+            <div class="table-scroll">
             <table>
                 <thead>
                     <tr>
@@ -1229,10 +1238,11 @@ def render_dashboard_html(
                                                 <th title="Acquirer's Multiple, EV/EBIT (lower is cheaper)"><button type="button" data-sort-index="13" data-sort-kind="number">EV/EBIT</button></th>
                     </tr>
                 </thead>
-                                <tbody id="ratings-table-body">
+                <tbody id="ratings-table-body">
                     {rows_html}
                 </tbody>
             </table>
+            </div>
         </section>
 
         <section class="section">

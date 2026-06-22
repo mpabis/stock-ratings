@@ -6,6 +6,10 @@ This project uses dated entries because it has not adopted public semantic versi
 
 ## 2026-06-22 (dashboard-targets)
 
+### Changed
+
+- Widened the dashboard content shell and wrapped the ratings table in a horizontal scroll container so the Target and benchmark columns remain aligned inside the Latest ratings section.
+
 ### Fixed
 
 - Changed the dashboard report query so the analyst badge still uses the latest recommendation row while the Target column uses the latest non-null `analyst_target_price`. This prevents newer Finnhub recommendation-only snapshots from hiding older Alpha Vantage target prices.

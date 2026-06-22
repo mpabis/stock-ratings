@@ -4,6 +4,18 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-22 (symbols)
+
+### Added
+
+- Added `UMAC` (Unusual Machines Inc.) to `data/symbols.csv` as an active tier 2 symbol.
+
+## 2026-06-22 (f-score-presentation)
+
+### Changed
+
+- Kept full-confidence Piotroski F-Score cells visually plain in generated reports, while partial low-confidence values remain muted with explanatory tooltips.
+
 ## 2026-06-22 (report-workflow)
 
 ### Added

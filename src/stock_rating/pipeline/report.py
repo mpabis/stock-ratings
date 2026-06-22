@@ -1154,10 +1154,6 @@ def render_dashboard_html(
             color: var(--muted);
             width: 76px;
         }}
-        .benchmark-high-confidence {{
-            color: #047857;
-            font-weight: 800;
-        }}
         .benchmark-low-confidence {{
             color: #b45309;
             opacity: 0.72;
@@ -2077,10 +2073,7 @@ def render_fscore_cell(score: Decimal | None, signals_available: Decimal | None)
     if score is None:
         return '<td class="benchmark-cell" data-sort="-1">—</td>'
     low_confidence = signals_available is not None and signals_available < Decimal("9")
-    high_confidence = signals_available == Decimal("9")
-    if high_confidence:
-        cell_class = "benchmark-cell benchmark-high-confidence"
-    elif low_confidence:
+    if low_confidence:
         cell_class = "benchmark-cell benchmark-low-confidence"
     else:
         cell_class = "benchmark-cell"

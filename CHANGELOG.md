@@ -4,6 +4,12 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-22 (report-workflow)
+
+### Added
+
+- Added a manual `regenerate-reports` GitHub Actions workflow that regenerates report artifacts from the current database state and deploys them to GitHub Pages without running the daily data-refresh planner.
+
 ## 2026-06-22 (indicator-docs)
 
 ### Changed

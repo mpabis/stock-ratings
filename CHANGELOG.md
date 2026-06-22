@@ -4,6 +4,16 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-22 (dashboard-targets)
+
+### Fixed
+
+- Changed the dashboard report query so the analyst badge still uses the latest recommendation row while the Target column uses the latest non-null `analyst_target_price`. This prevents newer Finnhub recommendation-only snapshots from hiding older Alpha Vantage target prices.
+
+### Tests
+
+- Added a regression test for the separate latest-analyst and latest-target report query paths.
+
 ## 2026-06-20 (stooq-resilience)
 
 ### Changed

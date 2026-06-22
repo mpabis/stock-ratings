@@ -268,7 +268,6 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
             latest_analyst as (
                 select distinct on (symbol)
                     symbol,
-                    analyst_target_price,
                     suggestion_label,
                     strong_buy_count,
                     buy_count,
@@ -276,6 +275,14 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                     sell_count,
                     strong_sell_count
                 from analyst_consensus_daily
+                order by symbol, date desc, ingested_at desc
+            ),
+            latest_analyst_target as (
+                select distinct on (symbol)
+                    symbol,
+                    analyst_target_price
+                from analyst_consensus_daily
+                where analyst_target_price is not null
                 order by symbol, date desc, ingested_at desc
             ),
             latest_prices as (
@@ -322,7 +329,7 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 rr.momentum_score,
                 rr.risk_score,
                 rr.explanation_json,
-                la.analyst_target_price,
+                lt.analyst_target_price,
                 la.suggestion_label,
                 lp.latest_price_close,
                 la.strong_buy_count,
@@ -343,6 +350,7 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 lf.acquirers_multiple
             from ranked_ratings rr
             left join latest_analyst la on la.symbol = rr.symbol
+            left join latest_analyst_target lt on lt.symbol = rr.symbol
             left join latest_prices lp on lp.symbol = rr.symbol
             left join latest_features lf on lf.symbol = rr.symbol
             where rr.row_number = 1

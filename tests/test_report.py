@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from stock_rating.pipeline.report import (
     fetch_source_refresh_summaries_from_db,
+    fetch_latest_ratings,
     RatingSnapshot,
     SourceRefreshSummary,
     render_dashboard_html,
@@ -34,7 +35,7 @@ def _snapshot(**overrides) -> RatingSnapshot:
 
 
 def test_factor_cell_shows_grade_when_provided() -> None:
-    assert '<span class="factor-grade">A</span>' in render_factor_cell("Valuation", Decimal("90"), "A")
+    assert '<sup class="factor-grade">A</sup>' in render_factor_cell("Valuation", Decimal("90"), "A")
     assert "factor-grade" not in render_factor_cell("Valuation", Decimal("90"), None)
 
 
@@ -51,8 +52,8 @@ def test_rating_row_renders_analyst_revision_grades_and_benchmarks() -> None:
         )
     )
     assert "Rev" in row  # analyst-revision factor cell (short name)
-    assert '<span class="factor-grade">A</span>' in row  # valuation grade
-    assert '<span class="factor-grade">B</span>' in row  # analyst revision grade
+    assert '<sup class="factor-grade">A</sup>' in row  # valuation grade
+    assert '<sup class="factor-grade">B</sup>' in row  # analyst revision grade
     assert "7/9" in row
     assert "3" in row  # magic formula rank
     assert "8.4x" in row  # acquirer's multiple
@@ -88,6 +89,65 @@ class _FakeSourceSummaryCursor:
             ("twelve_data", 3, 1, 1, 1, datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC)),
             ("stooq", 2, 2, 0, 0, datetime(2026, 5, 28, 23, 5, 14, tzinfo=UTC)),
         ]
+
+
+class _FakeLatestRatingsCursor:
+    def __init__(self) -> None:
+        self.query: str | None = None
+
+    def execute(self, query: str) -> None:
+        self.query = query
+
+    def fetchall(self):
+        return [
+            (
+                "MU",
+                "Micron Technology Inc.",
+                100,
+                "A / Very Attractive",
+                "fresh",
+                date(2026, 6, 20),
+                Decimal("67"),
+                Decimal("74"),
+                Decimal("84"),
+                Decimal("100"),
+                Decimal("60"),
+                {"summary": "Strong latest profile."},
+                Decimal("652.98"),
+                "strong_buy",
+                Decimal("117.83"),
+                18,
+                33,
+                3,
+                1,
+                0,
+                Decimal("50"),
+                "A",
+                "B",
+                "A",
+                "A",
+                "C",
+                "C",
+                None,
+                None,
+                None,
+                None,
+            )
+        ]
+
+
+def test_fetch_latest_ratings_uses_latest_non_null_target_separately() -> None:
+    cursor = _FakeLatestRatingsCursor()
+
+    ratings = fetch_latest_ratings(cursor)
+
+    assert ratings[0].analyst_suggestion_label == "strong_buy"
+    assert ratings[0].analyst_target_price == Decimal("652.98")
+    assert cursor.query is not None
+    assert "latest_analyst_target as" in cursor.query
+    assert "where analyst_target_price is not null" in cursor.query
+    assert "left join latest_analyst_target lt on lt.symbol = rr.symbol" in cursor.query
+    assert "lt.analyst_target_price" in cursor.query
 
 
 def test_render_dashboard_places_ratings_before_portfolio_snapshot() -> None:

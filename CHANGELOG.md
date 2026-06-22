@@ -6,6 +6,10 @@ This project uses dated entries because it has not adopted public semantic versi
 
 ## 2026-06-22 (dashboard-targets)
 
+### Added
+
+- Added agent-readable report artifacts alongside the HTML dashboard: `ratings-dashboard.md`, `ratings-dashboard.json`, and `ratings-methodology.md`. GitHub Pages packaging now publishes all files from `artifacts/reports/`.
+
 ### Changed
 
 - Widened the dashboard content shell and wrapped the ratings table in a horizontal scroll container so the Target and benchmark columns remain aligned inside the Latest ratings section.

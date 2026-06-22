@@ -19,7 +19,7 @@
 - Surface stale ratings to downstream consumers.
 - Update `data/symbols.csv` to change the tracked symbol universe or refresh tiers.
 - Inspect `artifacts/plans/` for the latest persisted planner run output.
-- Inspect `artifacts/reports/ratings-dashboard.html` for the latest presentation-friendly ratings view.
+- Inspect `artifacts/reports/ratings-dashboard.html` for the presentation-friendly view, `ratings-dashboard.md` for agent-readable review, or `ratings-dashboard.json` for structured parsing.
 - Configure `DATABASE_URL` to persist `pipeline_runs` and `symbol_refresh_runs` into Postgres.
 - Apply migrations before running the bootstrap or daily pipeline against a fresh database.
 - Use `python -m stock_rating.pipeline.migrate` to apply outstanding migrations after pulling new changes.

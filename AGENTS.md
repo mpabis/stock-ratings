@@ -27,7 +27,7 @@
 - Bootstrap SEC fundamentals: `python -m stock_rating.pipeline.bootstrap_fundamentals`
 - Backfill historical daily prices: `python -m stock_rating.pipeline.backfill`
 - Check database connection: `python -m stock_rating.pipeline.check_db`
-- Report latest database state and generate HTML dashboard: `python -m stock_rating.pipeline.report`
+- Report latest database state and generate dashboard artifacts: `python -m stock_rating.pipeline.report`
 
 ## Configuration
 
@@ -41,7 +41,7 @@
 - Tracked symbols live in `data/symbols.csv`; update it before running `python -m stock_rating.pipeline.bootstrap_symbols`.
 - SQL schema lives in `sql/schema.sql`; migrations live in `sql/migrations/`.
 - Planner artifacts are written under `artifacts/plans/`.
-- Dashboard output is written to `artifacts/reports/ratings-dashboard.html`.
+- Report output is written under `artifacts/reports/`, including HTML for humans plus Markdown/JSON companions for AI agents.
 
 ## Rules
 

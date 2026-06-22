@@ -1,3 +1,4 @@
+import json
 from datetime import date, datetime, UTC
 from decimal import Decimal
 
@@ -6,9 +7,12 @@ from stock_rating.pipeline.report import (
     fetch_latest_ratings,
     RatingSnapshot,
     SourceRefreshSummary,
+    render_dashboard_json,
     render_dashboard_html,
+    render_dashboard_markdown,
     render_factor_cell,
     render_methodology_html,
+    render_methodology_markdown,
     render_rating_row,
     yahoo_finance_symbol,
     yahoo_finance_url,
@@ -203,6 +207,67 @@ def test_render_dashboard_includes_source_call_summary() -> None:
     assert "1 succeeded, 1 failed" in html
 
 
+def test_render_dashboard_markdown_is_agent_readable() -> None:
+    markdown = render_dashboard_markdown(
+        ratings=[
+            _snapshot(
+                symbol="MU",
+                company_name="Micron Technology Inc.",
+                analyst_target_price=Decimal("945.60"),
+                latest_price_close=Decimal("1134.00"),
+                analyst_suggestion_label="strong_buy",
+                strong_buy_count=18,
+                buy_count=33,
+                hold_count=3,
+                sell_count=1,
+                strong_sell_count=0,
+            )
+        ],
+        latest_run=("run-123", "success", datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC), datetime(2026, 5, 28, 23, 4, 52, tzinfo=UTC)),
+        latest_run_counts={"succeeded": 1},
+        source_refresh_summaries=[SourceRefreshSummary(source="finnhub", calls=5, succeeded=5, failed=0, status="succeeded")],
+        table_counts={"symbols": 1, "ratings_daily": 1, "pipeline_runs": 1, "symbol_refresh_runs": 1, "price_daily": 1, "features_daily": 1},
+        quality_alerts=[],
+    )
+
+    assert markdown.startswith("# Stock Ratings Dashboard")
+    assert "| Rank | Symbol | Company | Score |" in markdown
+    assert "| 1 | MU | Micron Technology Inc. |" in markdown
+    assert "$945.60" in markdown
+    assert "## Source Calls" in markdown
+
+
+def test_render_dashboard_json_has_structured_targets() -> None:
+    payload = json.loads(
+        render_dashboard_json(
+            ratings=[
+                _snapshot(
+                    symbol="MU",
+                    analyst_target_price=Decimal("945.60"),
+                    latest_price_close=Decimal("1134.00"),
+                    analyst_suggestion_label="strong_buy",
+                    strong_buy_count=18,
+                    buy_count=33,
+                    hold_count=3,
+                    sell_count=1,
+                    strong_sell_count=0,
+                )
+            ],
+            latest_run=("run-123", "success", datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC), datetime(2026, 5, 28, 23, 4, 52, tzinfo=UTC)),
+            latest_run_counts={"succeeded": 1},
+            source_refresh_summaries=[],
+            table_counts={"symbols": 1, "ratings_daily": 1, "pipeline_runs": 1, "symbol_refresh_runs": 1, "price_daily": 1, "features_daily": 1},
+            quality_alerts=[],
+        )
+    )
+
+    assert payload["artifact"] == "ratings-dashboard"
+    assert payload["ratings"][0]["symbol"] == "MU"
+    assert payload["ratings"][0]["analyst"]["target_price"] == 945.6
+    assert payload["ratings"][0]["analyst"]["derived_targets"]["mid"]["upside_percent"] == -16.6
+    assert payload["latest_run"]["run_id"] == "run-123"
+
+
 def test_fetch_source_refresh_summaries_from_db_aggregates_status() -> None:
     cursor = _FakeSourceSummaryCursor()
 
@@ -268,3 +333,18 @@ def test_render_methodology_includes_factor_and_source_sections() -> None:
     assert "Final Composite Score" in html
     assert "FRED" in html
     assert "SEC EDGAR" in html
+
+
+def test_render_methodology_markdown_includes_formulas_and_sources() -> None:
+    markdown = render_methodology_markdown(
+        [
+            SourceRefreshSummary(source="fred", calls=2, succeeded=2, failed=0, status="succeeded"),
+            SourceRefreshSummary(source="sec_edgar", calls=5, succeeded=4, failed=1, status="partial"),
+        ]
+    )
+
+    assert markdown.startswith("# Stock Rating Methodology")
+    assert "## Factor Calculations" in markdown
+    assert "```text" in markdown
+    assert "composite = valuation*0.225" in markdown
+    assert "| FRED | 2 | 2 | 0 | Succeeded |" in markdown

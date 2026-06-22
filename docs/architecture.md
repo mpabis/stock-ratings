@@ -17,7 +17,7 @@ same-day refresh of every symbol — Tier 1 first, Tier 2/3 rolling across days.
 | Transform | `transform/` | Derive features from raw data: `features.py` (price/technical), `fundamentals.py` (SEC ratios + the shared `annual_values_by_metric` helper), `benchmark_scores.py` (Piotroski / Magic Formula / Acquirer's Multiple), `analyst_features.py` (estimate-revision factor), `macro.py` |
 | Rating | `rating/` | `model_v1.py` (per-symbol composite, `MODEL_VERSION`), `scoring.py` (label vocabulary), `percentile_ranking.py` (cross-sectional grading + canonical `COMPOSITE_WEIGHTS`), `universe_grading.py` (pass-2 orchestration), `magic_formula.py` (combined-rank pass), `explanations.py` |
 | Repository | `repository/` | DB reads/writes per table (`ratings`, `analyst`, `fundamentals`, `prices`, `macro`, `symbols`, `runs`). Defensive `try/except → default` style; all DB access is injectable for tests |
-| Pipeline | `pipeline/` | Orchestration: `daily.py` (`run_pipeline`), `weekend.py`, `migrate.py`, `report.py` (dashboard + methodology HTML), bootstrap + backfill utilities |
+| Pipeline | `pipeline/` | Orchestration: `daily.py` (`run_pipeline`), `weekend.py`, `migrate.py`, `report.py` (dashboard + methodology HTML/Markdown/JSON artifacts), bootstrap + backfill utilities |
 | API | `api/app.py` | FastAPI; `/api/ratings` serves the latest ratings |
 
 Data flows one direction: **ingest → transform → rating → repository → (report / api)**.
@@ -62,5 +62,6 @@ first then pending files). Key tables: `symbols`, `price_daily`,
 
 GitHub Actions runs the daily/weekend pipelines. Each run writes `pipeline_runs`
 + `symbol_refresh_runs`, refreshes per the tier plan, recomputes ratings, runs
-the two universe passes, and `pipeline.report` regenerates
-`artifacts/reports/ratings-dashboard.html` and `ratings-methodology.html`.
+the two universe passes, and `pipeline.report` regenerates the report artifacts
+under `artifacts/reports/`: HTML for humans, Markdown for agent-readable
+narrative review, and JSON for deterministic parsing.

@@ -23,7 +23,7 @@ Hosted daily stock ratings pipeline scaffold for free-only market data sources.
 - Apply pending SQL migrations: `python -m stock_rating.pipeline.migrate`
 - Bootstrap SEC fundamentals into `fundamental_facts`: `python -m stock_rating.pipeline.bootstrap_fundamentals`
 - Check database connection safely: `python -m stock_rating.pipeline.check_db`
-- Report latest database state and generate HTML dashboard: `python -m stock_rating.pipeline.report`
+- Report latest database state and generate dashboard artifacts: `python -m stock_rating.pipeline.report`
 
 Optional provider note:
 - `STOOQ_API_KEY` can be configured to enable Stooq as a third fallback provider for symbols that Alpha Vantage or Twelve Data do not cover on your current plan.
@@ -99,9 +99,10 @@ Console summary:
 - Run `python -m stock_rating.pipeline.report`
 - This prints the latest run metadata and row counts for the main tables.
 
-HTML dashboard:
+Report artifacts:
 - Open [artifacts/reports/ratings-dashboard.html](artifacts/reports/ratings-dashboard.html)
-- This dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and active data quality alerts for stale prices or missing ratings.
+- The HTML dashboard shows the latest ratings snapshot, score breakdowns, freshness state, and active data quality alerts for stale prices or missing ratings.
+- For AI agents and automation, prefer [artifacts/reports/ratings-dashboard.md](artifacts/reports/ratings-dashboard.md), [artifacts/reports/ratings-dashboard.json](artifacts/reports/ratings-dashboard.json), and [artifacts/reports/ratings-methodology.md](artifacts/reports/ratings-methodology.md). Markdown is easiest for narrative review; JSON is best for deterministic parsing.
 
 Hosted mobile dashboard (GitHub Pages):
 - The daily and weekend workflows can publish the latest dashboard to GitHub Pages.
@@ -143,4 +144,4 @@ Use Supabase Postgres for the hosted MVP.
 - Pipeline run metadata persisted to Postgres when `DATABASE_URL` is configured
 - Successful refreshes can persist derived price features into `features_daily`
 - Successful refreshes can persist ratings into `ratings_daily`
-- The report command writes a styled dashboard to `artifacts/reports/ratings-dashboard.html`
+- The report command writes HTML, Markdown, and JSON artifacts under `artifacts/reports/`

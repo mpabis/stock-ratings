@@ -75,6 +75,12 @@ Acquirer's Multiple). The companion `ratings-methodology.html` documents this
 methodology. Full detail (per-factor percentiles, all benchmark features) lives
 in the `ratings_daily` and `features_daily` tables.
 
+The report command also writes agent-readable companions:
+
+- `artifacts/reports/ratings-dashboard.md` — Markdown summary and ratings table.
+- `artifacts/reports/ratings-dashboard.json` — structured ratings payload for deterministic parsing.
+- `artifacts/reports/ratings-methodology.md` — Markdown methodology optimized for AI/code-review context.
+
 ## Benchmark scores (separate from the composite)
 
 Three externally-validated, fully-specified value/quality scores are computed

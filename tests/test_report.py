@@ -76,7 +76,9 @@ def test_rating_row_dims_low_confidence_fscore() -> None:
         _snapshot(piotroski_fscore=Decimal("5"), piotroski_signals_available=Decimal("6"))
     )
     assert "benchmark-low-confidence" in row
-    assert "5/9" in row
+    assert "5/6" in row
+    assert "Low conf." in row
+    assert "Low confidence: only 6 of 9 Piotroski signals evaluable" in row
 
 
 class _FakeSourceSummaryCursor:

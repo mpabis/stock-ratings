@@ -222,7 +222,7 @@
                     <tr><th>Source</th><th>Calls</th><th>Succeeded</th><th>Failed</th><th>Status</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>FRED</td><td>2</td><td>2</td><td>0</td><td>Succeeded</td></tr><tr><td>SEC EDGAR</td><td>10</td><td>5</td><td>0</td><td>Partial</td></tr><tr><td>Alpha Vantage Overview</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr><tr><td>Finnhub</td><td>5</td><td>5</td><td>0</td><td>Succeeded</td></tr><tr><td>Local Rating Rebuild</td><td>106</td><td>106</td><td>0</td><td>Succeeded</td></tr><tr><td>Price Refresh</td><td>0</td><td>0</td><td>0</td><td>Skipped</td></tr>
+                    <tr><td>SEC EDGAR</td><td>7</td><td>2</td><td>0</td><td>Partial</td></tr><tr><td>Alpha Vantage Overview</td><td>26</td><td>25</td><td>1</td><td>Partial</td></tr>
                 </tbody>
             </table>
         </section>
@@ -290,7 +290,7 @@ score = round(percentile_rank(composite, universe) * 100)</span>
                 <article class="card">
                     <h3>Piotroski F-Score</h3>
                     <span class="formula">0-9: nine binary profitability / leverage / efficiency signals</span>
-                    <p>Shown as N/9; dimmed when fewer than nine signals were evaluable (low confidence). Designed as a second-stage filter on already-cheap stocks.</p>
+                    <p>Shown as N/9 when all signals are evaluable. Partial-coverage values show the available denominator and a low-confidence label, for example 3/3 Low conf. Designed as a second-stage filter on already-cheap stocks.</p>
                 </article>
                 <article class="card">
                     <h3>Magic Formula (Greenblatt)</h3>

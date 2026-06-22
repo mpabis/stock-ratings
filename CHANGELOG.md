@@ -6,6 +6,10 @@ This project uses dated entries because it has not adopted public semantic versi
 
 ## 2026-06-22 (indicator-docs)
 
+### Changed
+
+- Made partial Piotroski F-Score values more explicit in generated reports by showing the available-signal denominator and an in-cell low-confidence label.
+
 ### Documentation
 
 - Added `docs/indicators-explained.md` as a practical reference for using Piotroski F-Score, Magic Formula rank, and EV/EBIT / Acquirer's Multiple when buying and selling stocks.

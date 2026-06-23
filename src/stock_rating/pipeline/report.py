@@ -789,8 +789,10 @@ def render_dashboard_html(
         }}
         .source-metrics-table {{
             width: 100%;
+            min-width: 0;
             border-collapse: collapse;
             font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+            table-layout: fixed;
         }}
         .source-metrics-table th,
         .source-metrics-table td {{
@@ -817,6 +819,18 @@ def render_dashboard_html(
             font-weight: 700;
             letter-spacing: 0.04em;
             white-space: normal;
+        }}
+        .source-metrics-table th:nth-child(2),
+        .source-metrics-table td:nth-child(2),
+        .source-metrics-table th:nth-child(4),
+        .source-metrics-table td:nth-child(4),
+        .source-metrics-table th:nth-child(5),
+        .source-metrics-table td:nth-child(5) {{
+            width: 56px;
+        }}
+        .source-metrics-table th:nth-child(3),
+        .source-metrics-table td:nth-child(3) {{
+            width: 84px;
         }}
         .source-status-chip {{
             display: inline-flex;

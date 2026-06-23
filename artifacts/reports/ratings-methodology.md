@@ -30,7 +30,10 @@ Grades are assigned by percentile rank against the tracked universe in even 20% 
 | Source | Calls | Succeeded | Failed | Status |
 |---|---:|---:|---:|---|
 | SEC EDGAR | 7 | 2 | 0 | Partial |
-| Alpha Vantage Overview | 26 | 25 | 1 | Partial |
+| Alpha Vantage | 20 | 19 | 1 | Partial |
+| Twelve Data | 12 | 12 | 0 | Succeeded |
+| Stooq | 1 | 0 | 1 | Failed |
+| Alpha Vantage Overview | 6 | 5 | 1 | Partial |
 
 ## Factor Calculations
 

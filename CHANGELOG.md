@@ -4,6 +4,16 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-23 (dashboard-run-panel)
+
+### Fixed
+
+- Fixed the latest pipeline run panel so its source-call summary table stays within the hero card instead of inheriting the wide ratings-table minimum width.
+
+### Tests
+
+- Added a dashboard renderer regression assertion for the compact source-call table styles.
+
 ## 2026-06-22 (symbols)
 
 ### Added

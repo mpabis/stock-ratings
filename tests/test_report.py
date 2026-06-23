@@ -209,6 +209,9 @@ def test_render_dashboard_includes_source_call_summary() -> None:
     assert "4 succeeded, 0 failed" in html
     assert "Alpha Vantage" in html
     assert "1 succeeded, 1 failed" in html
+    assert ".source-metrics-table {" in html
+    assert "min-width: 0;" in html
+    assert "table-layout: fixed;" in html
 
 
 def test_render_dashboard_markdown_is_agent_readable() -> None:

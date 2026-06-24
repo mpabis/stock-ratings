@@ -166,12 +166,14 @@ def fetch_source_refresh_summaries(cursor: Any, run_id: str | None) -> list[Sour
                     continue
                 try:
                     results.append(
-                        SourceRefreshSummary(
-                            source=str(item.get("source", "unknown")),
-                            calls=int(item.get("calls", 0)),
-                            succeeded=int(item.get("succeeded", 0)),
-                            failed=int(item.get("failed", 0)),
-                            status=str(item.get("status", "unknown")),
+                        normalize_source_summary(
+                            SourceRefreshSummary(
+                                source=str(item.get("source", "unknown")),
+                                calls=int(item.get("calls", 0)),
+                                succeeded=int(item.get("succeeded", 0)),
+                                failed=int(item.get("failed", 0)),
+                                status=str(item.get("status", "unknown")),
+                            )
                         )
                     )
                 except Exception:
@@ -231,6 +233,18 @@ def source_summary_status(calls: int, succeeded: int, failed: int, skipped: int)
     if succeeded == 0 and failed > 0:
         return "failed"
     return "partial"
+
+
+def normalize_source_summary(summary: SourceRefreshSummary) -> SourceRefreshSummary:
+    if summary.calls == 0:
+        return SourceRefreshSummary(
+            source=summary.source,
+            calls=0,
+            succeeded=0,
+            failed=0,
+            status="skipped",
+        )
+    return summary
 
 
 def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
@@ -850,6 +864,10 @@ def render_dashboard_html(
             color: var(--warn);
             background: rgba(213, 166, 63, 0.14);
         }}
+        .source-status-skipped {{
+            color: var(--muted);
+            background: rgba(94, 107, 120, 0.10);
+        }}
         .source-status-failed {{
             color: var(--warm);
             background: rgba(184, 92, 56, 0.16);
@@ -1415,6 +1433,7 @@ def render_dashboard_markdown(
     )
     if source_refresh_summaries:
         for summary in source_refresh_summaries:
+            summary = normalize_source_summary(summary)
             lines.append(
                 "| "
                 f"{markdown_cell(format_source_name(summary.source))} | "
@@ -1498,6 +1517,7 @@ def render_dashboard_json(
     average_score = round(sum(rating.rating_score for rating in ratings) / len(ratings), 1) if ratings else 0.0
     latest_input_date = max((rating.freshest_input_date for rating in ratings if rating.freshest_input_date), default=None)
     run_summary = render_run_summary(latest_run, latest_run_counts)
+    source_refresh_summaries = [normalize_source_summary(summary) for summary in source_refresh_summaries]
     payload = {
         "artifact": "ratings-dashboard",
         "format_version": 1,
@@ -1564,7 +1584,7 @@ def render_source_metrics_table(source_refresh_summaries: list[SourceRefreshSumm
             '</div>'
         )
 
-    rows_html = "".join(render_source_metric_row(summary) for summary in source_refresh_summaries)
+    rows_html = "".join(render_source_metric_row(normalize_source_summary(summary)) for summary in source_refresh_summaries)
     return (
         '<div class="source-metrics-table-wrap">'
         '<table class="source-metrics-table">'
@@ -1596,6 +1616,8 @@ def source_status_class(status: str) -> str:
         return "source-status-succeeded"
     if normalized == "partial":
         return "source-status-partial"
+    if normalized == "skipped":
+        return "source-status-skipped"
     return "source-status-failed"
 
 
@@ -1605,6 +1627,8 @@ def short_source_status(status: str) -> str:
         return "OK"
     if normalized == "partial":
         return "Partial"
+    if normalized == "skipped":
+        return "Skipped"
     return "Failed"
 
 
@@ -2178,6 +2202,7 @@ def render_methodology_markdown(source_refresh_summaries: list[SourceRefreshSumm
 
     if source_refresh_summaries:
         for summary in source_refresh_summaries:
+            summary = normalize_source_summary(summary)
             lines.append(
                 "| "
                 f"{markdown_cell(format_source_name(summary.source))} | "
@@ -2285,7 +2310,7 @@ def render_methodology_html(source_refresh_summaries: list[SourceRefreshSummary]
             f"<td>{escape(summary.status.replace('_', ' ').title())}</td>"
             "</tr>"
         )
-        for summary in source_refresh_summaries
+        for summary in (normalize_source_summary(summary) for summary in source_refresh_summaries)
     ) or "<tr><td colspan=\"5\">No source call summary available in latest artifact.</td></tr>"
 
     return f"""<!doctype html>

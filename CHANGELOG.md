@@ -4,6 +4,26 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-06-24 (source-call-status)
+
+### Changed
+
+- Routed Xetra price refreshes through Stooq before Alpha Vantage so symbols such as `ETR:AIXA` no longer burn Alpha Vantage calls on invalid daily-price requests; if Stooq is rate-limited, Twelve Data can still be tried as the same-run fallback.
+- Exposed hosted workflow cap knobs for price, fundamental, and analyst refreshes so provider slack can be used by setting GitHub secrets instead of changing code.
+- Applied first-pass hosted caps: 18 Alpha Vantage price calls, 24 Twelve Data calls, 6 Alpha Vantage overview analyst symbols, and 5 Finnhub analyst symbols.
+- Printed configured run caps in pipeline logs so provider-call usage can be compared against the active limits after each hosted run.
+
+### Fixed
+
+- Rendered zero-call source summaries as neutral skipped entries instead of failed entries in generated dashboard and methodology reports.
+- Treated blank optional numeric environment variables as unset, allowing GitHub Actions to pass optional cap secrets safely.
+
+### Tests
+
+- Added a dashboard regression test for zero-call source summary normalization across HTML, Markdown, and JSON outputs.
+- Added price-planner regression tests for Xetra Stooq-first routing when Alpha Vantage is configured and for Twelve Data fallback after a Stooq-first rate limit.
+- Added config tests for blank optional numeric environment variables and runtime env reads.
+
 ## 2026-06-23 (dashboard-run-panel)
 
 ### Fixed

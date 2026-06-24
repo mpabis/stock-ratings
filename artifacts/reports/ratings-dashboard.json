@@ -17,9 +17,9 @@
   },
   "format_version": 1,
   "latest_run": {
-    "finished_at": "2026-06-22T23:09:21.320741+00:00",
-    "run_id": "16a767a9-d068-4b5d-a0cb-4beb1dc1a7f6",
-    "started_at": "2026-06-22T23:03:54.820350+00:00",
+    "finished_at": "2026-06-23T22:59:49.263333+00:00",
+    "run_id": "9651ef30-5761-46cb-b30f-8e6088c60978",
+    "started_at": "2026-06-23T22:54:14.352213+00:00",
     "status": "partial",
     "status_counts": {
       "failed": 1,
@@ -29,107 +29,34 @@
     },
     "summary": {
       "detail": "Last database-backed refresh attempt for the tracked universe.",
-      "finished_at": "Jun 22, 2026, 23:09 UTC",
+      "finished_at": "Jun 23, 2026, 22:59 UTC",
       "headline": "Partial update",
       "result": "38 succeeded, 1 failed, 2 rate limited",
-      "run_id": "16a767a9-d068-4b5d-a0cb-4beb1dc1a7f6",
-      "started_at": "Jun 22, 2026, 23:03 UTC",
+      "run_id": "9651ef30-5761-46cb-b30f-8e6088c60978",
+      "started_at": "Jun 23, 2026, 22:54 UTC",
       "status_class": "run-status-partial",
       "status_text": "partial"
     }
   },
   "portfolio": {
     "average_score": 50.0,
-    "latest_input_date": "2026-06-22",
-    "published_ratings": 875,
+    "latest_input_date": "2026-06-23",
+    "published_ratings": 906,
     "tracked_symbols": 115
   },
   "quality_alerts": [
     {
       "code": "stale_price",
-      "message": "Latest stored price is 12 trading days old for tier 3.",
+      "message": "Latest stored price is 13 trading days old for tier 3.",
       "symbol": "ETR:AIXA"
     },
     {
       "code": "stale_price",
-      "message": "Latest stored price is 9 trading days old for tier 3.",
+      "message": "Latest stored price is 10 trading days old for tier 3.",
       "symbol": "ETR:RHM"
     }
   ],
   "ratings": [
-    {
-      "analyst": {
-        "buy_count": 30,
-        "derived_targets": {
-          "high": {
-            "price": 1064.01,
-            "upside_percent": -12.2
-          },
-          "low": {
-            "price": 827.19,
-            "upside_percent": -31.7
-          },
-          "mid": {
-            "price": 945.6,
-            "upside_percent": -21.9
-          }
-        },
-        "hold_count": 4,
-        "sell_count": 1,
-        "strong_buy_count": 9,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 945.6
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 3.0
-      },
-      "company_name": "Micron Technology Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "A",
-          "score": 94.47210202734874,
-          "score_10": 9.447210202734874
-        },
-        "growth": {
-          "grade": "A",
-          "score": 80.23997139742812,
-          "score_10": 8.02399713974281
-        },
-        "momentum": {
-          "grade": "A",
-          "score": 100.0,
-          "score_10": 10.0
-        },
-        "quality": {
-          "grade": "B",
-          "score": 75.03201857872372,
-          "score_10": 7.503201857872372
-        },
-        "risk": {
-          "grade": "C",
-          "score": 59.93949107207044,
-          "score_10": 5.993949107207044
-        },
-        "valuation": {
-          "grade": "A",
-          "score": 67.976605508814,
-          "score_10": 6.7976605508814005
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 1211.38,
-      "rank": 1,
-      "score": 100,
-      "score_10": 10.0,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "MU"
-    },
     {
       "analyst": {
         "buy_count": 14,
@@ -178,7 +105,7 @@
           "score_10": 10.0
         },
         "quality": {
-          "grade": "B",
+          "grade": "A",
           "score": 80.15016478903888,
           "score_10": 8.015016478903888
         },
@@ -197,126 +124,53 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 259.56,
-      "rank": 2,
-      "score": 99,
-      "score_10": 9.9,
+      "rank": 1,
+      "score": 100,
+      "score_10": 10.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "KLAC"
     },
     {
       "analyst": {
-        "buy_count": 31,
+        "buy_count": 30,
         "derived_targets": {
           "high": {
-            "price": 268.65,
-            "upside_percent": -12.7
+            "price": 1064.01,
+            "upside_percent": 1.2
           },
           "low": {
-            "price": 208.85,
-            "upside_percent": -32.2
+            "price": 827.19,
+            "upside_percent": -21.4
           },
           "mid": {
-            "price": 238.75,
-            "upside_percent": -22.4
+            "price": 945.6,
+            "upside_percent": -10.1
           }
         },
-        "hold_count": 5,
-        "sell_count": 0,
-        "strong_buy_count": 8,
+        "hold_count": 4,
+        "sell_count": 1,
+        "strong_buy_count": 9,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 238.75
-      },
-      "benchmarks": {
-        "acquirers_multiple": 202.4892599591806,
-        "magic_formula_combined_rank": 7.0,
-        "piotroski_fscore": 7.0,
-        "piotroski_signals_available": 9.0
-      },
-      "company_name": "Marvell Technology Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "A",
-          "score": 71.4252417236633,
-          "score_10": 7.142524172366331
-        },
-        "momentum": {
-          "grade": "A",
-          "score": 100.0,
-          "score_10": 10.0
-        },
-        "quality": {
-          "grade": "A",
-          "score": 85.50697934775812,
-          "score_10": 8.550697934775812
-        },
-        "risk": {
-          "grade": "C",
-          "score": 60.7984554072451,
-          "score_10": 6.07984554072451
-        },
-        "valuation": {
-          "grade": "C",
-          "score": 61.08462382508544,
-          "score_10": 6.108462382508544
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 307.86,
-      "rank": 3,
-      "score": 98,
-      "score_10": 9.8,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "MRVL"
-    },
-    {
-      "analyst": {
-        "buy_count": 21,
-        "derived_targets": {
-          "high": {
-            "price": 508.4,
-            "upside_percent": 17.0
-          },
-          "low": {
-            "price": 393.06,
-            "upside_percent": -9.5
-          },
-          "mid": {
-            "price": 450.73,
-            "upside_percent": 3.7
-          }
-        },
-        "hold_count": 6,
-        "sell_count": 0,
-        "strong_buy_count": 7,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 450.73
+        "target_price": 945.6
       },
       "benchmarks": {
         "acquirers_multiple": null,
         "magic_formula_combined_rank": null,
-        "piotroski_fscore": 4.0,
-        "piotroski_signals_available": 4.0
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 3.0
       },
-      "company_name": "Analog Devices Inc.",
+      "company_name": "Micron Technology Inc.",
       "factors": {
         "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
+          "grade": "A",
+          "score": 94.47210202734874,
+          "score_10": 9.447210202734874
         },
         "growth": {
-          "grade": "A",
-          "score": 68.21781684689562,
-          "score_10": 6.821781684689562
+          "grade": "D",
+          "score": 50.54,
+          "score_10": 5.054
         },
         "momentum": {
           "grade": "A",
@@ -325,29 +179,29 @@
         },
         "quality": {
           "grade": "B",
-          "score": 80.59094533068782,
-          "score_10": 8.059094533068782
+          "score": 71.52840190200479,
+          "score_10": 7.152840190200478
         },
         "risk": {
-          "grade": "A",
-          "score": 68.67526917754765,
-          "score_10": 6.867526917754764
+          "grade": "C",
+          "score": 59.93949107207044,
+          "score_10": 5.993949107207044
         },
         "valuation": {
-          "grade": "B",
-          "score": 62.4296937388862,
-          "score_10": 6.24296937388862
+          "grade": "A",
+          "score": 74.71195308891262,
+          "score_10": 7.471195308891262
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
-      "latest_price_close": 434.46,
-      "rank": 4,
-      "score": 97,
-      "score_10": 9.7,
+      "latest_price_close": 1051.77,
+      "rank": 2,
+      "score": 99,
+      "score_10": 9.9,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ADI"
+      "symbol": "MU"
     },
     {
       "analyst": {
@@ -416,43 +270,43 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 389.040009,
-      "rank": 5,
-      "score": 96,
-      "score_10": 9.6,
+      "rank": 3,
+      "score": 98,
+      "score_10": 9.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "LRCX"
     },
     {
       "analyst": {
-        "buy_count": 11,
+        "buy_count": 31,
         "derived_targets": {
           "high": {
-            "price": 206.39,
-            "upside_percent": 25.9
+            "price": 268.65,
+            "upside_percent": -3.7
           },
           "low": {
-            "price": 160.17,
-            "upside_percent": -2.3
+            "price": 208.85,
+            "upside_percent": -25.2
           },
           "mid": {
-            "price": 183.28,
-            "upside_percent": 11.8
+            "price": 238.75,
+            "upside_percent": -14.4
           }
         },
-        "hold_count": 3,
+        "hold_count": 5,
         "sell_count": 0,
-        "strong_buy_count": 4,
+        "strong_buy_count": 8,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 183.28
+        "target_price": 238.75
       },
       "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 4.0
+        "acquirers_multiple": 183.54243555824326,
+        "magic_formula_combined_rank": 7.0,
+        "piotroski_fscore": 7.0,
+        "piotroski_signals_available": 9.0
       },
-      "company_name": "Amphenol Corporation",
+      "company_name": "Marvell Technology Inc.",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -461,8 +315,8 @@
         },
         "growth": {
           "grade": "A",
-          "score": 78.44459289200817,
-          "score_10": 7.844459289200818
+          "score": 66.74865402910166,
+          "score_10": 6.674865402910165
         },
         "momentum": {
           "grade": "A",
@@ -471,29 +325,29 @@
         },
         "quality": {
           "grade": "B",
-          "score": 75.64908102235755,
-          "score_10": 7.564908102235755
+          "score": 79.52092354069053,
+          "score_10": 7.952092354069053
         },
         "risk": {
-          "grade": "B",
-          "score": 63.31846125587196,
-          "score_10": 6.331846125587196
+          "grade": "C",
+          "score": 60.7984554072451,
+          "score_10": 6.07984554072451
         },
         "valuation": {
-          "grade": "D",
-          "score": 56.343746597404596,
-          "score_10": 5.634374659740459
+          "grade": "B",
+          "score": 62.89259008115006,
+          "score_10": 6.289259008115006
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
-      "latest_price_close": 163.96001,
-      "rank": 6,
-      "score": 95,
-      "score_10": 9.5,
+      "latest_price_close": 279.04,
+      "rank": 4,
+      "score": 97,
+      "score_10": 9.7,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "APH"
+      "symbol": "MRVL"
     },
     {
       "analyst": {
@@ -501,15 +355,15 @@
         "derived_targets": {
           "high": {
             "price": 335.73,
-            "upside_percent": 60.9
+            "upside_percent": 67.8
           },
           "low": {
             "price": 262.13,
-            "upside_percent": 25.6
+            "upside_percent": 31.0
           },
           "mid": {
             "price": 298.93,
-            "upside_percent": 43.3
+            "upside_percent": 49.4
           }
         },
         "hold_count": 2,
@@ -533,259 +387,40 @@
           "score_10": 5.109574216239981
         },
         "growth": {
-          "grade": "C",
-          "score": 54.00628555944983,
-          "score_10": 5.400628555944983
+          "grade": "D",
+          "score": 49.43381991331357,
+          "score_10": 4.943381991331357
         },
         "momentum": {
           "grade": "B",
-          "score": 72.15917273343318,
-          "score_10": 7.215917273343318
+          "score": 70.92176295239025,
+          "score_10": 7.092176295239025
         },
         "quality": {
           "grade": "A",
-          "score": 86.4126407102681,
-          "score_10": 8.641264071026809
+          "score": 84.5074627376835,
+          "score_10": 8.45074627376835
         },
         "risk": {
           "grade": "A",
-          "score": 73.34847883486323,
-          "score_10": 7.334847883486322
+          "score": 71.77207932574514,
+          "score_10": 7.177207932574514
         },
         "valuation": {
           "grade": "A",
-          "score": 81.83380089104638,
-          "score_10": 8.183380089104638
+          "score": 82.78751923292553,
+          "score_10": 8.278751923292553
         }
       },
-      "freshest_input_date": "2026-06-22",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
-      "latest_price_close": 208.65,
-      "rank": 7,
-      "score": 94,
-      "score_10": 9.4,
+      "latest_price_close": 200.04,
+      "rank": 5,
+      "score": 96,
+      "score_10": 9.6,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "NVDA"
-    },
-    {
-      "analyst": {
-        "buy_count": 28,
-        "derived_targets": {
-          "high": {
-            "price": 599.43,
-            "upside_percent": -2.9
-          },
-          "low": {
-            "price": 454.97,
-            "upside_percent": -26.3
-          },
-          "mid": {
-            "price": 527.2,
-            "upside_percent": -14.6
-          }
-        },
-        "hold_count": 8,
-        "sell_count": 0,
-        "strong_buy_count": 4,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 527.2
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 4.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Applied Materials Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "B",
-          "score": 58.25141049000565,
-          "score_10": 5.825141049000565
-        },
-        "momentum": {
-          "grade": "A",
-          "score": 100.0,
-          "score_10": 10.0
-        },
-        "quality": {
-          "grade": "A",
-          "score": 83.7052584186666,
-          "score_10": 8.37052584186666
-        },
-        "risk": {
-          "grade": "B",
-          "score": 66.90603383103772,
-          "score_10": 6.690603383103772
-        },
-        "valuation": {
-          "grade": "C",
-          "score": 59.46509246590875,
-          "score_10": 5.946509246590875
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 617.10999,
-      "rank": 8,
-      "score": 93,
-      "score_10": 9.3,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AMAT"
-    },
-    {
-      "analyst": {
-        "buy_count": 22,
-        "derived_targets": {
-          "high": {
-            "price": 210.34,
-            "upside_percent": 24.0
-          },
-          "low": {
-            "price": 166.06,
-            "upside_percent": -2.1
-          },
-          "mid": {
-            "price": 188.2,
-            "upside_percent": 10.9
-          }
-        },
-        "hold_count": 3,
-        "sell_count": 0,
-        "strong_buy_count": 9,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 188.2
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 2.0,
-        "piotroski_signals_available": 3.0
-      },
-      "company_name": "Arista Networks Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "B",
-          "score": 60.48210808361552,
-          "score_10": 6.048210808361552
-        },
-        "momentum": {
-          "grade": "A",
-          "score": 88.16182232017972,
-          "score_10": 8.816182232017972
-        },
-        "quality": {
-          "grade": "B",
-          "score": 76.2560512493471,
-          "score_10": 7.62560512493471
-        },
-        "risk": {
-          "grade": "A",
-          "score": 68.70766514615212,
-          "score_10": 6.870766514615212
-        },
-        "valuation": {
-          "grade": "A",
-          "score": 72.03056124978487,
-          "score_10": 7.203056124978487
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 169.67,
-      "rank": 9,
-      "score": 92,
-      "score_10": 9.2,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ANET"
-    },
-    {
-      "analyst": {
-        "buy_count": 49,
-        "derived_targets": {
-          "high": {
-            "price": 348.38,
-            "upside_percent": 42.6
-          },
-          "low": {
-            "price": 276.88,
-            "upside_percent": 13.3
-          },
-          "mid": {
-            "price": 312.63,
-            "upside_percent": 27.9
-          }
-        },
-        "hold_count": 5,
-        "sell_count": 0,
-        "strong_buy_count": 22,
-        "strong_sell_count": 0,
-        "suggestion_label": "strong_buy",
-        "target_price": 312.63
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 3.0
-      },
-      "company_name": "Amazon.com Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "B",
-          "score": 56.77695484751918,
-          "score_10": 5.677695484751918
-        },
-        "momentum": {
-          "grade": "C",
-          "score": 53.33627631480613,
-          "score_10": 5.333627631480613
-        },
-        "quality": {
-          "grade": "A",
-          "score": 90.08642154994325,
-          "score_10": 9.008642154994325
-        },
-        "risk": {
-          "grade": "A",
-          "score": 74.040828707737,
-          "score_10": 7.4040828707737
-        },
-        "valuation": {
-          "grade": "A",
-          "score": 84.60640391783312,
-          "score_10": 8.460640391783311
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 244.39,
-      "rank": 10,
-      "score": 91,
-      "score_10": 9.1,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AMZN"
     },
     {
       "analyst": {
@@ -854,35 +489,108 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 363.67001,
-      "rank": 11,
-      "score": 90,
-      "score_10": 9.0,
+      "rank": 6,
+      "score": 95,
+      "score_10": 9.5,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "KEYS"
     },
     {
       "analyst": {
-        "buy_count": 12,
+        "buy_count": 11,
         "derived_targets": {
           "high": {
-            "price": 2021.83,
-            "upside_percent": 31.5
+            "price": 206.39,
+            "upside_percent": 30.0
           },
           "low": {
-            "price": 1556.63,
-            "upside_percent": 1.2
+            "price": 160.17,
+            "upside_percent": 0.9
           },
           "mid": {
-            "price": 1789.23,
-            "upside_percent": 16.3
+            "price": 183.28,
+            "upside_percent": 15.5
           }
         },
-        "hold_count": 2,
+        "hold_count": 3,
         "sell_count": 0,
-        "strong_buy_count": 2,
+        "strong_buy_count": 4,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 1789.23
+        "target_price": 183.28
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Amphenol Corporation",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "A",
+          "score": 73.01442416098514,
+          "score_10": 7.3014424160985145
+        },
+        "momentum": {
+          "grade": "A",
+          "score": 91.02482236368562,
+          "score_10": 9.102482236368562
+        },
+        "quality": {
+          "grade": "B",
+          "score": 75.23672081083558,
+          "score_10": 7.523672081083558
+        },
+        "risk": {
+          "grade": "B",
+          "score": 62.09694179277203,
+          "score_10": 6.209694179277203
+        },
+        "valuation": {
+          "grade": "C",
+          "score": 57.78295730305248,
+          "score_10": 5.778295730305247
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "A / Very Attractive",
+      "latest_price_close": 158.73,
+      "rank": 7,
+      "score": 94,
+      "score_10": 9.4,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "APH"
+    },
+    {
+      "analyst": {
+        "buy_count": 28,
+        "derived_targets": {
+          "high": {
+            "price": 599.43,
+            "upside_percent": 2.4
+          },
+          "low": {
+            "price": 454.97,
+            "upside_percent": -22.3
+          },
+          "mid": {
+            "price": 527.2,
+            "upside_percent": -10.0
+          }
+        },
+        "hold_count": 8,
+        "sell_count": 0,
+        "strong_buy_count": 4,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 527.2
       },
       "benchmarks": {
         "acquirers_multiple": null,
@@ -890,7 +598,7 @@
         "piotroski_fscore": 4.0,
         "piotroski_signals_available": 4.0
       },
-      "company_name": "Monolithic Power Systems Inc.",
+      "company_name": "Applied Materials Inc.",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -899,81 +607,8 @@
         },
         "growth": {
           "grade": "D",
-          "score": 51.70893695208617,
-          "score_10": 5.170893695208617
-        },
-        "momentum": {
-          "grade": "A",
-          "score": 95.5910484909459,
-          "score_10": 9.55910484909459
-        },
-        "quality": {
-          "grade": "B",
-          "score": 81.62628916200099,
-          "score_10": 8.162628916200099
-        },
-        "risk": {
-          "grade": "B",
-          "score": 66.01666303095325,
-          "score_10": 6.601666303095325
-        },
-        "valuation": {
-          "grade": "C",
-          "score": 61.06047966387312,
-          "score_10": 6.106047966387312
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 1537.88,
-      "rank": 12,
-      "score": 90,
-      "score_10": 9.0,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "MPWR"
-    },
-    {
-      "analyst": {
-        "buy_count": 36,
-        "derived_targets": {
-          "high": {
-            "price": 554.68,
-            "upside_percent": 0.6
-          },
-          "low": {
-            "price": 421.12,
-            "upside_percent": -23.7
-          },
-          "mid": {
-            "price": 487.9,
-            "upside_percent": -11.6
-          }
-        },
-        "hold_count": 10,
-        "sell_count": 0,
-        "strong_buy_count": 5,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 487.9
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 3.0
-      },
-      "company_name": "Advanced Micro Devices Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "A",
-          "score": 54.560839004894795,
-          "score_10": 5.45608390048948
-        },
-        "growth": {
-          "grade": "A",
-          "score": 73.90260118342609,
-          "score_10": 7.390260118342608
+          "score": 49.82591644958358,
+          "score_10": 4.982591644958358
         },
         "momentum": {
           "grade": "A",
@@ -981,30 +616,30 @@
           "score_10": 10.0
         },
         "quality": {
-          "grade": "C",
-          "score": 66.3842599123177,
-          "score_10": 6.638425991231771
+          "grade": "A",
+          "score": 80.56920667325996,
+          "score_10": 8.056920667325997
         },
         "risk": {
-          "grade": "D",
-          "score": 53.43768983903227,
-          "score_10": 5.343768983903227
+          "grade": "B",
+          "score": 64.26134147263497,
+          "score_10": 6.426134147263497
         },
         "valuation": {
           "grade": "C",
-          "score": 57.56132298501319,
-          "score_10": 5.756132298501319
+          "score": 62.065059709102385,
+          "score_10": 6.206505970910238
         }
       },
-      "freshest_input_date": "2026-06-22",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
-      "latest_price_close": 551.63,
-      "rank": 13,
-      "score": 89,
-      "score_10": 8.9,
+      "latest_price_close": 585.62,
+      "rank": 8,
+      "score": 93,
+      "score_10": 9.3,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AMD"
+      "symbol": "AMAT"
     },
     {
       "analyst": {
@@ -1073,9 +708,9 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 327.24,
-      "rank": 14,
-      "score": 88,
-      "score_10": 8.8,
+      "rank": 9,
+      "score": 92,
+      "score_10": 9.2,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "V"
     },
@@ -1117,7 +752,7 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "B",
+          "grade": "A",
           "score": 61.39797191115342,
           "score_10": 6.139797191115342
         },
@@ -1146,157 +781,11 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 226.11,
-      "rank": 15,
-      "score": 87,
-      "score_10": 8.7,
+      "rank": 10,
+      "score": 91,
+      "score_10": 9.1,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "QCOM"
-    },
-    {
-      "analyst": {
-        "buy_count": 21,
-        "derived_targets": {
-          "high": {
-            "price": 621.18,
-            "upside_percent": 37.5
-          },
-          "low": {
-            "price": 476.2,
-            "upside_percent": 5.4
-          },
-          "mid": {
-            "price": 548.69,
-            "upside_percent": 21.5
-          }
-        },
-        "hold_count": 5,
-        "sell_count": 1,
-        "strong_buy_count": 6,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 548.69
-      },
-      "benchmarks": {
-        "acquirers_multiple": 26.629439532264634,
-        "magic_formula_combined_rank": 1.0,
-        "piotroski_fscore": 5.0,
-        "piotroski_signals_available": 8.0
-      },
-      "company_name": "Vertex Pharmaceuticals Incorporated",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "A",
-          "score": 66.10491243670343,
-          "score_10": 6.610491243670342
-        },
-        "momentum": {
-          "grade": "C",
-          "score": 60.85939031920825,
-          "score_10": 6.085939031920825
-        },
-        "quality": {
-          "grade": "A",
-          "score": 83.185716239389,
-          "score_10": 8.3185716239389
-        },
-        "risk": {
-          "grade": "A",
-          "score": 75.11700162039979,
-          "score_10": 7.511700162039978
-        },
-        "valuation": {
-          "grade": "A",
-          "score": 66.83714092434205,
-          "score_10": 6.6837140924342044
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 451.63,
-      "rank": 16,
-      "score": 86,
-      "score_10": 8.6,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "VRTX"
-    },
-    {
-      "analyst": {
-        "buy_count": 18,
-        "derived_targets": {
-          "high": {
-            "price": 429.53,
-            "upside_percent": 20.0
-          },
-          "low": {
-            "price": 327.09,
-            "upside_percent": -8.6
-          },
-          "mid": {
-            "price": 378.31,
-            "upside_percent": 5.7
-          }
-        },
-        "hold_count": 3,
-        "sell_count": 0,
-        "strong_buy_count": 4,
-        "strong_sell_count": 1,
-        "suggestion_label": "buy",
-        "target_price": 378.31
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Vertiv Holdings Co.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "A",
-          "score": 79.17257505657875,
-          "score_10": 7.917257505657875
-        },
-        "momentum": {
-          "grade": "A",
-          "score": 95.0109874096805,
-          "score_10": 9.50109874096805
-        },
-        "quality": {
-          "grade": "C",
-          "score": 69.69773281642954,
-          "score_10": 6.9697732816429525
-        },
-        "risk": {
-          "grade": "D",
-          "score": 51.07730495544992,
-          "score_10": 5.107730495544992
-        },
-        "valuation": {
-          "grade": "F",
-          "score": 50.71025924270787,
-          "score_10": 5.071025924270787
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 357.96,
-      "rank": 17,
-      "score": 85,
-      "score_10": 8.5,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "VRT"
     },
     {
       "analyst": {
@@ -1365,11 +854,84 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 387.39001,
-      "rank": 18,
-      "score": 84,
-      "score_10": 8.4,
+      "rank": 11,
+      "score": 90,
+      "score_10": 9.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "CDNS"
+    },
+    {
+      "analyst": {
+        "buy_count": 21,
+        "derived_targets": {
+          "high": {
+            "price": 621.18,
+            "upside_percent": 37.5
+          },
+          "low": {
+            "price": 476.2,
+            "upside_percent": 5.4
+          },
+          "mid": {
+            "price": 548.69,
+            "upside_percent": 21.5
+          }
+        },
+        "hold_count": 5,
+        "sell_count": 1,
+        "strong_buy_count": 6,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 548.69
+      },
+      "benchmarks": {
+        "acquirers_multiple": 26.629439532264634,
+        "magic_formula_combined_rank": 1.0,
+        "piotroski_fscore": 5.0,
+        "piotroski_signals_available": 8.0
+      },
+      "company_name": "Vertex Pharmaceuticals Incorporated",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "A",
+          "score": 66.10491243670343,
+          "score_10": 6.610491243670342
+        },
+        "momentum": {
+          "grade": "C",
+          "score": 60.85939031920825,
+          "score_10": 6.085939031920825
+        },
+        "quality": {
+          "grade": "A",
+          "score": 83.185716239389,
+          "score_10": 8.3185716239389
+        },
+        "risk": {
+          "grade": "A",
+          "score": 75.11700162039979,
+          "score_10": 7.511700162039978
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 66.83714092434205,
+          "score_10": 6.6837140924342044
+        }
+      },
+      "freshest_input_date": "2026-06-18",
+      "freshness_status": "fresh",
+      "label": "A / Very Attractive",
+      "latest_price_close": 451.63,
+      "rank": 12,
+      "score": 90,
+      "score_10": 9.0,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "VRTX"
     },
     {
       "analyst": {
@@ -1409,7 +971,7 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "B",
+          "grade": "A",
           "score": 61.837081744720926,
           "score_10": 6.183708174472093
         },
@@ -1438,9 +1000,9 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 204.74001,
-      "rank": 19,
-      "score": 83,
-      "score_10": 8.3,
+      "rank": 13,
+      "score": 89,
+      "score_10": 8.9,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "ENVA"
     },
@@ -1497,7 +1059,7 @@
           "score_10": 8.223845401905109
         },
         "risk": {
-          "grade": "B",
+          "grade": "A",
           "score": 68.26553657267378,
           "score_10": 6.826553657267378
         },
@@ -1511,116 +1073,43 @@
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
       "latest_price_close": 109.11,
-      "rank": 20,
-      "score": 82,
-      "score_10": 8.2,
+      "rank": 14,
+      "score": 88,
+      "score_10": 8.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "DECK"
     },
     {
       "analyst": {
-        "buy_count": 23,
+        "buy_count": 12,
         "derived_targets": {
           "high": {
-            "price": 362.63,
-            "upside_percent": 22.1
+            "price": 2021.83,
+            "upside_percent": 42.0
           },
           "low": {
-            "price": 266.21,
-            "upside_percent": -10.4
+            "price": 1556.63,
+            "upside_percent": 9.3
           },
           "mid": {
-            "price": 314.42,
-            "upside_percent": 5.9
-          }
-        },
-        "hold_count": 15,
-        "sell_count": 1,
-        "strong_buy_count": 7,
-        "strong_sell_count": 2,
-        "suggestion_label": "buy",
-        "target_price": 314.42
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 2.0,
-        "piotroski_signals_available": 3.0
-      },
-      "company_name": "Apple Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "A",
-          "score": 50.00921870471161,
-          "score_10": 5.00092187047116
-        },
-        "growth": {
-          "grade": "C",
-          "score": 55.910400624393475,
-          "score_10": 5.5910400624393475
-        },
-        "momentum": {
-          "grade": "B",
-          "score": 74.51632891429107,
-          "score_10": 7.451632891429106
-        },
-        "quality": {
-          "grade": "A",
-          "score": 81.89807882522446,
-          "score_10": 8.189807882522446
-        },
-        "risk": {
-          "grade": "B",
-          "score": 66.4485942049274,
-          "score_10": 6.6448594204927405
-        },
-        "valuation": {
-          "grade": "B",
-          "score": 61.793763560170774,
-          "score_10": 6.179376356017078
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "A / Very Attractive",
-      "latest_price_close": 297.01,
-      "rank": 21,
-      "score": 81,
-      "score_10": 8.1,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AAPL"
-    },
-    {
-      "analyst": {
-        "buy_count": 9,
-        "derived_targets": {
-          "high": {
-            "price": 85.1,
-            "upside_percent": -22.5
-          },
-          "low": {
-            "price": 66.18,
-            "upside_percent": -39.8
-          },
-          "mid": {
-            "price": 75.64,
-            "upside_percent": -31.2
+            "price": 1789.23,
+            "upside_percent": 25.7
           }
         },
         "hold_count": 2,
         "sell_count": 0,
-        "strong_buy_count": 3,
+        "strong_buy_count": 2,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 75.64
+        "target_price": 1789.23
       },
       "benchmarks": {
         "acquirers_multiple": null,
         "magic_formula_combined_rank": null,
-        "piotroski_fscore": 2.0,
-        "piotroski_signals_available": 3.0
+        "piotroski_fscore": 4.0,
+        "piotroski_signals_available": 4.0
       },
-      "company_name": "ACM Research Inc.",
+      "company_name": "Monolithic Power Systems Inc.",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -1628,9 +1117,155 @@
           "score_10": 5.0
         },
         "growth": {
+          "grade": "D",
+          "score": 48.324101103654044,
+          "score_10": 4.832410110365404
+        },
+        "momentum": {
           "grade": "A",
-          "score": 88.08,
-          "score_10": 8.808
+          "score": 86.82445080426551,
+          "score_10": 8.682445080426552
+        },
+        "quality": {
+          "grade": "B",
+          "score": 78.8541261815763,
+          "score_10": 7.885412618157631
+        },
+        "risk": {
+          "grade": "B",
+          "score": 63.066357781217725,
+          "score_10": 6.306635778121772
+        },
+        "valuation": {
+          "grade": "B",
+          "score": 62.26141168622886,
+          "score_10": 6.226141168622886
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "A / Very Attractive",
+      "latest_price_close": 1423.76,
+      "rank": 15,
+      "score": 87,
+      "score_10": 8.7,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "MPWR"
+    },
+    {
+      "analyst": {
+        "buy_count": 49,
+        "derived_targets": {
+          "high": {
+            "price": 933.97,
+            "upside_percent": 66.1
+          },
+          "low": {
+            "price": 720.67,
+            "upside_percent": 28.2
+          },
+          "mid": {
+            "price": 827.32,
+            "upside_percent": 47.2
+          }
+        },
+        "hold_count": 7,
+        "sell_count": 0,
+        "strong_buy_count": 8,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 827.32
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 4.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Meta Platforms Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "B",
+          "score": 56.94436305975648,
+          "score_10": 5.694436305975649
+        },
+        "momentum": {
+          "grade": "C",
+          "score": 52.97099360587851,
+          "score_10": 5.297099360587851
+        },
+        "quality": {
+          "grade": "A",
+          "score": 86.48546732574256,
+          "score_10": 8.648546732574255
+        },
+        "risk": {
+          "grade": "A",
+          "score": 71.09592197757246,
+          "score_10": 7.109592197757245
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 70.76076133064193,
+          "score_10": 7.076076133064192
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "A / Very Attractive",
+      "latest_price_close": 562.2,
+      "rank": 16,
+      "score": 86,
+      "score_10": 8.6,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "META"
+    },
+    {
+      "analyst": {
+        "buy_count": 36,
+        "derived_targets": {
+          "high": {
+            "price": 554.68,
+            "upside_percent": 6.7
+          },
+          "low": {
+            "price": 421.12,
+            "upside_percent": -19.0
+          },
+          "mid": {
+            "price": 487.9,
+            "upside_percent": -6.1
+          }
+        },
+        "hold_count": 10,
+        "sell_count": 0,
+        "strong_buy_count": 5,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 487.9
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 3.0
+      },
+      "company_name": "Advanced Micro Devices Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "A",
+          "score": 54.560839004894795,
+          "score_10": 5.45608390048948
+        },
+        "growth": {
+          "grade": "A",
+          "score": 61.83835235601704,
+          "score_10": 6.183835235601705
         },
         "momentum": {
           "grade": "A",
@@ -1639,29 +1274,29 @@
         },
         "quality": {
           "grade": "D",
-          "score": 52.36867156592355,
-          "score_10": 5.236867156592354
+          "score": 60.83084171586167,
+          "score_10": 6.083084171586168
         },
         "risk": {
-          "grade": "F",
-          "score": 49.27880827599042,
-          "score_10": 4.927880827599043
+          "grade": "D",
+          "score": 50.93054074023043,
+          "score_10": 5.093054074023042
         },
         "valuation": {
-          "grade": "F",
-          "score": 51.05573170161916,
-          "score_10": 5.105573170161916
+          "grade": "C",
+          "score": 60.90217153401772,
+          "score_10": 6.090217153401772
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "A / Very Attractive",
-      "latest_price_close": 109.87,
-      "rank": 22,
-      "score": 80,
-      "score_10": 8.0,
+      "latest_price_close": 519.85,
+      "rank": 17,
+      "score": 85,
+      "score_10": 8.5,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ACMR"
+      "symbol": "AMD"
     },
     {
       "analyst": {
@@ -1706,7 +1341,7 @@
           "score_10": 7.138433957090212
         },
         "momentum": {
-          "grade": "B",
+          "grade": "A",
           "score": 87.65332011818403,
           "score_10": 8.765332011818403
         },
@@ -1728,45 +1363,45 @@
       },
       "freshest_input_date": "2026-06-18",
       "freshness_status": "fresh",
-      "label": "B / Attractive",
+      "label": "A / Very Attractive",
       "latest_price_close": 357.64001,
-      "rank": 23,
-      "score": 80,
-      "score_10": 8.0,
+      "rank": 18,
+      "score": 84,
+      "score_10": 8.4,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "GE"
     },
     {
       "analyst": {
-        "buy_count": 9,
+        "buy_count": 49,
         "derived_targets": {
           "high": {
-            "price": 525.22,
-            "upside_percent": 20.0
+            "price": 348.38,
+            "upside_percent": 48.8
           },
           "low": {
-            "price": 422.72,
-            "upside_percent": -3.5
+            "price": 276.88,
+            "upside_percent": 18.3
           },
           "mid": {
-            "price": 473.97,
-            "upside_percent": 8.2
+            "price": 312.63,
+            "upside_percent": 33.5
           }
         },
-        "hold_count": 1,
+        "hold_count": 5,
         "sell_count": 0,
-        "strong_buy_count": 6,
+        "strong_buy_count": 22,
         "strong_sell_count": 0,
         "suggestion_label": "strong_buy",
-        "target_price": 473.97
+        "target_price": 312.63
       },
       "benchmarks": {
         "acquirers_multiple": null,
         "magic_formula_combined_rank": null,
-        "piotroski_fscore": 2.0,
+        "piotroski_fscore": 3.0,
         "piotroski_signals_available": 3.0
       },
-      "company_name": "Talen Energy Corporation",
+      "company_name": "Amazon.com Inc.",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -1774,40 +1409,186 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "B",
-          "score": 58.42953146438293,
-          "score_10": 5.842953146438293
+          "grade": "F",
+          "score": 47.67589144424251,
+          "score_10": 4.767589144424251
         },
         "momentum": {
-          "grade": "A",
-          "score": 90.18428561003418,
-          "score_10": 9.018428561003418
+          "grade": "F",
+          "score": 33.22319096488469,
+          "score_10": 3.322319096488469
         },
         "quality": {
-          "grade": "C",
-          "score": 64.5396303315575,
-          "score_10": 6.453963033155751
+          "grade": "A",
+          "score": 90.9780422100178,
+          "score_10": 9.09780422100178
         },
         "risk": {
+          "grade": "A",
+          "score": 74.57439209281509,
+          "score_10": 7.457439209281509
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 85.76598934553198,
+          "score_10": 8.576598934553198
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "A / Very Attractive",
+      "latest_price_close": 234.10001,
+      "rank": 19,
+      "score": 83,
+      "score_10": 8.3,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "AMZN"
+    },
+    {
+      "analyst": {
+        "buy_count": 23,
+        "derived_targets": {
+          "high": {
+            "price": 362.63,
+            "upside_percent": 23.2
+          },
+          "low": {
+            "price": 266.21,
+            "upside_percent": -9.5
+          },
+          "mid": {
+            "price": 314.42,
+            "upside_percent": 6.8
+          }
+        },
+        "hold_count": 15,
+        "sell_count": 1,
+        "strong_buy_count": 7,
+        "strong_sell_count": 2,
+        "suggestion_label": "buy",
+        "target_price": 314.42
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 2.0,
+        "piotroski_signals_available": 3.0
+      },
+      "company_name": "Apple Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "A",
+          "score": 50.00921870471161,
+          "score_10": 5.00092187047116
+        },
+        "growth": {
           "grade": "C",
-          "score": 58.54155622256898,
-          "score_10": 5.854155622256898
+          "score": 54.08567458845007,
+          "score_10": 5.408567458845007
+        },
+        "momentum": {
+          "grade": "B",
+          "score": 71.82858923335075,
+          "score_10": 7.182858923335075
+        },
+        "quality": {
+          "grade": "A",
+          "score": 81.93925091055202,
+          "score_10": 8.193925091055203
+        },
+        "risk": {
+          "grade": "B",
+          "score": 65.92172263442993,
+          "score_10": 6.592172263442993
         },
         "valuation": {
           "grade": "B",
-          "score": 62.1914294970139,
-          "score_10": 6.21914294970139
+          "score": 62.09745475149319,
+          "score_10": 6.209745475149319
         }
       },
-      "freshest_input_date": "2026-06-22",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
-      "label": "B / Attractive",
-      "latest_price_close": 437.85001,
-      "rank": 24,
-      "score": 79,
-      "score_10": 7.9,
+      "label": "A / Very Attractive",
+      "latest_price_close": 294.3,
+      "rank": 20,
+      "score": 82,
+      "score_10": 8.2,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "TLN"
+      "symbol": "AAPL"
+    },
+    {
+      "analyst": {
+        "buy_count": 40,
+        "derived_targets": {
+          "high": {
+            "price": 627.94,
+            "upside_percent": 67.9
+          },
+          "low": {
+            "price": 494.84,
+            "upside_percent": 32.3
+          },
+          "mid": {
+            "price": 561.39,
+            "upside_percent": 50.1
+          }
+        },
+        "hold_count": 3,
+        "sell_count": 0,
+        "strong_buy_count": 12,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 561.39
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 3.0
+      },
+      "company_name": "Microsoft Corporation",
+      "factors": {
+        "analyst_revision": {
+          "grade": "A",
+          "score": 50.92344056659202,
+          "score_10": 5.092344056659202
+        },
+        "growth": {
+          "grade": "C",
+          "score": 54.20569605963546,
+          "score_10": 5.420569605963546
+        },
+        "momentum": {
+          "grade": "D",
+          "score": 51.21583272420175,
+          "score_10": 5.1215832724201755
+        },
+        "quality": {
+          "grade": "A",
+          "score": 85.69546603444675,
+          "score_10": 8.569546603444675
+        },
+        "risk": {
+          "grade": "B",
+          "score": 66.07707412456557,
+          "score_10": 6.6077074124565565
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 73.68133561042194,
+          "score_10": 7.368133561042193
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "A / Very Attractive",
+      "latest_price_close": 373.94,
+      "rank": 21,
+      "score": 81,
+      "score_10": 8.1,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "MSFT"
     },
     {
       "analyst": {
@@ -1876,11 +1657,84 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 145.42,
-      "rank": 25,
-      "score": 78,
-      "score_10": 7.8,
+      "rank": 22,
+      "score": 80,
+      "score_10": 8.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "FTNT"
+    },
+    {
+      "analyst": {
+        "buy_count": 9,
+        "derived_targets": {
+          "high": {
+            "price": 525.22,
+            "upside_percent": 20.0
+          },
+          "low": {
+            "price": 422.72,
+            "upside_percent": -3.5
+          },
+          "mid": {
+            "price": 473.97,
+            "upside_percent": 8.2
+          }
+        },
+        "hold_count": 1,
+        "sell_count": 0,
+        "strong_buy_count": 6,
+        "strong_sell_count": 0,
+        "suggestion_label": "strong_buy",
+        "target_price": 473.97
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 2.0,
+        "piotroski_signals_available": 3.0
+      },
+      "company_name": "Talen Energy Corporation",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "B",
+          "score": 58.42953146438293,
+          "score_10": 5.842953146438293
+        },
+        "momentum": {
+          "grade": "A",
+          "score": 90.18428561003418,
+          "score_10": 9.018428561003418
+        },
+        "quality": {
+          "grade": "C",
+          "score": 64.5396303315575,
+          "score_10": 6.453963033155751
+        },
+        "risk": {
+          "grade": "C",
+          "score": 58.54155622256898,
+          "score_10": 5.854155622256898
+        },
+        "valuation": {
+          "grade": "B",
+          "score": 62.1914294970139,
+          "score_10": 6.21914294970139
+        }
+      },
+      "freshest_input_date": "2026-06-22",
+      "freshness_status": "fresh",
+      "label": "A / Very Attractive",
+      "latest_price_close": 437.85001,
+      "rank": 23,
+      "score": 80,
+      "score_10": 8.0,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "TLN"
     },
     {
       "analyst": {
@@ -1949,84 +1803,11 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 410.92001,
-      "rank": 26,
-      "score": 77,
-      "score_10": 7.7,
+      "rank": 24,
+      "score": 79,
+      "score_10": 7.9,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "SPGI"
-    },
-    {
-      "analyst": {
-        "buy_count": 49,
-        "derived_targets": {
-          "high": {
-            "price": 933.97,
-            "upside_percent": 65.6
-          },
-          "low": {
-            "price": 720.67,
-            "upside_percent": 27.8
-          },
-          "mid": {
-            "price": 827.32,
-            "upside_percent": 46.7
-          }
-        },
-        "hold_count": 7,
-        "sell_count": 0,
-        "strong_buy_count": 8,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 827.32
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 4.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Meta Platforms Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "C",
-          "score": 54.34476443468467,
-          "score_10": 5.434476443468467
-        },
-        "momentum": {
-          "grade": "D",
-          "score": 44.43856571333585,
-          "score_10": 4.443856571333584
-        },
-        "quality": {
-          "grade": "A",
-          "score": 86.99320637611858,
-          "score_10": 8.699320637611859
-        },
-        "risk": {
-          "grade": "A",
-          "score": 70.01951675180604,
-          "score_10": 7.001951675180604
-        },
-        "valuation": {
-          "grade": "A",
-          "score": 71.45211566045492,
-          "score_10": 7.145211566045492
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "B / Attractive",
-      "latest_price_close": 563.85,
-      "rank": 27,
-      "score": 76,
-      "score_10": 7.6,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "META"
     },
     {
       "analyst": {
@@ -2095,11 +1876,84 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 36.91,
-      "rank": 28,
-      "score": 75,
-      "score_10": 7.5,
+      "rank": 25,
+      "score": 78,
+      "score_10": 7.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "WTRG"
+    },
+    {
+      "analyst": {
+        "buy_count": 18,
+        "derived_targets": {
+          "high": {
+            "price": 429.53,
+            "upside_percent": 34.9
+          },
+          "low": {
+            "price": 327.09,
+            "upside_percent": 2.8
+          },
+          "mid": {
+            "price": 378.31,
+            "upside_percent": 18.8
+          }
+        },
+        "hold_count": 3,
+        "sell_count": 0,
+        "strong_buy_count": 4,
+        "strong_sell_count": 1,
+        "suggestion_label": "buy",
+        "target_price": 378.31
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Vertiv Holdings Co.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "A",
+          "score": 65.44520365397717,
+          "score_10": 6.544520365397717
+        },
+        "momentum": {
+          "grade": "A",
+          "score": 83.4751058902582,
+          "score_10": 8.347510589025822
+        },
+        "quality": {
+          "grade": "C",
+          "score": 68.66654813675459,
+          "score_10": 6.866654813675459
+        },
+        "risk": {
+          "grade": "D",
+          "score": 50.52202700582721,
+          "score_10": 5.052202700582721
+        },
+        "valuation": {
+          "grade": "D",
+          "score": 55.96931459697342,
+          "score_10": 5.596931459697342
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "B / Attractive",
+      "latest_price_close": 318.32,
+      "rank": 26,
+      "score": 77,
+      "score_10": 7.7,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "VRT"
     },
     {
       "analyst": {
@@ -2144,7 +1998,7 @@
           "score_10": 5.382326324926066
         },
         "momentum": {
-          "grade": "C",
+          "grade": "B",
           "score": 64.14125302985151,
           "score_10": 6.414125302985152
         },
@@ -2159,7 +2013,7 @@
           "score_10": 7.304169998552858
         },
         "valuation": {
-          "grade": "B",
+          "grade": "C",
           "score": 62.08890431743983,
           "score_10": 6.208890431743982
         }
@@ -2168,9 +2022,9 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 87.36,
-      "rank": 29,
-      "score": 74,
-      "score_10": 7.4,
+      "rank": 27,
+      "score": 76,
+      "score_10": 7.6,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "EW"
     },
@@ -2241,11 +2095,84 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 609.94,
-      "rank": 30,
-      "score": 73,
-      "score_10": 7.3,
+      "rank": 28,
+      "score": 75,
+      "score_10": 7.5,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "REGN"
+    },
+    {
+      "analyst": {
+        "buy_count": 21,
+        "derived_targets": {
+          "high": {
+            "price": 508.4,
+            "upside_percent": 24.8
+          },
+          "low": {
+            "price": 393.06,
+            "upside_percent": -3.5
+          },
+          "mid": {
+            "price": 450.73,
+            "upside_percent": 10.6
+          }
+        },
+        "hold_count": 6,
+        "sell_count": 0,
+        "strong_buy_count": 7,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 450.73
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 4.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Analog Devices Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "C",
+          "score": 54.32298235911992,
+          "score_10": 5.432298235911992
+        },
+        "momentum": {
+          "grade": "C",
+          "score": 58.64496070985447,
+          "score_10": 5.864496070985448
+        },
+        "quality": {
+          "grade": "B",
+          "score": 79.03890710773314,
+          "score_10": 7.9038907107733145
+        },
+        "risk": {
+          "grade": "B",
+          "score": 64.72060416500139,
+          "score_10": 6.472060416500139
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 66.5790279866386,
+          "score_10": 6.6579027986638595
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "B / Attractive",
+      "latest_price_close": 407.42001,
+      "rank": 29,
+      "score": 74,
+      "score_10": 7.4,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "ADI"
     },
     {
       "analyst": {
@@ -2314,35 +2241,108 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 163.81,
-      "rank": 31,
-      "score": 72,
-      "score_10": 7.2,
+      "rank": 30,
+      "score": 73,
+      "score_10": 7.3,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "TJX"
     },
     {
       "analyst": {
-        "buy_count": 40,
+        "buy_count": 22,
         "derived_targets": {
           "high": {
-            "price": 627.94,
-            "upside_percent": 70.9
+            "price": 210.34,
+            "upside_percent": 29.6
           },
           "low": {
-            "price": 494.84,
-            "upside_percent": 34.7
+            "price": 166.06,
+            "upside_percent": 2.4
           },
           "mid": {
-            "price": 561.39,
-            "upside_percent": 52.8
+            "price": 188.2,
+            "upside_percent": 16.0
           }
         },
         "hold_count": 3,
         "sell_count": 0,
-        "strong_buy_count": 12,
+        "strong_buy_count": 9,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 561.39
+        "target_price": 188.2
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 2.0,
+        "piotroski_signals_available": 3.0
+      },
+      "company_name": "Arista Networks Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "F",
+          "score": 40.66764573403848,
+          "score_10": 4.066764573403848
+        },
+        "momentum": {
+          "grade": "C",
+          "score": 63.55625055623416,
+          "score_10": 6.355625055623416
+        },
+        "quality": {
+          "grade": "B",
+          "score": 75.17571687297661,
+          "score_10": 7.517571687297661
+        },
+        "risk": {
+          "grade": "B",
+          "score": 66.19875276730826,
+          "score_10": 6.619875276730826
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 75.22824200382193,
+          "score_10": 7.5228242003821935
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "B / Attractive",
+      "latest_price_close": 162.24001,
+      "rank": 31,
+      "score": 72,
+      "score_10": 7.2,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "ANET"
+    },
+    {
+      "analyst": {
+        "buy_count": 10,
+        "derived_targets": {
+          "high": {
+            "price": 185.07,
+            "upside_percent": 26.4
+          },
+          "low": {
+            "price": 142.49,
+            "upside_percent": -2.7
+          },
+          "mid": {
+            "price": 163.78,
+            "upside_percent": 11.9
+          }
+        },
+        "hold_count": 2,
+        "sell_count": 0,
+        "strong_buy_count": 2,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 163.78
       },
       "benchmarks": {
         "acquirers_multiple": null,
@@ -2350,48 +2350,194 @@
         "piotroski_fscore": 3.0,
         "piotroski_signals_available": 3.0
       },
-      "company_name": "Microsoft Corporation",
+      "company_name": "AerCap Holdings N.V.",
       "factors": {
         "analyst_revision": {
-          "grade": "A",
-          "score": 50.92344056659202,
-          "score_10": 5.092344056659202
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
         },
         "growth": {
-          "grade": "F",
-          "score": 44.177872669412416,
-          "score_10": 4.417787266941242
+          "grade": "D",
+          "score": 52.3857180689052,
+          "score_10": 5.23857180689052
         },
         "momentum": {
-          "grade": "D",
-          "score": 46.39445373804273,
-          "score_10": 4.639445373804272
+          "grade": "C",
+          "score": 61.68680295981821,
+          "score_10": 6.1686802959818205
         },
         "quality": {
-          "grade": "A",
-          "score": 85.99972728189698,
-          "score_10": 8.599972728189698
+          "grade": "C",
+          "score": 68.8005846880911,
+          "score_10": 6.880058468809111
         },
         "risk": {
-          "grade": "B",
-          "score": 64.96513410192358,
-          "score_10": 6.496513410192358
+          "grade": "A",
+          "score": 69.05002757978004,
+          "score_10": 6.905002757978004
         },
         "valuation": {
           "grade": "A",
-          "score": 75.56796372183584,
-          "score_10": 7.556796372183585
+          "score": 72.1345085220485,
+          "score_10": 7.2134508522048515
         }
       },
-      "freshest_input_date": "2026-06-22",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "B / Attractive",
-      "latest_price_close": 367.34,
+      "latest_price_close": 146.41,
       "rank": 32,
       "score": 71,
       "score_10": 7.1,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "MSFT"
+      "symbol": "AER"
+    },
+    {
+      "analyst": {
+        "buy_count": 9,
+        "derived_targets": {
+          "high": {
+            "price": 85.1,
+            "upside_percent": -14.1
+          },
+          "low": {
+            "price": 66.18,
+            "upside_percent": -33.2
+          },
+          "mid": {
+            "price": 75.64,
+            "upside_percent": -23.7
+          }
+        },
+        "hold_count": 2,
+        "sell_count": 0,
+        "strong_buy_count": 3,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 75.64
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 2.0,
+        "piotroski_signals_available": 3.0
+      },
+      "company_name": "ACM Research Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "A",
+          "score": 66.43395701710328,
+          "score_10": 6.643395701710328
+        },
+        "momentum": {
+          "grade": "A",
+          "score": 100.0,
+          "score_10": 10.0
+        },
+        "quality": {
+          "grade": "F",
+          "score": 50.04334227885939,
+          "score_10": 5.004334227885939
+        },
+        "risk": {
+          "grade": "D",
+          "score": 49.218808275990426,
+          "score_10": 4.921880827599042
+        },
+        "valuation": {
+          "grade": "D",
+          "score": 56.82706439237061,
+          "score_10": 5.682706439237061
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "B / Attractive",
+      "latest_price_close": 99.12,
+      "rank": 33,
+      "score": 70,
+      "score_10": 7.0,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "ACMR"
+    },
+    {
+      "analyst": {
+        "buy_count": 14,
+        "derived_targets": {
+          "high": {
+            "price": 38.86,
+            "upside_percent": 57.6
+          },
+          "low": {
+            "price": 28.9,
+            "upside_percent": 17.2
+          },
+          "mid": {
+            "price": 33.88,
+            "upside_percent": 37.4
+          }
+        },
+        "hold_count": 11,
+        "sell_count": 0,
+        "strong_buy_count": 4,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 33.88
+      },
+      "benchmarks": {
+        "acquirers_multiple": 47.50212328767123,
+        "magic_formula_combined_rank": 8.0,
+        "piotroski_fscore": 6.0,
+        "piotroski_signals_available": 8.0
+      },
+      "company_name": "Toast Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "A",
+          "score": 70.82717163516878,
+          "score_10": 7.082717163516878
+        },
+        "momentum": {
+          "grade": "B",
+          "score": 64.85380317324186,
+          "score_10": 6.485380317324185
+        },
+        "quality": {
+          "grade": "C",
+          "score": 71.40041142876815,
+          "score_10": 7.140041142876815
+        },
+        "risk": {
+          "grade": "C",
+          "score": 57.26643342682305,
+          "score_10": 5.726643342682305
+        },
+        "valuation": {
+          "grade": "D",
+          "score": 56.08217262956799,
+          "score_10": 5.608217262956799
+        }
+      },
+      "freshest_input_date": "2026-06-18",
+      "freshness_status": "fresh",
+      "label": "B / Attractive",
+      "latest_price_close": 24.66,
+      "rank": 34,
+      "score": 70,
+      "score_10": 7.0,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "TOST"
     },
     {
       "analyst": {
@@ -2460,84 +2606,11 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 184.28999,
-      "rank": 33,
-      "score": 70,
-      "score_10": 7.0,
+      "rank": 35,
+      "score": 69,
+      "score_10": 6.9,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "ORCL"
-    },
-    {
-      "analyst": {
-        "buy_count": 14,
-        "derived_targets": {
-          "high": {
-            "price": 38.86,
-            "upside_percent": 57.6
-          },
-          "low": {
-            "price": 28.9,
-            "upside_percent": 17.2
-          },
-          "mid": {
-            "price": 33.88,
-            "upside_percent": 37.4
-          }
-        },
-        "hold_count": 11,
-        "sell_count": 0,
-        "strong_buy_count": 4,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 33.88
-      },
-      "benchmarks": {
-        "acquirers_multiple": 47.50212328767123,
-        "magic_formula_combined_rank": 8.0,
-        "piotroski_fscore": 6.0,
-        "piotroski_signals_available": 8.0
-      },
-      "company_name": "Toast Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "A",
-          "score": 70.82717163516878,
-          "score_10": 7.082717163516878
-        },
-        "momentum": {
-          "grade": "C",
-          "score": 64.85380317324186,
-          "score_10": 6.485380317324185
-        },
-        "quality": {
-          "grade": "C",
-          "score": 71.40041142876815,
-          "score_10": 7.140041142876815
-        },
-        "risk": {
-          "grade": "C",
-          "score": 57.26643342682305,
-          "score_10": 5.726643342682305
-        },
-        "valuation": {
-          "grade": "D",
-          "score": 56.08217262956799,
-          "score_10": 5.608217262956799
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "B / Attractive",
-      "latest_price_close": 24.66,
-      "rank": 34,
-      "score": 70,
-      "score_10": 7.0,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "TOST"
     },
     {
       "analyst": {
@@ -2606,9 +2679,9 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 421.77,
-      "rank": 35,
-      "score": 69,
-      "score_10": 6.9,
+      "rank": 36,
+      "score": 68,
+      "score_10": 6.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "ETN"
     },
@@ -2660,7 +2733,7 @@
           "score_10": 7.74224202625336
         },
         "quality": {
-          "grade": "D",
+          "grade": "C",
           "score": 63.79236749040596,
           "score_10": 6.3792367490405955
         },
@@ -2679,157 +2752,11 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 289.59,
-      "rank": 36,
-      "score": 68,
-      "score_10": 6.8,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "PANW"
-    },
-    {
-      "analyst": {
-        "buy_count": 37,
-        "derived_targets": {
-          "high": {
-            "price": 589.65,
-            "upside_percent": 50.4
-          },
-          "low": {
-            "price": 458.03,
-            "upside_percent": 16.8
-          },
-          "mid": {
-            "price": 523.84,
-            "upside_percent": 33.6
-          }
-        },
-        "hold_count": 4,
-        "sell_count": 0,
-        "strong_buy_count": 7,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 523.84
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Broadcom Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "D",
-          "score": 52.35417516602856,
-          "score_10": 5.2354175166028565
-        },
-        "momentum": {
-          "grade": "B",
-          "score": 79.34992624298853,
-          "score_10": 7.934992624298853
-        },
-        "quality": {
-          "grade": "C",
-          "score": 70.61170084360492,
-          "score_10": 7.0611700843604925
-        },
-        "risk": {
-          "grade": "D",
-          "score": 54.211225583106426,
-          "score_10": 5.421122558310643
-        },
-        "valuation": {
-          "grade": "C",
-          "score": 59.87334940906793,
-          "score_10": 5.987334940906792
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "B / Attractive",
-      "latest_price_close": 392.13,
       "rank": 37,
       "score": 67,
       "score_10": 6.7,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AVGO"
-    },
-    {
-      "analyst": {
-        "buy_count": 18,
-        "derived_targets": {
-          "high": {
-            "price": 181.51,
-            "upside_percent": 27.5
-          },
-          "low": {
-            "price": 131.43,
-            "upside_percent": -7.7
-          },
-          "mid": {
-            "price": 156.47,
-            "upside_percent": 9.9
-          }
-        },
-        "hold_count": 18,
-        "sell_count": 2,
-        "strong_buy_count": 4,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 156.47
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 4.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Airbnb Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "C",
-          "score": 54.16504215526562,
-          "score_10": 5.416504215526562
-        },
-        "momentum": {
-          "grade": "B",
-          "score": 67.59521000546208,
-          "score_10": 6.759521000546208
-        },
-        "quality": {
-          "grade": "B",
-          "score": 74.90909132518826,
-          "score_10": 7.4909091325188255
-        },
-        "risk": {
-          "grade": "B",
-          "score": 65.73912025327962,
-          "score_10": 6.573912025327962
-        },
-        "valuation": {
-          "grade": "C",
-          "score": 58.35852919021699,
-          "score_10": 5.8358529190217
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "B / Attractive",
-      "latest_price_close": 142.41,
-      "rank": 38,
-      "score": 66,
-      "score_10": 6.6,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ABNB"
+      "symbol": "PANW"
     },
     {
       "analyst": {
@@ -2898,9 +2825,9 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 133.99001,
-      "rank": 39,
-      "score": 65,
-      "score_10": 6.5,
+      "rank": 38,
+      "score": 66,
+      "score_10": 6.6,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "INTC"
     },
@@ -2910,15 +2837,15 @@
         "derived_targets": {
           "high": {
             "price": 422.58,
-            "upside_percent": 25.0
+            "upside_percent": 25.2
           },
           "low": {
             "price": 303.64,
-            "upside_percent": -10.2
+            "upside_percent": -10.1
           },
           "mid": {
             "price": 363.11,
-            "upside_percent": 7.4
+            "upside_percent": 7.6
           }
         },
         "hold_count": 15,
@@ -2942,40 +2869,186 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "C",
-          "score": 56.24469855382137,
-          "score_10": 5.624469855382138
+          "grade": "B",
+          "score": 57.16091761883551,
+          "score_10": 5.716091761883551
         },
         "momentum": {
           "grade": "B",
-          "score": 68.74463068000514,
-          "score_10": 6.874463068000514
+          "score": 67.04457915437168,
+          "score_10": 6.7044579154371675
         },
         "quality": {
           "grade": "C",
-          "score": 67.29212937596637,
-          "score_10": 6.729212937596636
+          "score": 67.44296121254085,
+          "score_10": 6.744296121254084
         },
         "risk": {
           "grade": "B",
-          "score": 65.3647704726313,
-          "score_10": 6.536477047263131
+          "score": 65.99220418624846,
+          "score_10": 6.599220418624847
         },
         "valuation": {
           "grade": "B",
-          "score": 63.322832255541265,
-          "score_10": 6.332283225554126
+          "score": 62.86869795768447,
+          "score_10": 6.286869795768447
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "B / Attractive",
-      "latest_price_close": 338.0,
+      "latest_price_close": 337.59,
+      "rank": 39,
+      "score": 65,
+      "score_10": 6.5,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "AXP"
+    },
+    {
+      "analyst": {
+        "buy_count": 18,
+        "derived_targets": {
+          "high": {
+            "price": 212.28,
+            "upside_percent": 81.9
+          },
+          "low": {
+            "price": 153.22,
+            "upside_percent": 31.3
+          },
+          "mid": {
+            "price": 182.75,
+            "upside_percent": 56.6
+          }
+        },
+        "hold_count": 10,
+        "sell_count": 1,
+        "strong_buy_count": 1,
+        "strong_sell_count": 1,
+        "suggestion_label": "buy",
+        "target_price": 182.75
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Palantir Technologies Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "A",
+          "score": 68.16474873904849,
+          "score_10": 6.816474873904848
+        },
+        "momentum": {
+          "grade": "F",
+          "score": 21.05806369228561,
+          "score_10": 2.105806369228561
+        },
+        "quality": {
+          "grade": "A",
+          "score": 90.13611741223376,
+          "score_10": 9.013611741223375
+        },
+        "risk": {
+          "grade": "B",
+          "score": 65.73228823009647,
+          "score_10": 6.573228823009647
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 67.55116696342229,
+          "score_10": 6.755116696342229
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "B / Attractive",
+      "latest_price_close": 116.7,
       "rank": 40,
       "score": 64,
       "score_10": 6.4,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AXP"
+      "symbol": "PLTR"
+    },
+    {
+      "analyst": {
+        "buy_count": 37,
+        "derived_targets": {
+          "high": {
+            "price": 589.65,
+            "upside_percent": 55.1
+          },
+          "low": {
+            "price": 458.03,
+            "upside_percent": 20.5
+          },
+          "mid": {
+            "price": 523.84,
+            "upside_percent": 37.8
+          }
+        },
+        "hold_count": 4,
+        "sell_count": 0,
+        "strong_buy_count": 7,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 523.84
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Broadcom Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "C",
+          "score": 54.61317852011103,
+          "score_10": 5.461317852011103
+        },
+        "momentum": {
+          "grade": "B",
+          "score": 77.50863746688054,
+          "score_10": 7.750863746688055
+        },
+        "quality": {
+          "grade": "C",
+          "score": 68.42246123971685,
+          "score_10": 6.842246123971685
+        },
+        "risk": {
+          "grade": "D",
+          "score": 54.92894074643196,
+          "score_10": 5.492894074643196
+        },
+        "valuation": {
+          "grade": "C",
+          "score": 59.116372927299466,
+          "score_10": 5.911637292729947
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "B / Attractive",
+      "latest_price_close": 380.15,
+      "rank": 41,
+      "score": 63,
+      "score_10": 6.3,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "AVGO"
     },
     {
       "analyst": {
@@ -3044,9 +3117,9 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 71.64,
-      "rank": 41,
-      "score": 63,
-      "score_10": 6.3,
+      "rank": 42,
+      "score": 62,
+      "score_10": 6.2,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "UBER"
     },
@@ -3117,108 +3190,35 @@
       "freshness_status": "fresh",
       "label": "B / Attractive",
       "latest_price_close": 464.60999,
-      "rank": 42,
-      "score": 62,
-      "score_10": 6.2,
+      "rank": 43,
+      "score": 61,
+      "score_10": 6.1,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "TMO"
     },
     {
       "analyst": {
-        "buy_count": 23,
+        "buy_count": 22,
         "derived_targets": {
           "high": {
-            "price": 1371.6,
-            "upside_percent": 21.6
+            "price": 720.73,
+            "upside_percent": 54.4
           },
           "low": {
-            "price": 1051.84,
-            "upside_percent": -6.7
+            "price": 568.21,
+            "upside_percent": 21.7
           },
           "mid": {
-            "price": 1211.72,
-            "upside_percent": 7.5
+            "price": 644.47,
+            "upside_percent": 38.0
           }
         },
-        "hold_count": 7,
+        "hold_count": 4,
         "sell_count": 0,
-        "strong_buy_count": 6,
+        "strong_buy_count": 10,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 1211.72
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 4.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "GE Vernova Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "A",
-          "score": 70.78212961403712,
-          "score_10": 7.078212961403712
-        },
-        "momentum": {
-          "grade": "B",
-          "score": 83.5316153917514,
-          "score_10": 8.35316153917514
-        },
-        "quality": {
-          "grade": "D",
-          "score": 60.14293117692099,
-          "score_10": 6.014293117692099
-        },
-        "risk": {
-          "grade": "D",
-          "score": 49.74318209006133,
-          "score_10": 4.9743182090061335
-        },
-        "valuation": {
-          "grade": "F",
-          "score": 50.677558198216126,
-          "score_10": 5.067755819821612
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "B / Attractive",
-      "latest_price_close": 1127.59,
-      "rank": 43,
-      "score": 61,
-      "score_10": 6.1,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "GEV"
-    },
-    {
-      "analyst": {
-        "buy_count": 10,
-        "derived_targets": {
-          "high": {
-            "price": 185.07,
-            "upside_percent": 27.6
-          },
-          "low": {
-            "price": 142.49,
-            "upside_percent": -1.8
-          },
-          "mid": {
-            "price": 163.78,
-            "upside_percent": 12.9
-          }
-        },
-        "hold_count": 2,
-        "sell_count": 0,
-        "strong_buy_count": 2,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 163.78
+        "target_price": 644.47
       },
       "benchmarks": {
         "acquirers_multiple": null,
@@ -3226,7 +3226,7 @@
         "piotroski_fscore": 3.0,
         "piotroski_signals_available": 3.0
       },
-      "company_name": "AerCap Holdings N.V.",
+      "company_name": "AppLovin Corporation",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -3235,39 +3235,39 @@
         },
         "growth": {
           "grade": "D",
-          "score": 51.634852559219,
-          "score_10": 5.1634852559219
+          "score": 49.18739892216146,
+          "score_10": 4.918739892216146
         },
         "momentum": {
-          "grade": "C",
-          "score": 55.14010370563175,
-          "score_10": 5.514010370563176
+          "grade": "D",
+          "score": 47.97146822651617,
+          "score_10": 4.797146822651618
         },
         "quality": {
-          "grade": "C",
-          "score": 68.69143048426115,
-          "score_10": 6.869143048426114
+          "grade": "B",
+          "score": 75.89197218941219,
+          "score_10": 7.589197218941218
         },
         "risk": {
-          "grade": "A",
-          "score": 69.01548862465447,
-          "score_10": 6.901548862465447
+          "grade": "C",
+          "score": 58.9346959435307,
+          "score_10": 5.89346959435307
         },
         "valuation": {
           "grade": "A",
-          "score": 71.97077503330819,
-          "score_10": 7.197077503330819
+          "score": 75.22486762780107,
+          "score_10": 7.522486762780107
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "B / Attractive",
-      "latest_price_close": 145.059998,
+      "latest_price_close": 466.89999,
       "rank": 44,
       "score": 60,
       "score_10": 6.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AER"
+      "symbol": "APP"
     },
     {
       "analyst": {
@@ -3344,79 +3344,6 @@
     },
     {
       "analyst": {
-        "buy_count": 18,
-        "derived_targets": {
-          "high": {
-            "price": 212.28,
-            "upside_percent": 77.6
-          },
-          "low": {
-            "price": 153.22,
-            "upside_percent": 28.2
-          },
-          "mid": {
-            "price": 182.75,
-            "upside_percent": 52.9
-          }
-        },
-        "hold_count": 10,
-        "sell_count": 1,
-        "strong_buy_count": 1,
-        "strong_sell_count": 1,
-        "suggestion_label": "buy",
-        "target_price": 182.75
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Palantir Technologies Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "A",
-          "score": 64.64485647705304,
-          "score_10": 6.464485647705303
-        },
-        "momentum": {
-          "grade": "F",
-          "score": 19.717720182247735,
-          "score_10": 1.9717720182247735
-        },
-        "quality": {
-          "grade": "A",
-          "score": 89.09225008246439,
-          "score_10": 8.90922500824644
-        },
-        "risk": {
-          "grade": "B",
-          "score": 65.73228823009647,
-          "score_10": 6.573228823009647
-        },
-        "valuation": {
-          "grade": "A",
-          "score": 68.66833379219577,
-          "score_10": 6.866833379219576
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "C / Neutral",
-      "latest_price_close": 119.5,
-      "rank": 46,
-      "score": 59,
-      "score_10": 5.9,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "PLTR"
-    },
-    {
-      "analyst": {
         "buy_count": 14,
         "derived_targets": {
           "high": {
@@ -3482,9 +3409,9 @@
       "freshness_status": "fresh",
       "label": "C / Neutral",
       "latest_price_close": 153.3,
-      "rank": 47,
-      "score": 58,
-      "score_10": 5.8,
+      "rank": 46,
+      "score": 59,
+      "score_10": 5.9,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "VEEV"
     },
@@ -3555,9 +3482,9 @@
       "freshness_status": "fresh",
       "label": "C / Neutral",
       "latest_price_close": 126.17,
-      "rank": 48,
-      "score": 57,
-      "score_10": 5.7,
+      "rank": 47,
+      "score": 58,
+      "score_10": 5.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "AWK"
     },
@@ -3628,11 +3555,157 @@
       "freshness_status": "fresh",
       "label": "C / Neutral",
       "latest_price_close": 450.67001,
+      "rank": 48,
+      "score": 57,
+      "score_10": 5.7,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "MCO"
+    },
+    {
+      "analyst": {
+        "buy_count": 16,
+        "derived_targets": {
+          "high": {
+            "price": 648.13,
+            "upside_percent": 60.8
+          },
+          "low": {
+            "price": 482.03,
+            "upside_percent": 19.6
+          },
+          "mid": {
+            "price": 565.08,
+            "upside_percent": 40.2
+          }
+        },
+        "hold_count": 9,
+        "sell_count": 1,
+        "strong_buy_count": 6,
+        "strong_sell_count": 1,
+        "suggestion_label": "buy",
+        "target_price": 565.08
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Intuitive Surgical Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "B",
+          "score": 57.232412951718125,
+          "score_10": 5.723241295171812
+        },
+        "momentum": {
+          "grade": "F",
+          "score": 30.39159554927329,
+          "score_10": 3.039159554927329
+        },
+        "quality": {
+          "grade": "A",
+          "score": 85.37161318056175,
+          "score_10": 8.537161318056175
+        },
+        "risk": {
+          "grade": "A",
+          "score": 75.98262604534224,
+          "score_10": 7.5982626045342245
+        },
+        "valuation": {
+          "grade": "B",
+          "score": 64.46332075573122,
+          "score_10": 6.446332075573122
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "C / Neutral",
+      "latest_price_close": 403.18,
       "rank": 49,
       "score": 56,
       "score_10": 5.6,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "MCO"
+      "symbol": "ISRG"
+    },
+    {
+      "analyst": {
+        "buy_count": 18,
+        "derived_targets": {
+          "high": {
+            "price": 181.51,
+            "upside_percent": 30.7
+          },
+          "low": {
+            "price": 131.43,
+            "upside_percent": -5.3
+          },
+          "mid": {
+            "price": 156.47,
+            "upside_percent": 12.7
+          }
+        },
+        "hold_count": 18,
+        "sell_count": 2,
+        "strong_buy_count": 4,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 156.47
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 4.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Airbnb Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "D",
+          "score": 52.45720691419041,
+          "score_10": 5.245720691419041
+        },
+        "momentum": {
+          "grade": "C",
+          "score": 62.18049216745774,
+          "score_10": 6.218049216745774
+        },
+        "quality": {
+          "grade": "B",
+          "score": 73.47147735453841,
+          "score_10": 7.3471477354538415
+        },
+        "risk": {
+          "grade": "B",
+          "score": 65.97106905900714,
+          "score_10": 6.597106905900714
+        },
+        "valuation": {
+          "grade": "C",
+          "score": 58.49184673055601,
+          "score_10": 5.849184673055601
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "C / Neutral",
+      "latest_price_close": 138.85,
+      "rank": 50,
+      "score": 55,
+      "score_10": 5.5,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "ABNB"
     },
     {
       "analyst": {
@@ -3701,84 +3774,11 @@
       "freshness_status": "fresh",
       "label": "C / Neutral",
       "latest_price_close": 86.84,
-      "rank": 50,
-      "score": 55,
-      "score_10": 5.5,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ORLY"
-    },
-    {
-      "analyst": {
-        "buy_count": 16,
-        "derived_targets": {
-          "high": {
-            "price": 648.13,
-            "upside_percent": 60.8
-          },
-          "low": {
-            "price": 482.03,
-            "upside_percent": 19.6
-          },
-          "mid": {
-            "price": 565.08,
-            "upside_percent": 40.2
-          }
-        },
-        "hold_count": 9,
-        "sell_count": 1,
-        "strong_buy_count": 6,
-        "strong_sell_count": 1,
-        "suggestion_label": "buy",
-        "target_price": 565.08
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Intuitive Surgical Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "B",
-          "score": 56.686017666169654,
-          "score_10": 5.668601766616965
-        },
-        "momentum": {
-          "grade": "F",
-          "score": 29.775090529083236,
-          "score_10": 2.977509052908324
-        },
-        "quality": {
-          "grade": "A",
-          "score": 84.48427307711357,
-          "score_10": 8.448427307711357
-        },
-        "risk": {
-          "grade": "A",
-          "score": 75.31824062262697,
-          "score_10": 7.531824062262697
-        },
-        "valuation": {
-          "grade": "B",
-          "score": 64.63889714726315,
-          "score_10": 6.4638897147263155
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "C / Neutral",
-      "latest_price_close": 402.95,
       "rank": 51,
       "score": 54,
       "score_10": 5.4,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ISRG"
+      "symbol": "ORLY"
     },
     {
       "analyst": {
@@ -3833,7 +3833,7 @@
           "score_10": 6.576008183416298
         },
         "risk": {
-          "grade": "B",
+          "grade": "A",
           "score": 68.24060804208258,
           "score_10": 6.8240608042082584
         },
@@ -4047,7 +4047,7 @@
           "score_10": 3.72767327039158
         },
         "quality": {
-          "grade": "B",
+          "grade": "A",
           "score": 81.00456059166913,
           "score_10": 8.100456059166914
         },
@@ -4188,7 +4188,7 @@
           "score_10": 6.479057533771025
         },
         "momentum": {
-          "grade": "C",
+          "grade": "B",
           "score": 66.00830220192412,
           "score_10": 6.600830220192413
         },
@@ -4293,100 +4293,27 @@
     },
     {
       "analyst": {
-        "buy_count": 22,
+        "buy_count": 23,
         "derived_targets": {
           "high": {
-            "price": 720.73,
-            "upside_percent": 53.4
+            "price": 1371.6,
+            "upside_percent": 32.5
           },
           "low": {
-            "price": 568.21,
-            "upside_percent": 21.0
+            "price": 1051.84,
+            "upside_percent": 1.6
           },
           "mid": {
-            "price": 644.47,
-            "upside_percent": 37.2
+            "price": 1211.72,
+            "upside_percent": 17.1
           }
         },
-        "hold_count": 4,
+        "hold_count": 7,
         "sell_count": 0,
-        "strong_buy_count": 10,
+        "strong_buy_count": 6,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 644.47
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 3.0
-      },
-      "company_name": "AppLovin Corporation",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "F",
-          "score": 42.02171100809183,
-          "score_10": 4.202171100809182
-        },
-        "momentum": {
-          "grade": "D",
-          "score": 37.34238736463196,
-          "score_10": 3.734238736463196
-        },
-        "quality": {
-          "grade": "B",
-          "score": 76.85649113194681,
-          "score_10": 7.685649113194682
-        },
-        "risk": {
-          "grade": "C",
-          "score": 58.13004457367545,
-          "score_10": 5.813004457367544
-        },
-        "valuation": {
-          "grade": "A",
-          "score": 76.17544959196178,
-          "score_10": 7.617544959196178
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "C / Neutral",
-      "latest_price_close": 469.70999,
-      "rank": 59,
-      "score": 47,
-      "score_10": 4.7,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "APP"
-    },
-    {
-      "analyst": {
-        "buy_count": 12,
-        "derived_targets": {
-          "high": {
-            "price": 331.63,
-            "upside_percent": 69.9
-          },
-          "low": {
-            "price": 232.91,
-            "upside_percent": 19.3
-          },
-          "mid": {
-            "price": 282.27,
-            "upside_percent": 44.6
-          }
-        },
-        "hold_count": 20,
-        "sell_count": 4,
-        "strong_buy_count": 3,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 282.27
+        "target_price": 1211.72
       },
       "benchmarks": {
         "acquirers_multiple": null,
@@ -4394,7 +4321,7 @@
         "piotroski_fscore": 4.0,
         "piotroski_signals_available": 4.0
       },
-      "company_name": "Adobe Inc.",
+      "company_name": "GE Vernova Inc.",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -4402,40 +4329,40 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "C",
-          "score": 55.43461737032724,
-          "score_10": 5.5434617370327235
+          "grade": "A",
+          "score": 64.02989851481419,
+          "score_10": 6.402989851481419
         },
         "momentum": {
-          "grade": "F",
-          "score": 19.25702878238561,
-          "score_10": 1.925702878238561
+          "grade": "B",
+          "score": 74.20109396089683,
+          "score_10": 7.420109396089683
         },
         "quality": {
-          "grade": "A",
-          "score": 83.63882617479679,
-          "score_10": 8.363882617479678
+          "grade": "D",
+          "score": 56.91216949621623,
+          "score_10": 5.691216949621623
         },
         "risk": {
-          "grade": "C",
-          "score": 59.030263892127394,
-          "score_10": 5.90302638921274
+          "grade": "F",
+          "score": 46.2570581406464,
+          "score_10": 4.6257058140646405
         },
         "valuation": {
-          "grade": "A",
-          "score": 70.53829141820533,
-          "score_10": 7.053829141820533
+          "grade": "D",
+          "score": 53.06413162727427,
+          "score_10": 5.306413162727427
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "C / Neutral",
-      "latest_price_close": 195.16,
-      "rank": 60,
-      "score": 46,
-      "score_10": 4.6,
+      "latest_price_close": 1034.98,
+      "rank": 59,
+      "score": 47,
+      "score_10": 4.7,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ADBE"
+      "symbol": "GEV"
     },
     {
       "analyst": {
@@ -4480,7 +4407,7 @@
           "score_10": 5.8906557196560305
         },
         "momentum": {
-          "grade": "F",
+          "grade": "D",
           "score": 33.50618458610847,
           "score_10": 3.350618458610847
         },
@@ -4504,9 +4431,9 @@
       "freshness_status": "fresh",
       "label": "C / Neutral",
       "latest_price_close": 18.51,
-      "rank": 61,
-      "score": 45,
-      "score_10": 4.5,
+      "rank": 60,
+      "score": 46,
+      "score_10": 4.6,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "TTD"
     },
@@ -4548,12 +4475,12 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "D",
+          "grade": "C",
           "score": 52.8916599507814,
           "score_10": 5.2891659950781404
         },
         "momentum": {
-          "grade": "C",
+          "grade": "D",
           "score": 52.43325242718446,
           "score_10": 5.243325242718447
         },
@@ -4577,11 +4504,84 @@
       "freshness_status": "fresh",
       "label": "C / Neutral",
       "latest_price_close": 32.49,
+      "rank": 61,
+      "score": 45,
+      "score_10": 4.5,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "CMG"
+    },
+    {
+      "analyst": {
+        "buy_count": 12,
+        "derived_targets": {
+          "high": {
+            "price": 331.63,
+            "upside_percent": 67.9
+          },
+          "low": {
+            "price": 232.91,
+            "upside_percent": 18.0
+          },
+          "mid": {
+            "price": 282.27,
+            "upside_percent": 43.0
+          }
+        },
+        "hold_count": 20,
+        "sell_count": 4,
+        "strong_buy_count": 3,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 282.27
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 4.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Adobe Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "C",
+          "score": 56.04176753158636,
+          "score_10": 5.604176753158636
+        },
+        "momentum": {
+          "grade": "F",
+          "score": 19.328846433237363,
+          "score_10": 1.9328846433237363
+        },
+        "quality": {
+          "grade": "A",
+          "score": 81.57939309252775,
+          "score_10": 8.157939309252775
+        },
+        "risk": {
+          "grade": "C",
+          "score": 58.9702638921274,
+          "score_10": 5.89702638921274
+        },
+        "valuation": {
+          "grade": "A",
+          "score": 69.9566320848219,
+          "score_10": 6.99566320848219
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "C / Neutral",
+      "latest_price_close": 197.46001,
       "rank": 62,
       "score": 44,
       "score_10": 4.4,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "CMG"
+      "symbol": "ADBE"
     },
     {
       "analyst": {
@@ -4804,35 +4804,35 @@
     },
     {
       "analyst": {
-        "buy_count": 24,
+        "buy_count": 29,
         "derived_targets": {
           "high": {
-            "price": 254.01,
-            "upside_percent": 47.9
+            "price": 129.79,
+            "upside_percent": 78.2
           },
           "low": {
-            "price": 194.81,
-            "upside_percent": 13.4
+            "price": 98.51,
+            "upside_percent": 35.3
           },
           "mid": {
-            "price": 224.41,
-            "upside_percent": 30.6
+            "price": 114.15,
+            "upside_percent": 56.8
           }
         },
-        "hold_count": 7,
+        "hold_count": 13,
         "sell_count": 0,
-        "strong_buy_count": 6,
+        "strong_buy_count": 8,
         "strong_sell_count": 0,
         "suggestion_label": "buy",
-        "target_price": 224.41
+        "target_price": 114.15
       },
       "benchmarks": {
         "acquirers_multiple": null,
         "magic_formula_combined_rank": null,
-        "piotroski_fscore": 4.0,
+        "piotroski_fscore": 2.0,
         "piotroski_signals_available": 4.0
       },
-      "company_name": "Booking Holdings Inc.",
+      "company_name": "Netflix Inc.",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -4841,39 +4841,39 @@
         },
         "growth": {
           "grade": "B",
-          "score": 58.29549694075244,
-          "score_10": 5.8295496940752445
+          "score": 57.047667420341405,
+          "score_10": 5.70476674203414
         },
         "momentum": {
-          "grade": "B",
-          "score": 72.00796431984709,
-          "score_10": 7.200796431984709
+          "grade": "F",
+          "score": 17.952861050449968,
+          "score_10": 1.7952861050449969
         },
         "quality": {
-          "grade": "D",
-          "score": 55.59113320873436,
-          "score_10": 5.559113320873436
+          "grade": "A",
+          "score": 84.44618409012226,
+          "score_10": 8.444618409012225
         },
         "risk": {
-          "grade": "D",
-          "score": 55.57537498591063,
-          "score_10": 5.557537498591063
+          "grade": "B",
+          "score": 64.51473757114135,
+          "score_10": 6.451473757114136
         },
         "valuation": {
-          "grade": "F",
-          "score": 49.42976210253138,
-          "score_10": 4.942976210253137
+          "grade": "C",
+          "score": 61.6300324492764,
+          "score_10": 6.16300324492764
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "C / Neutral",
-      "latest_price_close": 171.78,
+      "latest_price_close": 72.82,
       "rank": 66,
       "score": 40,
       "score_10": 4.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "BKNG"
+      "symbol": "NFLX"
     },
     {
       "analyst": {
@@ -5023,79 +5023,6 @@
     },
     {
       "analyst": {
-        "buy_count": 24,
-        "derived_targets": {
-          "high": {
-            "price": 357.91,
-            "upside_percent": 84.7
-          },
-          "low": {
-            "price": 279.15,
-            "upside_percent": 44.0
-          },
-          "mid": {
-            "price": 318.53,
-            "upside_percent": 64.3
-          }
-        },
-        "hold_count": 3,
-        "sell_count": 0,
-        "strong_buy_count": 6,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 318.53
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 4.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Autodesk Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "B",
-          "score": 57.21208652648702,
-          "score_10": 5.721208652648702
-        },
-        "momentum": {
-          "grade": "F",
-          "score": 18.44336136047588,
-          "score_10": 1.844336136047588
-        },
-        "quality": {
-          "grade": "A",
-          "score": 83.50340213115288,
-          "score_10": 8.350340213115288
-        },
-        "risk": {
-          "grade": "B",
-          "score": 62.689777413927935,
-          "score_10": 6.268977741392794
-        },
-        "valuation": {
-          "grade": "C",
-          "score": 61.412919365610506,
-          "score_10": 6.141291936561051
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "D / Unattractive",
-      "latest_price_close": 193.82,
-      "rank": 69,
-      "score": 38,
-      "score_10": 3.8,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "ADSK"
-    },
-    {
-      "analyst": {
         "buy_count": 16,
         "derived_targets": {
           "high": {
@@ -5161,9 +5088,9 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 29.835,
-      "rank": 70,
-      "score": 37,
-      "score_10": 3.7,
+      "rank": 69,
+      "score": 38,
+      "score_10": 3.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "CELH"
     },
@@ -5173,15 +5100,15 @@
         "derived_targets": {
           "high": {
             "price": 807.7,
-            "upside_percent": 19.6
+            "upside_percent": 18.6
           },
           "low": {
             "price": 617.04,
-            "upside_percent": -8.6
+            "upside_percent": -9.4
           },
           "mid": {
             "price": 712.37,
-            "upside_percent": 5.5
+            "upside_percent": 4.6
           }
         },
         "hold_count": 11,
@@ -5205,9 +5132,9 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "D",
-          "score": 51.61667807284763,
-          "score_10": 5.161667807284763
+          "grade": "C",
+          "score": 54.152813137022825,
+          "score_10": 5.415281313702282
         },
         "momentum": {
           "grade": "A",
@@ -5216,102 +5143,29 @@
         },
         "quality": {
           "grade": "F",
-          "score": 45.74064476667184,
-          "score_10": 4.574064476667184
+          "score": 43.85849034684699,
+          "score_10": 4.385849034684699
         },
         "risk": {
           "grade": "F",
-          "score": 36.93415178633115,
-          "score_10": 3.693415178633115
+          "score": 37.14010042587532,
+          "score_10": 3.7140100425875318
         },
         "valuation": {
           "grade": "F",
-          "score": 47.11111878672825,
-          "score_10": 4.711111878672825
+          "score": 45.89528427349156,
+          "score_10": 4.589528427349156
         }
       },
-      "freshest_input_date": "2026-06-22",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "D / Unattractive",
-      "latest_price_close": 675.44,
-      "rank": 71,
-      "score": 36,
-      "score_10": 3.6,
+      "latest_price_close": 680.92,
+      "rank": 70,
+      "score": 37,
+      "score_10": 3.7,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "CRWD"
-    },
-    {
-      "analyst": {
-        "buy_count": 29,
-        "derived_targets": {
-          "high": {
-            "price": 129.79,
-            "upside_percent": 78.1
-          },
-          "low": {
-            "price": 98.51,
-            "upside_percent": 35.2
-          },
-          "mid": {
-            "price": 114.15,
-            "upside_percent": 56.6
-          }
-        },
-        "hold_count": 13,
-        "sell_count": 0,
-        "strong_buy_count": 8,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 114.15
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 2.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Netflix Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "D",
-          "score": 52.908483305679724,
-          "score_10": 5.2908483305679725
-        },
-        "momentum": {
-          "grade": "F",
-          "score": 18.7399569254875,
-          "score_10": 1.87399569254875
-        },
-        "quality": {
-          "grade": "A",
-          "score": 83.73086651543757,
-          "score_10": 8.373086651543757
-        },
-        "risk": {
-          "grade": "C",
-          "score": 60.4308163731619,
-          "score_10": 6.04308163731619
-        },
-        "valuation": {
-          "grade": "B",
-          "score": 63.1262421534835,
-          "score_10": 6.31262421534835
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "D / Unattractive",
-      "latest_price_close": 72.88,
-      "rank": 72,
-      "score": 35,
-      "score_10": 3.5,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "NFLX"
     },
     {
       "analyst": {
@@ -5380,9 +5234,9 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 488.38,
-      "rank": 73,
-      "score": 34,
-      "score_10": 3.4,
+      "rank": 71,
+      "score": 36,
+      "score_10": 3.6,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "BRK.B"
     },
@@ -5453,9 +5307,9 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 57.585,
-      "rank": 74,
-      "score": 33,
-      "score_10": 3.3,
+      "rank": 72,
+      "score": 35,
+      "score_10": 3.5,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "BAC"
     },
@@ -5507,7 +5361,7 @@
           "score_10": 8.046845124282983
         },
         "quality": {
-          "grade": "F",
+          "grade": "D",
           "score": 50.38892348900783,
           "score_10": 5.0388923489007835
         },
@@ -5526,9 +5380,9 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 17.91,
-      "rank": 75,
-      "score": 32,
-      "score_10": 3.2,
+      "rank": 73,
+      "score": 34,
+      "score_10": 3.4,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "SOFI"
     },
@@ -5599,9 +5453,9 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 221.79,
-      "rank": 76,
-      "score": 31,
-      "score_10": 3.1,
+      "rank": 74,
+      "score": 33,
+      "score_10": 3.3,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "DDOG"
     },
@@ -5663,7 +5517,7 @@
           "score_10": 5.724753434813641
         },
         "valuation": {
-          "grade": "D",
+          "grade": "F",
           "score": 51.17806094716381,
           "score_10": 5.11780609471638
         }
@@ -5672,9 +5526,9 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 93.099998,
-      "rank": 77,
-      "score": 30,
-      "score_10": 3.0,
+      "rank": 75,
+      "score": 32,
+      "score_10": 3.2,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "SKYW"
     },
@@ -5745,11 +5599,84 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 455.51001,
-      "rank": 78,
+      "rank": 76,
+      "score": 31,
+      "score_10": 3.1,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "SNPS"
+    },
+    {
+      "analyst": {
+        "buy_count": 24,
+        "derived_targets": {
+          "high": {
+            "price": 254.01,
+            "upside_percent": 50.4
+          },
+          "low": {
+            "price": 194.81,
+            "upside_percent": 15.3
+          },
+          "mid": {
+            "price": 224.41,
+            "upside_percent": 32.8
+          }
+        },
+        "hold_count": 7,
+        "sell_count": 0,
+        "strong_buy_count": 6,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 224.41
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 4.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Booking Holdings Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "B",
+          "score": 58.26376783953021,
+          "score_10": 5.826376783953021
+        },
+        "momentum": {
+          "grade": "C",
+          "score": 62.73534608036516,
+          "score_10": 6.273534608036516
+        },
+        "quality": {
+          "grade": "D",
+          "score": 54.11255664972477,
+          "score_10": 5.411255664972478
+        },
+        "risk": {
+          "grade": "D",
+          "score": 54.81851610241336,
+          "score_10": 5.481851610241336
+        },
+        "valuation": {
+          "grade": "F",
+          "score": 48.85691690325504,
+          "score_10": 4.885691690325504
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "D / Unattractive",
+      "latest_price_close": 168.92,
+      "rank": 77,
       "score": 30,
       "score_10": 3.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "SNPS"
+      "symbol": "BKNG"
     },
     {
       "analyst": {
@@ -5818,9 +5745,9 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 116.93,
-      "rank": 79,
-      "score": 29,
-      "score_10": 2.9,
+      "rank": 78,
+      "score": 30,
+      "score_10": 3.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "WDAY"
     },
@@ -5891,11 +5818,84 @@
       "freshness_status": "fresh",
       "label": "D / Unattractive",
       "latest_price_close": 79.29,
+      "rank": 79,
+      "score": 29,
+      "score_10": 2.9,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "GM"
+    },
+    {
+      "analyst": {
+        "buy_count": 24,
+        "derived_targets": {
+          "high": {
+            "price": 357.91,
+            "upside_percent": 89.6
+          },
+          "low": {
+            "price": 279.15,
+            "upside_percent": 47.9
+          },
+          "mid": {
+            "price": 318.53,
+            "upside_percent": 68.8
+          }
+        },
+        "hold_count": 3,
+        "sell_count": 0,
+        "strong_buy_count": 6,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 318.53
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 4.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Autodesk Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "B",
+          "score": 56.469858165367725,
+          "score_10": 5.646985816536773
+        },
+        "momentum": {
+          "grade": "F",
+          "score": 13.501802216463433,
+          "score_10": 1.3501802216463434
+        },
+        "quality": {
+          "grade": "B",
+          "score": 79.32197404043089,
+          "score_10": 7.932197404043088
+        },
+        "risk": {
+          "grade": "C",
+          "score": 59.988918032658724,
+          "score_10": 5.998891803265873
+        },
+        "valuation": {
+          "grade": "C",
+          "score": 61.29056081656306,
+          "score_10": 6.129056081656306
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "D / Unattractive",
+      "latest_price_close": 188.75,
       "rank": 80,
       "score": 28,
       "score_10": 2.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "GM"
+      "symbol": "ADSK"
     },
     {
       "analyst": {
@@ -5955,7 +5955,7 @@
           "score_10": 4.705004050643677
         },
         "valuation": {
-          "grade": "D",
+          "grade": "F",
           "score": 51.883485409836894,
           "score_10": 5.188348540983689
         }
@@ -6013,7 +6013,7 @@
           "score_10": 5.219741781774727
         },
         "momentum": {
-          "grade": "B",
+          "grade": "A",
           "score": 81.52241651399012,
           "score_10": 8.152241651399013
         },
@@ -6320,7 +6320,7 @@
           "score_10": 5.815970213665524
         },
         "valuation": {
-          "grade": "A",
+          "grade": "B",
           "score": 66.49849973305837,
           "score_10": 6.6498499733058365
         }
@@ -6612,7 +6612,7 @@
           "score_10": 5.820520979530327
         },
         "valuation": {
-          "grade": "C",
+          "grade": "D",
           "score": 57.31688124959887,
           "score_10": 5.731688124959887
         }
@@ -6629,35 +6629,35 @@
     },
     {
       "analyst": {
-        "buy_count": 20,
+        "buy_count": 10,
         "derived_targets": {
           "high": {
-            "price": 86.6,
-            "upside_percent": 91.2
+            "price": 734.2,
+            "upside_percent": 69.5
           },
           "low": {
-            "price": 67.6,
-            "upside_percent": 49.3
+            "price": 589.88,
+            "upside_percent": 36.2
           },
           "mid": {
-            "price": 77.1,
-            "upside_percent": 70.2
+            "price": 662.04,
+            "upside_percent": 52.9
           }
         },
-        "hold_count": 4,
+        "hold_count": 2,
         "sell_count": 0,
-        "strong_buy_count": 7,
+        "strong_buy_count": 8,
         "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 77.1
+        "suggestion_label": "strong_buy",
+        "target_price": 662.04
       },
       "benchmarks": {
         "acquirers_multiple": null,
         "magic_formula_combined_rank": null,
-        "piotroski_fscore": 2.0,
+        "piotroski_fscore": 3.0,
         "piotroski_signals_available": 4.0
       },
-      "company_name": "Boston Scientific Corporation",
+      "company_name": "Axon Enterprise Inc.",
       "factors": {
         "analyst_revision": {
           "grade": "C",
@@ -6665,113 +6665,40 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "C",
-          "score": 56.42620475310101,
-          "score_10": 5.6426204753101015
+          "grade": "F",
+          "score": 46.59785988366418,
+          "score_10": 4.659785988366417
         },
         "momentum": {
-          "grade": "F",
-          "score": 18.853890947591317,
-          "score_10": 1.8853890947591319
+          "grade": "C",
+          "score": 54.19842297894553,
+          "score_10": 5.419842297894553
         },
         "quality": {
           "grade": "D",
-          "score": 59.84265906363471,
-          "score_10": 5.984265906363471
+          "score": 52.96973119874702,
+          "score_10": 5.296973119874702
         },
         "risk": {
-          "grade": "D",
-          "score": 51.79378864157818,
-          "score_10": 5.179378864157818
+          "grade": "F",
+          "score": 46.12919784114138,
+          "score_10": 4.612919784114138
         },
         "valuation": {
-          "grade": "C",
-          "score": 61.33249554229885,
-          "score_10": 6.133249554229885
+          "grade": "F",
+          "score": 48.692197640491635,
+          "score_10": 4.869219764049164
         }
       },
-      "freshest_input_date": "2026-06-18",
+      "freshest_input_date": "2026-06-23",
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
-      "latest_price_close": 45.29,
+      "latest_price_close": 433.04,
       "rank": 91,
       "score": 18,
       "score_10": 1.8,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "BSX"
-    },
-    {
-      "analyst": {
-        "buy_count": 4,
-        "derived_targets": {
-          "high": {
-            "price": 37.26,
-            "upside_percent": 65.1
-          },
-          "low": {
-            "price": 30.08,
-            "upside_percent": 33.3
-          },
-          "mid": {
-            "price": 33.67,
-            "upside_percent": 49.2
-          }
-        },
-        "hold_count": 0,
-        "sell_count": 0,
-        "strong_buy_count": 2,
-        "strong_sell_count": 0,
-        "suggestion_label": "strong_buy",
-        "target_price": 33.67
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": 11.0,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 8.0
-      },
-      "company_name": "Unusual Machines Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "C",
-          "score": 54.242622148807506,
-          "score_10": 5.42426221488075
-        },
-        "momentum": {
-          "grade": "A",
-          "score": 100.0,
-          "score_10": 10.0
-        },
-        "quality": {
-          "grade": "F",
-          "score": 26.906397031824426,
-          "score_10": 2.6906397031824425
-        },
-        "risk": {
-          "grade": "F",
-          "score": 29.899563790217673,
-          "score_10": 2.9899563790217676
-        },
-        "valuation": {
-          "grade": "F",
-          "score": 38.724711495708384,
-          "score_10": 3.872471149570839
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "F / Very Unattractive",
-      "latest_price_close": 22.57,
-      "rank": 92,
-      "score": 17,
-      "score_10": 1.7,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "UMAC"
+      "symbol": "AXON"
     },
     {
       "analyst": {
@@ -6840,9 +6767,9 @@
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
       "latest_price_close": 97.010002,
-      "rank": 93,
-      "score": 16,
-      "score_10": 1.6,
+      "rank": 92,
+      "score": 17,
+      "score_10": 1.7,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "KKR"
     },
@@ -6913,11 +6840,157 @@
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
       "latest_price_close": 1057.22,
+      "rank": 93,
+      "score": 16,
+      "score_10": 1.6,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "BLK"
+    },
+    {
+      "analyst": {
+        "buy_count": 20,
+        "derived_targets": {
+          "high": {
+            "price": 86.6,
+            "upside_percent": 90.0
+          },
+          "low": {
+            "price": 67.6,
+            "upside_percent": 48.3
+          },
+          "mid": {
+            "price": 77.1,
+            "upside_percent": 69.1
+          }
+        },
+        "hold_count": 4,
+        "sell_count": 0,
+        "strong_buy_count": 7,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 77.1
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": 2.0,
+        "piotroski_signals_available": 4.0
+      },
+      "company_name": "Boston Scientific Corporation",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "B",
+          "score": 58.240597428597006,
+          "score_10": 5.8240597428597
+        },
+        "momentum": {
+          "grade": "F",
+          "score": 17.02492211838006,
+          "score_10": 1.7024922118380061
+        },
+        "quality": {
+          "grade": "D",
+          "score": 59.45299374855966,
+          "score_10": 5.945299374855966
+        },
+        "risk": {
+          "grade": "D",
+          "score": 49.186573001750794,
+          "score_10": 4.91865730017508
+        },
+        "valuation": {
+          "grade": "C",
+          "score": 60.56726191224527,
+          "score_10": 6.056726191224527
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "F / Very Unattractive",
+      "latest_price_close": 45.59,
       "rank": 94,
       "score": 15,
       "score_10": 1.5,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "BLK"
+      "symbol": "BSX"
+    },
+    {
+      "analyst": {
+        "buy_count": 4,
+        "derived_targets": {
+          "high": {
+            "price": 37.26,
+            "upside_percent": 73.2
+          },
+          "low": {
+            "price": 30.08,
+            "upside_percent": 39.8
+          },
+          "mid": {
+            "price": 33.67,
+            "upside_percent": 56.5
+          }
+        },
+        "hold_count": 0,
+        "sell_count": 0,
+        "strong_buy_count": 2,
+        "strong_sell_count": 0,
+        "suggestion_label": "strong_buy",
+        "target_price": 33.67
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": 11.0,
+        "piotroski_fscore": 3.0,
+        "piotroski_signals_available": 8.0
+      },
+      "company_name": "Unusual Machines Inc.",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "B",
+          "score": 59.49380894380722,
+          "score_10": 5.949380894380722
+        },
+        "momentum": {
+          "grade": "A",
+          "score": 100.0,
+          "score_10": 10.0
+        },
+        "quality": {
+          "grade": "F",
+          "score": 23.110031671688265,
+          "score_10": 2.3110031671688263
+        },
+        "risk": {
+          "grade": "F",
+          "score": 29.899563790217673,
+          "score_10": 2.9899563790217676
+        },
+        "valuation": {
+          "grade": "F",
+          "score": 36.795500075425885,
+          "score_10": 3.679550007542588
+        }
+      },
+      "freshest_input_date": "2026-06-23",
+      "freshness_status": "fresh",
+      "label": "F / Very Unattractive",
+      "latest_price_close": 21.51,
+      "rank": 95,
+      "score": 14,
+      "score_10": 1.4,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "UMAC"
     },
     {
       "analyst": {
@@ -6957,7 +7030,7 @@
           "score_10": 5.0
         },
         "growth": {
-          "grade": "D",
+          "grade": "C",
           "score": 53.02152225302282,
           "score_10": 5.302152225302282
         },
@@ -6986,9 +7059,9 @@
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
       "latest_price_close": 29.335,
-      "rank": 95,
-      "score": 14,
-      "score_10": 1.4,
+      "rank": 96,
+      "score": 13,
+      "score_10": 1.3,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "CZR"
     },
@@ -7059,9 +7132,9 @@
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
       "latest_price_close": 951.45001,
-      "rank": 96,
-      "score": 13,
-      "score_10": 1.3,
+      "rank": 97,
+      "score": 12,
+      "score_10": 1.2,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "COST"
     },
@@ -7132,11 +7205,84 @@
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
       "latest_price_close": 82.72,
-      "rank": 97,
-      "score": 12,
-      "score_10": 1.2,
+      "rank": 98,
+      "score": 11,
+      "score_10": 1.1,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "TEAM"
+    },
+    {
+      "analyst": {
+        "buy_count": 9,
+        "derived_targets": {
+          "high": {
+            "price": 29.85,
+            "upside_percent": 76.8
+          },
+          "low": {
+            "price": 22.75,
+            "upside_percent": 34.8
+          },
+          "mid": {
+            "price": 26.3,
+            "upside_percent": 55.8
+          }
+        },
+        "hold_count": 3,
+        "sell_count": 0,
+        "strong_buy_count": 2,
+        "strong_sell_count": 0,
+        "suggestion_label": "buy",
+        "target_price": 26.3
+      },
+      "benchmarks": {
+        "acquirers_multiple": null,
+        "magic_formula_combined_rank": null,
+        "piotroski_fscore": null,
+        "piotroski_signals_available": null
+      },
+      "company_name": "IAMGOLD Corporation",
+      "factors": {
+        "analyst_revision": {
+          "grade": "C",
+          "score": 50.0,
+          "score_10": 5.0
+        },
+        "growth": {
+          "grade": "F",
+          "score": 35.53190917717192,
+          "score_10": 3.553190917717192
+        },
+        "momentum": {
+          "grade": "F",
+          "score": 30.699871015987622,
+          "score_10": 3.069987101598762
+        },
+        "quality": {
+          "grade": "C",
+          "score": 66.40406942701435,
+          "score_10": 6.640406942701435
+        },
+        "risk": {
+          "grade": "F",
+          "score": 20.836683221097893,
+          "score_10": 2.0836683221097894
+        },
+        "valuation": {
+          "grade": "B",
+          "score": 66.26674998759214,
+          "score_10": 6.6266749987592135
+        }
+      },
+      "freshest_input_date": "2026-06-18",
+      "freshness_status": "fresh",
+      "label": "F / Very Unattractive",
+      "latest_price_close": 16.88,
+      "rank": 99,
+      "score": 10,
+      "score_10": 1.0,
+      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
+      "symbol": "IAG"
     },
     {
       "analyst": {
@@ -7181,7 +7327,7 @@
           "score_10": 5.497951167775737
         },
         "momentum": {
-          "grade": "C",
+          "grade": "B",
           "score": 67.5080748625004,
           "score_10": 6.750807486250039
         },
@@ -7205,9 +7351,9 @@
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
       "latest_price_close": 106.77,
-      "rank": 98,
-      "score": 11,
-      "score_10": 1.1,
+      "rank": 100,
+      "score": 10,
+      "score_10": 1.0,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
       "symbol": "KB"
     },
@@ -7278,157 +7424,11 @@
       "freshness_status": "fresh",
       "label": "F / Very Unattractive",
       "latest_price_close": 97.44,
-      "rank": 99,
-      "score": 10,
-      "score_10": 1.0,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "FLUT"
-    },
-    {
-      "analyst": {
-        "buy_count": 9,
-        "derived_targets": {
-          "high": {
-            "price": 29.85,
-            "upside_percent": 76.8
-          },
-          "low": {
-            "price": 22.75,
-            "upside_percent": 34.8
-          },
-          "mid": {
-            "price": 26.3,
-            "upside_percent": 55.8
-          }
-        },
-        "hold_count": 3,
-        "sell_count": 0,
-        "strong_buy_count": 2,
-        "strong_sell_count": 0,
-        "suggestion_label": "buy",
-        "target_price": 26.3
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": null,
-        "piotroski_signals_available": null
-      },
-      "company_name": "IAMGOLD Corporation",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "F",
-          "score": 35.53190917717192,
-          "score_10": 3.553190917717192
-        },
-        "momentum": {
-          "grade": "F",
-          "score": 30.699871015987622,
-          "score_10": 3.069987101598762
-        },
-        "quality": {
-          "grade": "C",
-          "score": 66.40406942701435,
-          "score_10": 6.640406942701435
-        },
-        "risk": {
-          "grade": "F",
-          "score": 20.836683221097893,
-          "score_10": 2.0836683221097894
-        },
-        "valuation": {
-          "grade": "B",
-          "score": 66.26674998759214,
-          "score_10": 6.6266749987592135
-        }
-      },
-      "freshest_input_date": "2026-06-18",
-      "freshness_status": "fresh",
-      "label": "F / Very Unattractive",
-      "latest_price_close": 16.88,
-      "rank": 100,
-      "score": 10,
-      "score_10": 1.0,
-      "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "IAG"
-    },
-    {
-      "analyst": {
-        "buy_count": 10,
-        "derived_targets": {
-          "high": {
-            "price": 734.2,
-            "upside_percent": 79.1
-          },
-          "low": {
-            "price": 589.88,
-            "upside_percent": 43.9
-          },
-          "mid": {
-            "price": 662.04,
-            "upside_percent": 61.5
-          }
-        },
-        "hold_count": 2,
-        "sell_count": 0,
-        "strong_buy_count": 8,
-        "strong_sell_count": 0,
-        "suggestion_label": "strong_buy",
-        "target_price": 662.04
-      },
-      "benchmarks": {
-        "acquirers_multiple": null,
-        "magic_formula_combined_rank": null,
-        "piotroski_fscore": 3.0,
-        "piotroski_signals_available": 4.0
-      },
-      "company_name": "Axon Enterprise Inc.",
-      "factors": {
-        "analyst_revision": {
-          "grade": "C",
-          "score": 50.0,
-          "score_10": 5.0
-        },
-        "growth": {
-          "grade": "F",
-          "score": 38.99923178286437,
-          "score_10": 3.8999231782864365
-        },
-        "momentum": {
-          "grade": "D",
-          "score": 41.51092120624142,
-          "score_10": 4.151092120624142
-        },
-        "quality": {
-          "grade": "D",
-          "score": 52.62867988669912,
-          "score_10": 5.262867988669912
-        },
-        "risk": {
-          "grade": "F",
-          "score": 47.160752691031625,
-          "score_10": 4.716075269103163
-        },
-        "valuation": {
-          "grade": "D",
-          "score": 51.112728163402615,
-          "score_10": 5.111272816340262
-        }
-      },
-      "freshest_input_date": "2026-06-22",
-      "freshness_status": "fresh",
-      "label": "F / Very Unattractive",
-      "latest_price_close": 410.03,
       "rank": 101,
       "score": 9,
       "score_10": 0.9,
       "summary": "Transparent score built from valuation, quality, growth, momentum, risk, and analyst revisions.",
-      "symbol": "AXON"
+      "symbol": "FLUT"
     },
     {
       "analyst": {

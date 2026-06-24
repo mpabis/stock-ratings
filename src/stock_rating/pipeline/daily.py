@@ -1331,9 +1331,37 @@ def execute_price_refresh_plan(
         )
 
     if alpha_vantage_api_key:
-        alpha_tasks = tasks
+        stooq_first_tasks = (
+            [task for task in tasks if prefer_stooq_before_twelve_data(task.symbol)]
+            if stooq_api_key
+            else []
+        )
+        stooq_first_symbols = {task.symbol for task in stooq_first_tasks}
+        alpha_candidate_tasks = [task for task in tasks if task.symbol not in stooq_first_symbols]
+        stooq_first_runs: list[SymbolRefreshRunRecord] = []
+        if stooq_first_tasks:
+            stooq_first_runs = execute_stooq_refresh_plan(
+                run_id=run_id,
+                tasks=stooq_first_tasks,
+                database_url=database_url,
+                api_key=stooq_api_key,
+                fetch_fn=stooq_fetch_fn,
+                persist_fn=persist_fn,
+                mark_refreshed_fn=mark_refreshed_fn,
+                persist_features_fn=persist_features_fn,
+                compute_features_fn=compute_features_fn,
+                persist_ratings_fn=persist_ratings_fn,
+                build_rating_record_fn=build_rating_record_fn,
+                request_pause_seconds=stooq_pause_seconds,
+                sleep_fn=stooq_sleep_fn,
+                max_requests=stooq_max_requests,
+            )
+
+        alpha_tasks = alpha_candidate_tasks
+        over_alpha_budget_tasks: list[RefreshTask] = []
         if alpha_vantage_max_requests is not None and alpha_vantage_max_requests >= 0:
-            alpha_tasks = tasks[:alpha_vantage_max_requests]
+            alpha_tasks = alpha_candidate_tasks[:alpha_vantage_max_requests]
+            over_alpha_budget_tasks = alpha_candidate_tasks[alpha_vantage_max_requests:]
 
         alpha_runs = execute_alpha_vantage_refresh_plan(
             run_id=run_id,
@@ -1350,23 +1378,12 @@ def execute_price_refresh_plan(
             request_pause_seconds=alpha_vantage_pause_seconds,
             sleep_fn=alpha_vantage_sleep_fn,
         )
-        unresolved = {record.symbol for record in alpha_runs if record.status in {"rate_limited", "failed"}}
-        alpha_succeeded = {record.symbol for record in alpha_runs if record.status == "succeeded"}
-        skipped_symbols = {task.symbol for task in tasks[len(alpha_tasks):]}
-        fallback_tasks = [
-            task for task in tasks if (task.symbol in unresolved or task.symbol in skipped_symbols) and task.symbol not in alpha_succeeded
-        ]
+        alpha_fallback_tasks = unresolved_tasks_from(alpha_runs, alpha_tasks) + over_alpha_budget_tasks
+        stooq_first_fallback_tasks = unresolved_tasks_from(stooq_first_runs, stooq_first_tasks)
+        fallback_tasks = alpha_fallback_tasks + stooq_first_fallback_tasks
 
         if fallback_tasks and twelve_data_api_key:
-            stooq_first_tasks = (
-                [task for task in fallback_tasks if prefer_stooq_before_twelve_data(task.symbol)]
-                if stooq_api_key
-                else []
-            )
-            stooq_first_symbols = {task.symbol for task in stooq_first_tasks}
-            twelve_candidate_tasks = [
-                task for task in fallback_tasks if task.symbol not in stooq_first_symbols
-            ]
+            twelve_candidate_tasks = fallback_tasks
             twelve_tasks = twelve_candidate_tasks
             over_twelve_budget_tasks: list[RefreshTask] = []
             if twelve_data_max_requests is not None and twelve_data_max_requests >= 0:
@@ -1386,7 +1403,11 @@ def execute_price_refresh_plan(
                 persist_ratings_fn=persist_ratings_fn,
                 build_rating_record_fn=build_rating_record_fn,
             )
-            stooq_tasks = stooq_first_tasks + over_twelve_budget_tasks + unresolved_tasks_from(twelve_runs, twelve_tasks)
+            stooq_tasks = [
+                task
+                for task in over_twelve_budget_tasks + unresolved_tasks_from(twelve_runs, twelve_tasks)
+                if task.symbol not in stooq_first_symbols
+            ]
             if stooq_tasks and stooq_api_key:
                 stooq_runs = execute_stooq_refresh_plan(
                     run_id=run_id,
@@ -1404,13 +1425,13 @@ def execute_price_refresh_plan(
                     sleep_fn=stooq_sleep_fn,
                     max_requests=stooq_max_requests,
                 )
-                return alpha_runs + twelve_runs + stooq_runs
-            return alpha_runs + twelve_runs
+                return stooq_first_runs + alpha_runs + twelve_runs + stooq_runs
+            return stooq_first_runs + alpha_runs + twelve_runs
 
-        if fallback_tasks and stooq_api_key:
+        if alpha_fallback_tasks and stooq_api_key:
             stooq_runs = execute_stooq_refresh_plan(
                 run_id=run_id,
-                tasks=fallback_tasks,
+                tasks=alpha_fallback_tasks,
                 database_url=database_url,
                 api_key=stooq_api_key,
                 fetch_fn=stooq_fetch_fn,
@@ -1424,9 +1445,9 @@ def execute_price_refresh_plan(
                 sleep_fn=stooq_sleep_fn,
                 max_requests=stooq_max_requests,
             )
-            return alpha_runs + stooq_runs
+            return stooq_first_runs + alpha_runs + stooq_runs
 
-        return alpha_runs
+        return stooq_first_runs + alpha_runs
 
     if twelve_data_api_key:
         stooq_first_tasks = (
@@ -1670,6 +1691,14 @@ def run_pipeline(
     print(f"Magic Formula ranking: {magic_formula_ranked_count} symbols ranked")
     print(f"Pipeline status: {pipeline_run.status}")
     print(f"Price refresh: {'enabled' if refresh_prices else 'skipped'}")
+    print("Configured caps:")
+    print(f"- stock_rating_symbol_limit: {settings.symbol_limit}")
+    print(f"- stock_rating_fundamental_symbol_limit: {settings.fundamental_symbol_limit}")
+    print(f"- stock_rating_analyst_symbol_limit: {settings.analyst_symbol_limit}")
+    print(f"- stock_rating_finnhub_analyst_symbol_limit: {settings.finnhub_analyst_symbol_limit}")
+    print(f"- alpha_vantage_max_requests_per_run: {settings.alpha_vantage_max_requests_per_run}")
+    print(f"- twelve_data_max_requests_per_run: {settings.twelve_data_max_requests_per_run}")
+    print(f"- stooq_max_requests_per_run: {settings.stooq_max_requests_per_run}")
     print("Timing:")
     print(f"- Started:  {started_at.isoformat()}")
     print(f"- Finished: {finished_at.isoformat()}")

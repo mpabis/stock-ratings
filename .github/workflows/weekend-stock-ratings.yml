@@ -31,8 +31,11 @@ jobs:
           ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT: ${{ secrets.STOCK_RATING_FUNDAMENTAL_SYMBOL_LIMIT }}
+          STOCK_RATING_ANALYST_SYMBOL_LIMIT: 6
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
-          STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT: ${{ secrets.STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT }}
+          STOCK_RATING_FINNHUB_ANALYST_SYMBOL_LIMIT: 5
+          FINNHUB_ANALYST_MIN_INTERVAL_SECONDS: ${{ secrets.FINNHUB_ANALYST_MIN_INTERVAL_SECONDS }}
         run: python -m stock_rating.pipeline.weekend
       - name: Generate dashboard html
         env:

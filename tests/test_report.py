@@ -214,6 +214,44 @@ def test_render_dashboard_includes_source_call_summary() -> None:
     assert "table-layout: fixed;" in html
 
 
+def test_render_dashboard_treats_zero_call_sources_as_skipped() -> None:
+    zero_call_summary = SourceRefreshSummary(source="finnhub", calls=0, succeeded=0, failed=0, status="failed")
+    html = render_dashboard_html(
+        ratings=[],
+        latest_run=("run-123", "partial", datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC), datetime(2026, 5, 28, 23, 4, 52, tzinfo=UTC)),
+        latest_run_counts={},
+        source_refresh_summaries=[zero_call_summary],
+        table_counts={"symbols": 0, "ratings_daily": 0, "pipeline_runs": 0, "symbol_refresh_runs": 0, "price_daily": 0, "features_daily": 0},
+        quality_alerts=[],
+    )
+    markdown = render_dashboard_markdown(
+        ratings=[],
+        latest_run=("run-123", "partial", datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC), datetime(2026, 5, 28, 23, 4, 52, tzinfo=UTC)),
+        latest_run_counts={},
+        source_refresh_summaries=[zero_call_summary],
+        table_counts={"symbols": 0, "ratings_daily": 0, "pipeline_runs": 0, "symbol_refresh_runs": 0, "price_daily": 0, "features_daily": 0},
+        quality_alerts=[],
+    )
+    payload = json.loads(
+        render_dashboard_json(
+            ratings=[],
+            latest_run=("run-123", "partial", datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC), datetime(2026, 5, 28, 23, 4, 52, tzinfo=UTC)),
+            latest_run_counts={},
+            source_refresh_summaries=[zero_call_summary],
+            table_counts={"symbols": 0, "ratings_daily": 0, "pipeline_runs": 0, "symbol_refresh_runs": 0, "price_daily": 0, "features_daily": 0},
+            quality_alerts=[],
+        )
+    )
+
+    assert "source-status-skipped" in html
+    assert ">Skipped<" in html
+    assert '<span class="source-status-chip source-status-failed">Failed</span>' not in html
+    assert "| Finnhub | 0 | 0 | 0 | Skipped |" in markdown
+    assert payload["source_calls"] == [
+        {"source": "finnhub", "display_name": "Finnhub", "calls": 0, "succeeded": 0, "failed": 0, "status": "skipped"}
+    ]
+
+
 def test_render_dashboard_markdown_is_agent_readable() -> None:
     markdown = render_dashboard_markdown(
         ratings=[

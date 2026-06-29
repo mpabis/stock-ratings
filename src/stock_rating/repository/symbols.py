@@ -184,6 +184,43 @@ def update_symbol_last_fundamental_refresh_at(
             pass
 
 
+def upsert_symbol_sector(
+    database_url: str,
+    symbol: str,
+    sector: str | None,
+    industry: str | None,
+    sector_source: str,
+    connect_fn=connect_postgres,
+) -> bool:
+    """Write sector/industry onto an existing symbols row. No-op if symbol unknown."""
+    if not is_configured(DatabaseConfig(url=database_url)):
+        return False
+
+    try:
+        connection = connect_fn(database_url)
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            update symbols
+            set sector = %s,
+                industry = %s
+            where symbol = %s
+            """,
+            (sector, industry, symbol),
+        )
+        connection.commit()
+        return cursor.rowcount > 0
+    except Exception as error:
+        print(f"Sector upsert failed for {symbol}: {type(error).__name__}: {error}")
+        return False
+    finally:
+        try:
+            cursor.close()
+            connection.close()
+        except Exception:
+            pass
+
+
 def upsert_symbol_seeds(
     database_url: str,
     seeds: list[SymbolSeed],

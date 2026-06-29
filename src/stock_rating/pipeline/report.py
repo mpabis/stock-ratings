@@ -58,6 +58,8 @@ class RatingSnapshot:
         piotroski_signals_available: Decimal | None = None
         magic_formula_combined_rank: Decimal | None = None
         acquirers_multiple: Decimal | None = None
+        sector: str | None = None
+        industry: str | None = None
 
 
 @dataclass(frozen=True)
@@ -361,8 +363,11 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 lf.piotroski_fscore,
                 lf.piotroski_signals_available,
                 lf.magic_formula_combined_rank,
-                lf.acquirers_multiple
+                lf.acquirers_multiple,
+                s.sector,
+                s.industry
             from ranked_ratings rr
+            join symbols s on s.symbol = rr.symbol
             left join latest_analyst la on la.symbol = rr.symbol
             left join latest_analyst_target lt on lt.symbol = rr.symbol
             left join latest_prices lp on lp.symbol = rr.symbol
@@ -433,7 +438,9 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 null as piotroski_fscore,
                 null as piotroski_signals_available,
                 null as magic_formula_combined_rank,
-                null as acquirers_multiple
+                null as acquirers_multiple,
+                null as sector,
+                null as industry
             from ranked_ratings rr
             left join latest_prices lp on lp.symbol = rr.symbol
             where row_number = 1
@@ -476,6 +483,8 @@ def fetch_latest_ratings(cursor: Any) -> list[RatingSnapshot]:
                 piotroski_signals_available=row[28],
                 magic_formula_combined_rank=row[29],
                 acquirers_multiple=row[30],
+                sector=row[31] if len(row) > 31 else None,
+                industry=row[32] if len(row) > 32 else None,
                 summary=explanation_json.get("summary", "No explanation available."),
             )
         )
@@ -621,7 +630,7 @@ def render_dashboard_html(
         ) or '<li><strong>Healthy</strong><span>No active data quality alerts.</span></li>'
 
         rows_html = "".join(render_rating_row(rating) for rating in ratings) or (
-            '<tr><td colspan="14" class="empty">No ratings found in ratings_daily.</td></tr>'
+            '<tr><td colspan="15" class="empty">No ratings found in ratings_daily.</td></tr>'
         )
 
         run_summary = render_run_summary(latest_run, latest_run_counts)
@@ -983,7 +992,7 @@ def render_dashboard_html(
         }}
         table {{
             width: 100%;
-            min-width: 1580px;
+            min-width: 1720px;
             border-collapse: collapse;
         }}
         th, td {{
@@ -1142,6 +1151,14 @@ def render_dashboard_html(
         .freshness-fresh {{ color: var(--good); }}
         .freshness-aging {{ color: var(--warn); }}
         .freshness-stale {{ color: var(--warm); }}
+        .sector-cell {{
+            min-width: 110px;
+            max-width: 160px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            white-space: normal;
+            line-height: 1.3;
+        }}
         .factor-cell {{
             min-width: 82px;
         }}
@@ -1290,17 +1307,18 @@ def render_dashboard_html(
                                                 <th><button type="button" data-sort-index="0" data-sort-kind="text">Company</button></th>
                                                 <th><button type="button" data-sort-index="1" data-sort-kind="number">Score</button></th>
                                                 <th><button type="button" data-sort-index="2" data-sort-kind="text">Freshness</button></th>
-                                                <th><button type="button" data-sort-index="3" data-sort-kind="number">Val</button></th>
-                                                <th><button type="button" data-sort-index="4" data-sort-kind="number">Qual</button></th>
-                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Growth</button></th>
-                                                <th><button type="button" data-sort-index="6" data-sort-kind="number">Mom</button></th>
-                                                <th><button type="button" data-sort-index="7" data-sort-kind="number">Risk</button></th>
-                                                <th><button type="button" data-sort-index="8" data-sort-kind="number">Rev</button></th>
-                                                <th><button type="button" data-sort-index="9" data-sort-kind="number">Analyst</button></th>
-                                                <th><button type="button" data-sort-index="10" data-sort-kind="number">Target</button></th>
-                                                <th title="Piotroski F-Score. Green values use all 9 signals; amber values are partial and low confidence."><button type="button" data-sort-index="11" data-sort-kind="number">F-Score</button></th>
-                                                <th title="Magic Formula combined rank (1 = best)"><button type="button" data-sort-index="12" data-sort-kind="number">Magic</button></th>
-                                                <th title="Acquirer's Multiple, EV/EBIT (lower is cheaper)"><button type="button" data-sort-index="13" data-sort-kind="number">EV/EBIT</button></th>
+                                                <th><button type="button" data-sort-index="3" data-sort-kind="text">Sector</button></th>
+                                                <th><button type="button" data-sort-index="4" data-sort-kind="number">Val</button></th>
+                                                <th><button type="button" data-sort-index="5" data-sort-kind="number">Qual</button></th>
+                                                <th><button type="button" data-sort-index="6" data-sort-kind="number">Growth</button></th>
+                                                <th><button type="button" data-sort-index="7" data-sort-kind="number">Mom</button></th>
+                                                <th><button type="button" data-sort-index="8" data-sort-kind="number">Risk</button></th>
+                                                <th><button type="button" data-sort-index="9" data-sort-kind="number">Rev</button></th>
+                                                <th><button type="button" data-sort-index="10" data-sort-kind="number">Analyst</button></th>
+                                                <th><button type="button" data-sort-index="11" data-sort-kind="number">Target</button></th>
+                                                <th title="Piotroski F-Score. Green values use all 9 signals; amber values are partial and low confidence."><button type="button" data-sort-index="12" data-sort-kind="number">F-Score</button></th>
+                                                <th title="Magic Formula combined rank (1 = best)"><button type="button" data-sort-index="13" data-sort-kind="number">Magic</button></th>
+                                                <th title="Acquirer's Multiple, EV/EBIT (lower is cheaper)"><button type="button" data-sort-index="14" data-sort-kind="number">EV/EBIT</button></th>
                     </tr>
                 </thead>
                 <tbody id="ratings-table-body">
@@ -1450,8 +1468,8 @@ def render_dashboard_markdown(
             "",
             "## Latest Ratings",
             "",
-            "| Rank | Symbol | Company | Score | Label | Freshness | Val | Qual | Growth | Mom | Risk | Rev | Analyst | Target Low | Target Mid | Target High | F-Score | Magic | EV/EBIT |",
-            "|---:|---|---|---:|---|---|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|",
+            "| Rank | Symbol | Company | Score | Label | Freshness | Sector | Industry | Val | Qual | Growth | Mom | Risk | Rev | Analyst | Target Low | Target Mid | Target High | F-Score | Magic | EV/EBIT |",
+            "|---:|---|---|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|",
         ]
     )
     for rank, rating in enumerate(ratings, start=1):
@@ -1472,6 +1490,8 @@ def render_dashboard_markdown(
             f"{format_score_ten(Decimal(rating.rating_score))} | "
             f"{markdown_cell(rating.rating_label)} | "
             f"{markdown_cell(rating.freshness_status.title())} | "
+            f"{markdown_cell(rating.sector or '')} | "
+            f"{markdown_cell(rating.industry or '')} | "
             f"{factor_markdown(rating.valuation_score, rating.valuation_grade)} | "
             f"{factor_markdown(rating.quality_score, rating.quality_grade)} | "
             f"{factor_markdown(rating.growth_score, rating.growth_grade)} | "
@@ -1697,11 +1717,21 @@ def render_rating_row(rating: RatingSnapshot) -> str:
     )
     freshness_date_title = format_date_readable(rating.freshest_input_date)
     freshness_title = f"Last updated: {freshness_date_title}"
+    sector_display = rating.sector or ""
+    industry_display = rating.industry or ""
+    sector_title = industry_display if industry_display and industry_display != sector_display else sector_display
+    sector_inner = escape(sector_display) if sector_display else '<span style="color:var(--muted)">—</span>'
+    sector_cell_html = (
+        f'<td data-sort="{escape(sector_display.lower())}" class="sector-cell" title="{escape(sector_title)}">'
+        f'{sector_inner}'
+        f'</td>'
+    )
     return (
         "<tr>"
         f'<td data-sort="{escape(company_sort)}">{company_link_html}</td>'
         f'<td data-sort="{rating.rating_score}"><span class="score-chip {score_band}"><small>Rating</small><strong>{escape(rating_ten)}</strong></span></td>'
         f'<td data-sort="{escape(rating.freshness_status)}" class="{freshness_class}" title="{escape(freshness_title)}">{escape(rating.freshness_status.title())}</td>'
+        f'{sector_cell_html}'
         f'{factor_cells_html}'
         f'<td data-sort="{analyst_sort_rank}" class="analyst">{analyst_badge_html}</td>'
         f'<td data-sort="{escape(analyst_target_sort)}" class="target-cell">{target_option_one_html}</td>'
@@ -1946,6 +1976,8 @@ def rating_to_json(rank: int, rating: RatingSnapshot) -> dict[str, Any]:
         "rank": rank,
         "symbol": rating.symbol,
         "company_name": rating.company_name,
+        "sector": rating.sector,
+        "industry": rating.industry,
         "score": rating.rating_score,
         "score_10": decimal_to_float(Decimal(rating.rating_score) / Decimal("10")),
         "label": rating.rating_label,

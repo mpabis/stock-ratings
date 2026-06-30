@@ -4,110 +4,130 @@ MSFT,Microsoft Corporation,NASDAQ,2,2026-05-26,true
 NVDA,NVIDIA Corporation,NASDAQ,2,2026-05-24,true
 AMD,Advanced Micro Devices Inc.,NASDAQ,2,2026-05-25,true
 MU,Micron Technology Inc.,NASDAQ,2,2026-05-23,true
-ACMR,ACM Research Inc.,NASDAQ,3,2026-05-22,true
-INTC,Intel Corporation,NASDAQ,3,2026-05-22,true
-ETR:AIXA,Aixtron SE,ETR,3,2026-05-20,true
-BRK.B,Berkshire Hathaway Inc. Class B,NYSE,3,2026-05-20,true
-NASDAQ:GOOGL,Alphabet Inc. Class A,NASDAQ,3,2026-05-20,true
-AER,AerCap Holdings N.V.,NYSE,3,2026-05-20,true
-BLK,BlackRock Inc.,NYSE,3,2026-05-20,true
-AMZN,Amazon.com Inc.,NASDAQ,3,2026-05-20,true
-BAC,Bank of America Corporation,NYSE,3,2026-05-20,true
-LLY,Eli Lilly and Company,NYSE,3,2026-05-20,true
-ENVA,Enova International Inc.,NYSE,3,2026-05-20,true
-MP,MP Materials Corp.,NYSE,3,2026-05-20,true
-KB,KB Financial Group Inc.,NYSE,3,2026-05-20,true
-LHX,L3Harris Technologies Inc.,NYSE,3,2026-05-20,true
-TSE:FFH,Fairfax Financial Holdings Ltd.,TSE,3,2026-05-20,true
-GM,General Motors Company,NYSE,3,2026-05-20,true
-TLN,Talen Energy Corporation,NASDAQ,3,2026-05-20,true
-SKYW,SkyWest Inc.,NASDAQ,3,2026-05-20,true
-TSE:IMG,IAMGOLD Corporation,TSE,3,2026-05-20,true
-IAG,IAMGOLD Corporation,NYSE,3,2026-05-20,true
-MELI,MercadoLibre Inc.,NASDAQ,3,2026-05-20,true
-ETR:RHM,Rheinmetall AG,ETR,3,2026-05-20,true
-S,SentinelOne Inc.,NYSE,3,2026-05-20,true
-CRL,Charles River Laboratories International Inc.,NYSE,3,2026-05-20,true
-AWK,American Water Works Company Inc.,NYSE,3,2026-05-20,true
-WTRG,Essential Utilities Inc.,NYSE,3,2026-05-20,true
-FRT,Federal Realty Investment Trust,NYSE,3,2026-05-20,true
-CZR,Caesars Entertainment Inc.,NASDAQ,3,2026-05-20,true
-VVV,Valvoline Inc.,NYSE,3,2026-05-20,true
-DELL,Dell Technologies Inc.,NYSE,3,2026-05-20,true
-KEYS,Keysight Technologies Inc.,NYSE,3,2026-05-20,true
-ZS,Zscaler Inc.,NASDAQ,3,2026-05-20,true
-PANW,Palo Alto Networks Inc.,NASDAQ,3,2026-05-20,true
-FTNT,Fortinet Inc.,NASDAQ,3,2026-05-20,true
-NOW,ServiceNow Inc.,NYSE,3,2026-05-20,true
-ANET,Arista Networks Inc.,NYSE,3,2026-05-20,true
-SNOW,Snowflake Inc.,NYSE,3,2026-05-20,true
-MDB,MongoDB Inc.,NASDAQ,3,2026-05-20,true
-DDOG,Datadog Inc.,NASDAQ,3,2026-05-20,true
-HUBS,HubSpot Inc.,NYSE,3,2026-05-20,true
-APP,AppLovin Corporation,NASDAQ,3,2026-05-20,true
-CELH,Celsius Holdings Inc.,NASDAQ,3,2026-05-20,true
-RAIL.ST,Railcare Group AB,NASDAQ OMX Stockholm,3,2026-05-20,false
-KTOS,Kratos Defense & Security Solutions Inc.,NASDAQ,3,2026-05-20,true
-TEL2-B.ST,Tele2 AB,NASDAQ OMX Stockholm,3,2026-05-20,false
-FLUT,Flutter Entertainment plc,NYSE,3,2026-05-20,true
-SLG,SL Green Realty Corp.,NYSE,3,2026-05-20,true
-RYAAY,Ryanair Holdings plc ADR,NASDAQ,3,2026-05-20,true
+ACMR,ACM Research Inc.,NASDAQ,2,2026-05-22,true
+INTC,Intel Corporation,NASDAQ,2,2026-05-22,true
+ETR:AIXA,Aixtron SE,ETR,2,2026-05-20,true
+BRK.B,Berkshire Hathaway Inc. Class B,NYSE,2,2026-05-20,true
+NASDAQ:GOOGL,Alphabet Inc. Class A,NASDAQ,2,2026-05-20,true
+AER,AerCap Holdings N.V.,NYSE,2,2026-05-20,true
+BLK,BlackRock Inc.,NYSE,2,2026-05-20,true
+AMZN,Amazon.com Inc.,NASDAQ,2,2026-05-20,true
+BAC,Bank of America Corporation,NYSE,2,2026-05-20,true
+LLY,Eli Lilly and Company,NYSE,2,2026-05-20,true
+ENVA,Enova International Inc.,NYSE,2,2026-05-20,true
+MP,MP Materials Corp.,NYSE,2,2026-05-20,true
+KB,KB Financial Group Inc.,NYSE,2,2026-05-20,true
+LHX,L3Harris Technologies Inc.,NYSE,2,2026-05-20,true
+TSE:FFH,Fairfax Financial Holdings Ltd.,TSE,2,2026-05-20,true
+GM,General Motors Company,NYSE,2,2026-05-20,true
+TLN,Talen Energy Corporation,NASDAQ,2,2026-05-20,true
+SKYW,SkyWest Inc.,NASDAQ,2,2026-05-20,true
+TSE:IMG,IAMGOLD Corporation,TSE,2,2026-05-20,true
+IAG,IAMGOLD Corporation,NYSE,2,2026-05-20,true
+MELI,MercadoLibre Inc.,NASDAQ,2,2026-05-20,true
+ETR:RHM,Rheinmetall AG,ETR,2,2026-05-20,true
+S,SentinelOne Inc.,NYSE,2,2026-05-20,true
+CRL,Charles River Laboratories International Inc.,NYSE,2,2026-05-20,true
+AWK,American Water Works Company Inc.,NYSE,2,2026-05-20,true
+WTRG,Essential Utilities Inc.,NYSE,2,2026-05-20,true
+FRT,Federal Realty Investment Trust,NYSE,2,2026-05-20,true
+CZR,Caesars Entertainment Inc.,NASDAQ,2,2026-05-20,true
+VVV,Valvoline Inc.,NYSE,2,2026-05-20,true
+DELL,Dell Technologies Inc.,NYSE,2,2026-05-20,true
+KEYS,Keysight Technologies Inc.,NYSE,2,2026-05-20,true
+ZS,Zscaler Inc.,NASDAQ,2,2026-05-20,true
+PANW,Palo Alto Networks Inc.,NASDAQ,2,2026-05-20,true
+FTNT,Fortinet Inc.,NASDAQ,2,2026-05-20,true
+NOW,ServiceNow Inc.,NYSE,2,2026-05-20,true
+ANET,Arista Networks Inc.,NYSE,2,2026-05-20,true
+SNOW,Snowflake Inc.,NYSE,2,2026-05-20,true
+MDB,MongoDB Inc.,NASDAQ,2,2026-05-20,true
+DDOG,Datadog Inc.,NASDAQ,2,2026-05-20,true
+HUBS,HubSpot Inc.,NYSE,2,2026-05-20,true
+APP,AppLovin Corporation,NASDAQ,2,2026-05-20,true
+CELH,Celsius Holdings Inc.,NASDAQ,2,2026-05-20,true
+RAIL.ST,Railcare Group AB,NASDAQ OMX Stockholm,2,2026-05-20,true
+KTOS,Kratos Defense & Security Solutions Inc.,NASDAQ,2,2026-05-20,true
+TEL2-B.ST,Tele2 AB,NASDAQ OMX Stockholm,2,2026-05-20,true
+FLUT,Flutter Entertainment plc,NYSE,2,2026-05-20,true
+SLG,SL Green Realty Corp.,NYSE,2,2026-05-20,true
+RYAAY,Ryanair Holdings plc ADR,NASDAQ,2,2026-05-20,true
 MPWR,Monolithic Power Systems Inc.,NASDAQ,2,2026-06-12,true
 AXON,Axon Enterprise Inc.,NASDAQ,2,2026-06-12,true
 VRT,Vertiv Holdings Co.,NYSE,2,2026-06-12,true
-ABNB,Airbnb Inc.,NASDAQ,3,2026-06-12,true
-ADSK,Autodesk Inc.,NASDAQ,3,2026-06-12,true
-APH,Amphenol Corporation,NYSE,3,2026-06-12,true
+ABNB,Airbnb Inc.,NASDAQ,2,2026-06-12,true
+ADSK,Autodesk Inc.,NASDAQ,2,2026-06-12,true
+APH,Amphenol Corporation,NYSE,2,2026-06-12,true
 META,Meta Platforms Inc.,NASDAQ,2,2026-06-12,true
 NFLX,Netflix Inc.,NASDAQ,2,2026-06-12,true
 AVGO,Broadcom Inc.,NASDAQ,2,2026-06-12,true
-ORCL,Oracle Corporation,NYSE,3,2026-06-12,true
-CRM,Salesforce Inc.,NYSE,3,2026-06-12,true
-ADBE,Adobe Inc.,NASDAQ,3,2026-06-12,true
-INTU,Intuit Inc.,NASDAQ,3,2026-06-12,true
-QCOM,QUALCOMM Incorporated,NASDAQ,3,2026-06-12,true
-AMAT,Applied Materials Inc.,NASDAQ,3,2026-06-12,true
-LRCX,Lam Research Corporation,NASDAQ,3,2026-06-12,true
-KLAC,KLA Corporation,NASDAQ,3,2026-06-12,true
-SNPS,Synopsys Inc.,NASDAQ,3,2026-06-12,true
-CDNS,Cadence Design Systems Inc.,NASDAQ,3,2026-06-12,true
-ADI,Analog Devices Inc.,NASDAQ,3,2026-06-12,true
-MCHP,Microchip Technology Inc.,NASDAQ,3,2026-06-12,true
+ORCL,Oracle Corporation,NYSE,2,2026-06-12,true
+CRM,Salesforce Inc.,NYSE,2,2026-06-12,true
+ADBE,Adobe Inc.,NASDAQ,2,2026-06-12,true
+INTU,Intuit Inc.,NASDAQ,2,2026-06-12,true
+QCOM,QUALCOMM Incorporated,NASDAQ,2,2026-06-12,true
+AMAT,Applied Materials Inc.,NASDAQ,2,2026-06-12,true
+LRCX,Lam Research Corporation,NASDAQ,2,2026-06-12,true
+KLAC,KLA Corporation,NASDAQ,2,2026-06-12,true
+SNPS,Synopsys Inc.,NASDAQ,2,2026-06-12,true
+CDNS,Cadence Design Systems Inc.,NASDAQ,2,2026-06-12,true
+ADI,Analog Devices Inc.,NASDAQ,2,2026-06-12,true
+MCHP,Microchip Technology Inc.,NASDAQ,2,2026-06-12,true
 CRWD,CrowdStrike Holdings Inc.,NASDAQ,2,2026-06-12,true
 PLTR,Palantir Technologies Inc.,NASDAQ,2,2026-06-12,true
-WDAY,Workday Inc.,NASDAQ,3,2026-06-12,true
-TEAM,Atlassian Corporation,NASDAQ,3,2026-06-12,true
-VEEV,Veeva Systems Inc.,NYSE,3,2026-06-12,true
-FICO,Fair Isaac Corporation,NYSE,3,2026-06-12,true
-TTD,The Trade Desk Inc.,NASDAQ,3,2026-06-12,true
-V,Visa Inc.,NYSE,3,2026-06-12,true
-MA,Mastercard Incorporated,NYSE,3,2026-06-12,true
-AXP,American Express Company,NYSE,3,2026-06-12,true
-FI,Fiserv Inc.,NYSE,3,2026-06-12,true
-TOST,Toast Inc.,NYSE,3,2026-06-12,true
-SOFI,SoFi Technologies Inc.,NASDAQ,3,2026-06-12,true
-JPM,JPMorgan Chase & Co.,NYSE,3,2026-06-12,true
-SPGI,S&P Global Inc.,NYSE,3,2026-06-12,true
-MCO,Moody's Corporation,NYSE,3,2026-06-12,true
-KKR,KKR & Co. Inc.,NYSE,3,2026-06-12,true
-PGR,The Progressive Corporation,NYSE,3,2026-06-12,true
-COST,Costco Wholesale Corporation,NASDAQ,3,2026-06-12,true
-TJX,The TJX Companies Inc.,NYSE,3,2026-06-12,true
-ORLY,O'Reilly Automotive Inc.,NASDAQ,3,2026-06-12,true
-DECK,Deckers Outdoor Corporation,NYSE,3,2026-06-12,true
-CMG,Chipotle Mexican Grill Inc.,NYSE,3,2026-06-12,true
-BKNG,Booking Holdings Inc.,NASDAQ,3,2026-06-12,true
-UBER,Uber Technologies Inc.,NYSE,3,2026-06-12,true
+WDAY,Workday Inc.,NASDAQ,2,2026-06-12,true
+TEAM,Atlassian Corporation,NASDAQ,2,2026-06-12,true
+VEEV,Veeva Systems Inc.,NYSE,2,2026-06-12,true
+FICO,Fair Isaac Corporation,NYSE,2,2026-06-12,true
+TTD,The Trade Desk Inc.,NASDAQ,2,2026-06-12,true
+V,Visa Inc.,NYSE,2,2026-06-12,true
+MA,Mastercard Incorporated,NYSE,2,2026-06-12,true
+AXP,American Express Company,NYSE,2,2026-06-12,true
+FI,Fiserv Inc.,NYSE,2,2026-06-12,true
+TOST,Toast Inc.,NYSE,2,2026-06-12,true
+SOFI,SoFi Technologies Inc.,NASDAQ,2,2026-06-12,true
+JPM,JPMorgan Chase & Co.,NYSE,2,2026-06-12,true
+SPGI,S&P Global Inc.,NYSE,2,2026-06-12,true
+MCO,Moody's Corporation,NYSE,2,2026-06-12,true
+KKR,KKR & Co. Inc.,NYSE,2,2026-06-12,true
+PGR,The Progressive Corporation,NYSE,2,2026-06-12,true
+COST,Costco Wholesale Corporation,NASDAQ,2,2026-06-12,true
+TJX,The TJX Companies Inc.,NYSE,2,2026-06-12,true
+ORLY,O'Reilly Automotive Inc.,NASDAQ,2,2026-06-12,true
+DECK,Deckers Outdoor Corporation,NYSE,2,2026-06-12,true
+CMG,Chipotle Mexican Grill Inc.,NYSE,2,2026-06-12,true
+BKNG,Booking Holdings Inc.,NASDAQ,2,2026-06-12,true
+UBER,Uber Technologies Inc.,NYSE,2,2026-06-12,true
 ISRG,Intuitive Surgical Inc.,NASDAQ,2,2026-06-12,true
-VRTX,Vertex Pharmaceuticals Incorporated,NASDAQ,3,2026-06-12,true
-REGN,Regeneron Pharmaceuticals Inc.,NASDAQ,3,2026-06-12,true
-BSX,Boston Scientific Corporation,NYSE,3,2026-06-12,true
-EW,Edwards Lifesciences Corporation,NYSE,3,2026-06-12,true
-TMO,Thermo Fisher Scientific Inc.,NYSE,3,2026-06-12,true
+VRTX,Vertex Pharmaceuticals Incorporated,NASDAQ,2,2026-06-12,true
+REGN,Regeneron Pharmaceuticals Inc.,NASDAQ,2,2026-06-12,true
+BSX,Boston Scientific Corporation,NYSE,2,2026-06-12,true
+EW,Edwards Lifesciences Corporation,NYSE,2,2026-06-12,true
+TMO,Thermo Fisher Scientific Inc.,NYSE,2,2026-06-12,true
 GEV,GE Vernova Inc.,NYSE,2,2026-06-12,true
-ETN,Eaton Corporation plc,NYSE,3,2026-06-12,true
-PWR,Quanta Services Inc.,NYSE,3,2026-06-12,true
-GE,GE Aerospace,NYSE,3,2026-06-12,true
+ETN,Eaton Corporation plc,NYSE,2,2026-06-12,true
+PWR,Quanta Services Inc.,NYSE,2,2026-06-12,true
+GE,GE Aerospace,NYSE,2,2026-06-12,true
 MRVL,Marvell Technology Inc.,NASDAQ,2,2026-01-01,true
-AAOI,Applied Optoelectronics Inc.,NASDAQ,3,2026-01-01,true
+AAOI,Applied Optoelectronics Inc.,NASDAQ,2,2026-01-01,true
 UMAC,Unusual Machines Inc.,NYSE,2,2026-01-01,true
+TSM,Taiwan Semiconductor Manufacturing Company Limited ADR,NYSE,2,2026-01-01,true
+ASML,ASML Holding N.V.,NASDAQ,2,2026-01-01,true
+ARM,Arm Holdings plc ADR,NASDAQ,2,2026-01-01,true
+ALAB,Astera Labs Inc.,NASDAQ,2,2026-01-01,true
+CRDO,Credo Technology Group Holding Ltd,NASDAQ,2,2026-01-01,true
+CEG,Constellation Energy Corporation,NASDAQ,2,2026-01-01,true
+VST,Vistra Corp.,NYSE,2,2026-01-01,true
+NU,Nu Holdings Ltd.,NYSE,2,2026-01-01,true
+HOOD,Robinhood Markets Inc.,NASDAQ,2,2026-01-01,true
+COIN,Coinbase Global Inc.,NASDAQ,2,2026-01-01,true
+SHOP,Shopify Inc.,NASDAQ,2,2026-01-01,true
+NET,Cloudflare Inc.,NYSE,2,2026-01-01,true
+DASH,DoorDash Inc.,NASDAQ,2,2026-01-01,true
+SE,Sea Limited ADR,NYSE,2,2026-01-01,true
+MNDY,monday.com Ltd.,NASDAQ,2,2026-01-01,true
+HWM,Howmet Aerospace Inc.,NYSE,2,2026-01-01,true
+HEI,HEICO Corporation,NYSE,2,2026-01-01,true
+CTAS,Cintas Corporation,NASDAQ,2,2026-01-01,true
+PODD,Insulet Corporation,NASDAQ,2,2026-01-01,true
+DHR,Danaher Corporation,NYSE,2,2026-01-01,true

@@ -58,7 +58,7 @@ VRT,Vertiv Holdings Co.,NYSE,2,2026-06-12,true
 ABNB,Airbnb Inc.,NASDAQ,2,2026-06-12,true
 ADSK,Autodesk Inc.,NASDAQ,2,2026-06-12,true
 APH,Amphenol Corporation,NYSE,2,2026-06-12,true
-META,Meta Platforms Inc.,NASDAQ,2,2026-06-12,true
+META,Meta Platforms Inc.,NASDAQ,3,2026-06-12,false
 NFLX,Netflix Inc.,NASDAQ,2,2026-06-12,true
 AVGO,Broadcom Inc.,NASDAQ,2,2026-06-12,true
 ORCL,Oracle Corporation,NYSE,2,2026-06-12,true
@@ -102,7 +102,7 @@ ISRG,Intuitive Surgical Inc.,NASDAQ,2,2026-06-12,true
 VRTX,Vertex Pharmaceuticals Incorporated,NASDAQ,2,2026-06-12,true
 REGN,Regeneron Pharmaceuticals Inc.,NASDAQ,2,2026-06-12,true
 BSX,Boston Scientific Corporation,NYSE,2,2026-06-12,true
-EW,Edwards Lifesciences Corporation,NYSE,2,2026-06-12,true
+EW,Edwards Lifesciences Corporation,NYSE,3,2026-06-12,true
 TMO,Thermo Fisher Scientific Inc.,NYSE,2,2026-06-12,true
 GEV,GE Vernova Inc.,NYSE,2,2026-06-12,true
 ETN,Eaton Corporation plc,NYSE,2,2026-06-12,true

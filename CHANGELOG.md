@@ -4,6 +4,12 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-07-03 (pages-deploy-reliability)
+
+### Fixed
+
+- Added the official `actions/configure-pages@v5` step to every GitHub Pages publishing workflow (`daily-stock-ratings`, `weekend-stock-ratings`, and `regenerate-reports`) so manual and scheduled report deployments use the full recommended Pages setup before uploading and deploying artifacts.
+
 ## 2026-06-24 (source-call-status)
 
 ### Changed

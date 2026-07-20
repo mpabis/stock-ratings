@@ -6,13 +6,13 @@ from io import StringIO
 import json
 import time
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import urlopen
 
 from stock_rating.db import DatabaseConfig, connect_postgres, is_configured
 
 
-FREE_PRICE_PROVIDERS = ("alpha_vantage", "twelve_data", "stooq")
+FREE_PRICE_PROVIDERS = ("alpha_vantage", "twelve_data", "stooq", "yahoo")
 
 TWELVE_DATA_EXCHANGE_ALIASES = {
     "ETR": "XETR",
@@ -30,10 +30,22 @@ STOOQ_EXCHANGE_SUFFIXES = {
     "TSX": "ca",
 }
 
+YAHOO_EXCHANGE_SUFFIXES = {
+    "ETR": "DE",
+    "XETR": "DE",
+}
+
 TWELVE_DATA_STOOQ_FIRST_EXCHANGES = {"ETR", "XETR"}
 
 ALPHA_VANTAGE_SYMBOL_OVERRIDES = {
     "TSE:FFH": "FFH.TRT",
+}
+
+ALPHA_VANTAGE_PREFIX_STRIP_EXCHANGES = {
+    "NASDAQ",
+    "NYSE",
+    "AMEX",
+    "ARCA",
 }
 
 
@@ -72,6 +84,10 @@ class TwelveDataResponseError(RuntimeError):
     pass
 
 
+class YahooFinanceResponseError(RuntimeError):
+    pass
+
+
 class StooqResponseError(RuntimeError):
     pass
 
@@ -79,17 +95,17 @@ class StooqResponseError(RuntimeError):
 class StooqRateLimitError(RuntimeError):
     """Stooq's keyless CSV endpoint throttled/blocked the request.
 
-    Stooq returns HTTP 404 (and 429/403) once it rate-limits an IP, even for
-    valid symbols — a genuinely missing symbol returns HTTP 200 with "No data".
-    Treated as transient/retryable so the symbol is re-attempted on a later run.
+    Stooq can return HTTP 403/429 when it throttles or blocks the caller.
+    A symbol-level miss should fall through as a normal provider failure so the
+    pipeline can continue with later symbols and downstream fallback providers.
     """
 
 
 TRANSIENT_HTTP_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 
-# Codes Stooq returns when it is throttling/blocking the caller (not a real
-# missing-symbol response, which is HTTP 200 + "No data").
-STOOQ_RATE_LIMIT_STATUS_CODES = {403, 404, 429}
+# Codes Stooq returns when it is throttling/blocking the caller. Symbol-level
+# misses are handled as normal provider failures instead of batch-wide throttle.
+STOOQ_RATE_LIMIT_STATUS_CODES = {403, 429}
 
 
 def _is_transient_http_error(error: HTTPError) -> bool:
@@ -115,6 +131,7 @@ def get_price_provider_status(
         PriceProviderStatus(provider="alpha_vantage", configured=bool(alpha_vantage_api_key)),
         PriceProviderStatus(provider="twelve_data", configured=bool(twelve_data_api_key)),
         PriceProviderStatus(provider="stooq", configured=bool(stooq_api_key)),
+        PriceProviderStatus(provider="yahoo", configured=True),
     ]
 
 
@@ -157,8 +174,10 @@ def normalize_symbol_for_alpha_vantage(symbol: str) -> str:
     if ":" not in symbol:
         return symbol
 
-    _, raw_symbol = symbol.split(":", 1)
-    return raw_symbol or symbol
+    exchange, raw_symbol = symbol.split(":", 1)
+    if exchange.upper() in ALPHA_VANTAGE_PREFIX_STRIP_EXCHANGES and raw_symbol:
+        return raw_symbol
+    return symbol
 
 
 def normalize_symbol_for_twelve_data(symbol: str) -> str:
@@ -189,6 +208,17 @@ def normalize_symbol_for_stooq(symbol: str) -> str:
     return normalized_symbol
 
 
+def normalize_symbol_for_yahoo(symbol: str) -> str:
+    if ":" not in symbol:
+        return symbol
+
+    exchange, raw_symbol = symbol.split(":", 1)
+    suffix = YAHOO_EXCHANGE_SUFFIXES.get(exchange.upper())
+    if suffix and raw_symbol:
+        return f"{raw_symbol}.{suffix}"
+    return symbol
+
+
 def stooq_supports_symbol(symbol: str) -> bool:
     lowered = symbol.lower()
     if lowered.endswith(".st"):
@@ -206,6 +236,14 @@ def prefer_stooq_before_twelve_data(symbol: str) -> bool:
 
     exchange, _ = symbol.split(":", 1)
     return exchange.upper() in TWELVE_DATA_STOOQ_FIRST_EXCHANGES
+
+
+def prefer_yahoo_before_stooq(symbol: str) -> bool:
+    if ":" not in symbol:
+        return False
+
+    exchange, _ = symbol.split(":", 1)
+    return exchange.upper() in YAHOO_EXCHANGE_SUFFIXES
 
 
 def build_alpha_vantage_daily_adjusted_url(symbol: str, api_key: str, outputsize: str = "compact") -> str:
@@ -270,6 +308,45 @@ def fetch_alpha_vantage_daily_adjusted(
     return bars
 
 
+def fetch_yahoo_daily(
+    symbol: str,
+    urlopen_fn=urlopen,
+    range_value: str = "6mo",
+    interval: str = "1d",
+    max_attempts: int = 3,
+    base_backoff_seconds: float = 0.5,
+    sleep_fn=time.sleep,
+) -> list[DailyPriceBar]:
+    url = build_yahoo_chart_url(symbol, range_value=range_value, interval=interval)
+    payload: dict[str, object] | None = None
+    attempts = max(1, max_attempts)
+    for attempt in range(1, attempts + 1):
+        try:
+            with urlopen_fn(url) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except HTTPError as error:
+            if _is_transient_http_error(error) and attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise YahooFinanceResponseError(f"Yahoo Finance request failed with HTTP {error.code}") from error
+        except (URLError, TimeoutError, ConnectionError) as error:
+            if attempt < attempts:
+                _sleep_backoff(attempt, base_backoff_seconds, sleep_fn=sleep_fn)
+                continue
+            raise YahooFinanceResponseError(
+                f"Yahoo Finance request failed after {attempts} attempts: {error}"
+            ) from error
+
+    if payload is None:
+        raise YahooFinanceResponseError("Yahoo Finance request failed before receiving a payload")
+
+    bars = parse_yahoo_chart_response(symbol, payload)
+    if not bars:
+        raise YahooFinanceResponseError(f"No daily bars returned for {symbol}")
+    return bars
+
+
 def parse_twelve_data_time_series(symbol: str, payload: dict[str, object]) -> list[DailyPriceBar]:
     values = payload.get("values")
     if not isinstance(values, list):
@@ -312,6 +389,19 @@ def build_twelve_data_time_series_url(symbol: str, api_key: str) -> str:
     return f"https://api.twelvedata.com/time_series?{query}"
 
 
+def build_yahoo_chart_url(symbol: str, range_value: str = "6mo", interval: str = "1d") -> str:
+    request_symbol = normalize_symbol_for_yahoo(symbol)
+    query = urlencode(
+        {
+            "range": range_value,
+            "interval": interval,
+            "includeAdjustedClose": "true",
+            "events": "div,splits",
+        }
+    )
+    return f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(request_symbol)}?{query}"
+
+
 def build_stooq_daily_url(symbol: str, api_key: str) -> str:
     request_symbol = normalize_symbol_for_stooq(symbol)
     query = urlencode(
@@ -322,6 +412,78 @@ def build_stooq_daily_url(symbol: str, api_key: str) -> str:
         }
     )
     return f"https://stooq.com/q/d/l/?{query}"
+
+
+def parse_yahoo_chart_response(symbol: str, payload: dict[str, object]) -> list[DailyPriceBar]:
+    chart = payload.get("chart")
+    if not isinstance(chart, dict):
+        return []
+
+    if chart.get("error") is not None:
+        return []
+
+    results = chart.get("result")
+    if not isinstance(results, list) or not results or not isinstance(results[0], dict):
+        return []
+
+    result = results[0]
+    timestamps = result.get("timestamp")
+    indicators = result.get("indicators")
+    if not isinstance(timestamps, list) or not isinstance(indicators, dict):
+        return []
+
+    quotes = indicators.get("quote")
+    if not isinstance(quotes, list) or not quotes or not isinstance(quotes[0], dict):
+        return []
+
+    quote_values = quotes[0]
+    opens = quote_values.get("open")
+    highs = quote_values.get("high")
+    lows = quote_values.get("low")
+    closes = quote_values.get("close")
+    volumes = quote_values.get("volume")
+    if not all(isinstance(values, list) for values in (opens, highs, lows, closes, volumes)):
+        return []
+
+    adjclose_values = None
+    adjclose_group = indicators.get("adjclose")
+    if isinstance(adjclose_group, list) and adjclose_group and isinstance(adjclose_group[0], dict):
+        adjclose_values = adjclose_group[0].get("adjclose")
+
+    bars: list[DailyPriceBar] = []
+    for index, timestamp in enumerate(timestamps):
+        if not isinstance(timestamp, int):
+            continue
+        if index >= len(opens) or index >= len(highs) or index >= len(lows) or index >= len(closes) or index >= len(volumes):
+            continue
+
+        open_value = opens[index]
+        high_value = highs[index]
+        low_value = lows[index]
+        close_value = closes[index]
+        volume_value = volumes[index]
+        if None in {open_value, high_value, low_value, close_value}:
+            continue
+
+        adjusted_close = close_value
+        if isinstance(adjclose_values, list) and index < len(adjclose_values) and adjclose_values[index] is not None:
+            adjusted_close = adjclose_values[index]
+
+        bars.append(
+            DailyPriceBar(
+                symbol=symbol,
+                date=date.fromtimestamp(timestamp),
+                open=Decimal(str(open_value)),
+                high=Decimal(str(high_value)),
+                low=Decimal(str(low_value)),
+                close=Decimal(str(close_value)),
+                adjusted_close=Decimal(str(adjusted_close)),
+                volume=_parse_volume(volume_value),
+                source="yahoo",
+            )
+        )
+
+    return sorted(bars, key=lambda bar: bar.date, reverse=True)
 
 
 def parse_stooq_daily_csv(symbol: str, payload: str) -> list[DailyPriceBar]:

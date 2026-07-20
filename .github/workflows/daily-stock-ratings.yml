@@ -14,6 +14,7 @@ on:
         options:
           - default
           - alpha_vantage
+          - yahoo
           - twelve_data
           - stooq
   schedule:

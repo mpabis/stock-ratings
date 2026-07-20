@@ -11,16 +11,20 @@ from stock_rating.ingest.prices import (
     StooqRateLimitError,
     StooqResponseError,
     TwelveDataRateLimitError,
+    YahooFinanceResponseError,
     build_alpha_vantage_daily_adjusted_url,
     build_stooq_daily_url,
     build_twelve_data_time_series_url,
+    build_yahoo_chart_url,
     fetch_alpha_vantage_daily_adjusted,
     fetch_stooq_daily,
     fetch_twelve_data_time_series,
+    fetch_yahoo_daily,
     get_price_provider_status,
     parse_alpha_vantage_daily_adjusted,
     parse_stooq_daily_csv,
     parse_twelve_data_time_series,
+    parse_yahoo_chart_response,
     persist_price_bars,
     stooq_supports_symbol,
 )
@@ -34,6 +38,7 @@ def test_free_price_provider_status_marks_stooq_configured() -> None:
     assert providers["alpha_vantage"] is False
     assert providers["twelve_data"] is False
     assert providers["stooq"] is True
+    assert providers["yahoo"] is True
 
 
 def test_parse_alpha_vantage_daily_adjusted_returns_sorted_bars() -> None:
@@ -104,6 +109,12 @@ def test_build_alpha_vantage_daily_adjusted_url_strips_exchange_prefix() -> None
     url = build_alpha_vantage_daily_adjusted_url("NASDAQ:GOOGL", "demo-key")
 
     assert "symbol=GOOGL" in url
+
+
+def test_build_alpha_vantage_daily_adjusted_url_keeps_unsupported_exchange_prefix() -> None:
+    url = build_alpha_vantage_daily_adjusted_url("ETR:RHM", "demo-key")
+
+    assert "symbol=ETR%3ARHM" in url
 
 
 def test_build_alpha_vantage_daily_adjusted_url_uses_tsx_override_for_fairfax() -> None:
@@ -229,6 +240,14 @@ def test_build_twelve_data_time_series_url_normalizes_exchange_prefixes() -> Non
     assert "symbol=AIXA%3AXETR" in xetr_url
 
 
+def test_build_yahoo_chart_url_normalizes_xetra_symbol() -> None:
+    url = build_yahoo_chart_url("ETR:RHM")
+
+    assert "chart/RHM.DE?" in url
+    assert "interval=1d" in url
+    assert "range=6mo" in url
+
+
 def test_build_stooq_daily_url_normalizes_exchange_prefixes() -> None:
     us_url = build_stooq_daily_url("SKYW", "stooq-key")
     prefixed_us_url = build_stooq_daily_url("NASDAQ:GOOGL", "stooq-key")
@@ -272,6 +291,49 @@ def test_parse_twelve_data_time_series_returns_bars() -> None:
     assert len(bars) == 1
     assert bars[0].source == "twelve_data"
     assert bars[0].adjusted_close == Decimal("202.75")
+
+
+def test_parse_yahoo_chart_response_returns_bars() -> None:
+    payload = {
+        "chart": {
+            "result": [
+                {
+                    "timestamp": [1780185600, 1780272000],
+                    "indicators": {
+                        "quote": [
+                            {
+                                "open": [100.0, 101.0],
+                                "high": [102.0, 103.0],
+                                "low": [99.0, 100.0],
+                                "close": [101.5, 102.5],
+                                "volume": [123456, 234567],
+                            }
+                        ],
+                        "adjclose": [{"adjclose": [101.4, 102.4]}],
+                    },
+                }
+            ],
+            "error": None,
+        }
+    }
+
+    bars = parse_yahoo_chart_response("ETR:RHM", payload)
+
+    assert len(bars) == 2
+    assert bars[0].symbol == "ETR:RHM"
+    assert bars[0].source == "yahoo"
+    assert bars[0].adjusted_close == Decimal("102.4")
+
+
+def test_fetch_yahoo_daily_raises_when_payload_has_no_bars() -> None:
+    payload = {"chart": {"result": [], "error": None}}
+
+    try:
+        fetch_yahoo_daily("ETR:RHM", urlopen_fn=lambda _: _FakeHttpResponse(payload))
+    except YahooFinanceResponseError as error:
+        assert "No daily bars returned" in str(error)
+    else:
+        raise AssertionError("Expected YahooFinanceResponseError")
 
 
 def test_fetch_twelve_data_time_series_raises_on_rate_limit() -> None:
@@ -446,13 +508,13 @@ def _raise_http_error(code: int):
     return _urlopen
 
 
-def test_fetch_stooq_daily_raises_rate_limit_on_404() -> None:
+def test_fetch_stooq_daily_raises_response_error_on_404() -> None:
     try:
         fetch_stooq_daily("AMZN", "", urlopen_fn=_raise_http_error(404), sleep_fn=lambda _: None)
-    except StooqRateLimitError as error:
-        assert "AMZN" in str(error)
+    except StooqResponseError as error:
+        assert "HTTP 404" in str(error)
     else:
-        raise AssertionError("Expected StooqRateLimitError on HTTP 404")
+        raise AssertionError("Expected StooqResponseError on HTTP 404")
 
 
 def test_fetch_stooq_daily_raises_rate_limit_on_429() -> None:

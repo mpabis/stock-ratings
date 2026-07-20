@@ -4,6 +4,18 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-07-20 (alpha-vantage-exchange-guard)
+
+### Fixed
+
+- Stopped Alpha Vantage from blindly stripping non-US exchange prefixes such as `ETR:` down to bare tickers. Exchange-prefixed symbols now keep their prefix unless there is an explicit override, which prevents names like `ETR:RHM` from silently ingesting the wrong `RHM` instrument.
+- Added a free Yahoo Finance Xetra path for exchange-prefixed German listings such as `ETR:RHM`, routing them through `RHM.DE` before Stooq and keeping them out of the Alpha Vantage / Twelve Data fallback chain.
+
+### Tests
+
+- Added a price-ingest regression test that keeps unsupported exchange prefixes intact in Alpha Vantage URLs so future symbol-normalization changes cannot reintroduce wrong-instrument collisions.
+- Added ingest and planner regression coverage for Yahoo Xetra symbol normalization and the `yahoo -> stooq` fallback order.
+
 ## 2026-07-03 (pages-deploy-reliability)
 
 ### Fixed

@@ -30,10 +30,13 @@ from stock_rating.ingest.prices import (
     StooqRateLimitError,
     StooqResponseError,
     TwelveDataRateLimitError,
+    YahooFinanceResponseError,
     fetch_alpha_vantage_daily_adjusted,
     fetch_stooq_daily,
     fetch_twelve_data_time_series,
+    fetch_yahoo_daily,
     get_price_provider_status,
+    prefer_yahoo_before_stooq,
     prefer_stooq_before_twelve_data,
     persist_price_bars,
     stooq_supports_symbol,
@@ -807,6 +810,83 @@ def execute_finnhub_analyst_refresh_plan(
     return symbol_runs
 
 
+def execute_yahoo_refresh_plan(
+    run_id: str,
+    tasks: list[RefreshTask],
+    database_url: str,
+    fetch_fn=fetch_yahoo_daily,
+    persist_fn=persist_price_bars,
+    mark_refreshed_fn=update_symbol_last_price_refresh_at,
+    persist_features_fn=persist_features,
+    compute_features_fn=compute_price_features,
+    load_fundamental_facts_fn=load_latest_fundamental_facts,
+    compute_fundamental_features_fn=compute_fundamental_features,
+    persist_ratings_fn=persist_ratings,
+    build_rating_record_fn=build_rating_record,
+) -> list[SymbolRefreshRunRecord]:
+    symbol_runs: list[SymbolRefreshRunRecord] = []
+
+    for task in tasks:
+        attempted_at = utc_now()
+        try:
+            bars = fetch_fn(task.symbol)
+            persisted = persist_fn(database_url, bars)
+            if database_url and not persisted:
+                raise RuntimeError(f"Failed to persist price bars for {task.symbol}")
+            if persisted:
+                features = build_symbol_features(
+                    database_url,
+                    task,
+                    bars,
+                    compute_price_features_fn=compute_features_fn,
+                    load_fundamental_facts_fn=load_fundamental_facts_fn,
+                    compute_fundamental_features_fn=compute_fundamental_features_fn,
+                )
+                features_persisted = persist_features_fn(database_url, features)
+                if features and not features_persisted:
+                    raise RuntimeError(f"Failed to persist derived features for {task.symbol}")
+                rating_task = rating_task_for_features(task, features)
+                rating_record = build_rating_record_fn(rating_task, features)
+                rating_persisted = persist_ratings_fn(database_url, [rating_record])
+                if not rating_persisted:
+                    raise RuntimeError(f"Failed to persist rating for {task.symbol}")
+                mark_refreshed_fn(database_url, task.symbol, utc_now())
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="yahoo",
+                    status="succeeded",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=None,
+                    fetched_bar_count=len(bars),
+                    provider_error_code=None,
+                )
+            )
+        except Exception as error:
+            provider_error_code = "yahoo_error"
+            if isinstance(error, YahooFinanceResponseError):
+                provider_error_code = "yahoo_error"
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="yahoo",
+                    status="failed",
+                    attempted_at=attempted_at,
+                    completed_at=utc_now(),
+                    error_message=str(error),
+                    fetched_bar_count=None,
+                    provider_error_code=provider_error_code,
+                )
+            )
+
+    return symbol_runs
+
+
 def execute_stooq_refresh_plan(
     run_id: str,
     tasks: list[RefreshTask],
@@ -1255,6 +1335,7 @@ def execute_price_refresh_plan(
     twelve_data_api_key: str,
     stooq_api_key: str = "",
     alpha_fetch_fn=fetch_alpha_vantage_daily_adjusted,
+    yahoo_fetch_fn=fetch_yahoo_daily,
     twelve_fetch_fn=fetch_twelve_data_time_series,
     stooq_fetch_fn=fetch_stooq_daily,
     persist_fn=persist_price_bars,
@@ -1270,7 +1351,7 @@ def execute_price_refresh_plan(
     stooq_pause_seconds: float = 0.0,
     stooq_sleep_fn=time.sleep,
     stooq_max_requests: int | None = None,
-    force_provider: Literal["alpha_vantage", "twelve_data", "stooq"] | None = None,
+    force_provider: Literal["alpha_vantage", "yahoo", "twelve_data", "stooq"] | None = None,
 ) -> list[SymbolRefreshRunRecord]:
     def unresolved_tasks_from(records: list[SymbolRefreshRunRecord], candidate_tasks: list[RefreshTask]) -> list[RefreshTask]:
         unresolved = {record.symbol for record in records if record.status in {"failed", "rate_limited"}}
@@ -1297,6 +1378,19 @@ def execute_price_refresh_plan(
             build_rating_record_fn=build_rating_record_fn,
             request_pause_seconds=alpha_vantage_pause_seconds,
             sleep_fn=alpha_vantage_sleep_fn,
+        )
+    if force_provider == "yahoo":
+        return execute_yahoo_refresh_plan(
+            run_id=run_id,
+            tasks=tasks,
+            database_url=database_url,
+            fetch_fn=yahoo_fetch_fn,
+            persist_fn=persist_fn,
+            mark_refreshed_fn=mark_refreshed_fn,
+            persist_features_fn=persist_features_fn,
+            compute_features_fn=compute_features_fn,
+            persist_ratings_fn=persist_ratings_fn,
+            build_rating_record_fn=build_rating_record_fn,
         )
     if force_provider == "twelve_data":
         return execute_twelve_data_refresh_plan(
@@ -1329,6 +1423,47 @@ def execute_price_refresh_plan(
             sleep_fn=stooq_sleep_fn,
             max_requests=stooq_max_requests,
         )
+
+    yahoo_first_tasks = [task for task in tasks if prefer_yahoo_before_stooq(task.symbol)]
+    yahoo_first_symbols = {task.symbol for task in yahoo_first_tasks}
+    xetra_runs: list[SymbolRefreshRunRecord] = []
+    if yahoo_first_tasks:
+        yahoo_runs = execute_yahoo_refresh_plan(
+            run_id=run_id,
+            tasks=yahoo_first_tasks,
+            database_url=database_url,
+            fetch_fn=yahoo_fetch_fn,
+            persist_fn=persist_fn,
+            mark_refreshed_fn=mark_refreshed_fn,
+            persist_features_fn=persist_features_fn,
+            compute_features_fn=compute_features_fn,
+            persist_ratings_fn=persist_ratings_fn,
+            build_rating_record_fn=build_rating_record_fn,
+        )
+        xetra_runs.extend(yahoo_runs)
+        yahoo_fallback_tasks = unresolved_tasks_from(yahoo_runs, yahoo_first_tasks)
+        if yahoo_fallback_tasks and stooq_api_key:
+            stooq_runs = execute_stooq_refresh_plan(
+                run_id=run_id,
+                tasks=yahoo_fallback_tasks,
+                database_url=database_url,
+                api_key=stooq_api_key,
+                fetch_fn=stooq_fetch_fn,
+                persist_fn=persist_fn,
+                mark_refreshed_fn=mark_refreshed_fn,
+                persist_features_fn=persist_features_fn,
+                compute_features_fn=compute_features_fn,
+                persist_ratings_fn=persist_ratings_fn,
+                build_rating_record_fn=build_rating_record_fn,
+                request_pause_seconds=stooq_pause_seconds,
+                sleep_fn=stooq_sleep_fn,
+                max_requests=stooq_max_requests,
+            )
+            xetra_runs.extend(stooq_runs)
+
+    tasks = [task for task in tasks if task.symbol not in yahoo_first_symbols]
+    if not tasks:
+        return xetra_runs
 
     if alpha_vantage_api_key:
         stooq_first_tasks = (
@@ -1425,8 +1560,8 @@ def execute_price_refresh_plan(
                     sleep_fn=stooq_sleep_fn,
                     max_requests=stooq_max_requests,
                 )
-                return stooq_first_runs + alpha_runs + twelve_runs + stooq_runs
-            return stooq_first_runs + alpha_runs + twelve_runs
+                return xetra_runs + stooq_first_runs + alpha_runs + twelve_runs + stooq_runs
+            return xetra_runs + stooq_first_runs + alpha_runs + twelve_runs
 
         if alpha_fallback_tasks and stooq_api_key:
             stooq_runs = execute_stooq_refresh_plan(
@@ -1445,9 +1580,9 @@ def execute_price_refresh_plan(
                 sleep_fn=stooq_sleep_fn,
                 max_requests=stooq_max_requests,
             )
-            return stooq_first_runs + alpha_runs + stooq_runs
+            return xetra_runs + stooq_first_runs + alpha_runs + stooq_runs
 
-        return stooq_first_runs + alpha_runs
+        return xetra_runs + stooq_first_runs + alpha_runs
 
     if twelve_data_api_key:
         stooq_first_tasks = (
@@ -1494,11 +1629,11 @@ def execute_price_refresh_plan(
                 sleep_fn=stooq_sleep_fn,
                 max_requests=stooq_max_requests,
             )
-            return twelve_runs + stooq_runs
-        return twelve_runs
+            return xetra_runs + twelve_runs + stooq_runs
+        return xetra_runs + twelve_runs
 
     if stooq_api_key:
-        return execute_stooq_refresh_plan(
+        return xetra_runs + execute_stooq_refresh_plan(
             run_id=run_id,
             tasks=tasks,
             database_url=database_url,
@@ -1515,7 +1650,7 @@ def execute_price_refresh_plan(
             max_requests=stooq_max_requests,
         )
 
-    return []
+    return xetra_runs
 
 
 def pipeline_status_for(symbol_runs: list[SymbolRefreshRunRecord], include_rating_runs: bool = False) -> str:
@@ -1765,7 +1900,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--provider",
-        choices=["alpha_vantage", "twelve_data", "stooq"],
+        choices=["alpha_vantage", "yahoo", "twelve_data", "stooq"],
         default=None,
         help="Force a specific price provider, bypassing the normal cascade.",
     )

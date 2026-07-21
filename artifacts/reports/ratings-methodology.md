@@ -29,10 +29,10 @@ Grades are assigned by percentile rank against the tracked universe in even 20% 
 
 | Source | Calls | Succeeded | Failed | Status |
 |---|---:|---:|---:|---|
-| SEC EDGAR | 7 | 2 | 0 | Partial |
+| SEC EDGAR | 10 | 3 | 0 | Partial |
 | Alpha Vantage Overview | 6 | 6 | 0 | Succeeded |
-| Finnhub | 5 | 5 | 0 | Succeeded |
-| Local Rebuild | 110 | 110 | 0 | Succeeded |
+| Finnhub | 5 | 3 | 2 | Partial |
+| Local Rebuild | 130 | 130 | 0 | Succeeded |
 
 ## Factor Calculations
 

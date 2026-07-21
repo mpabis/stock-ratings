@@ -31,8 +31,10 @@ from stock_rating.ingest.analyst import FinnhubAccessDeniedError
 from stock_rating.ingest.prices import (
     AlphaVantageRateLimitError,
     DailyPriceBar,
+    StooqResponseError,
     StooqRateLimitError,
     TwelveDataRateLimitError,
+    YahooFinanceResponseError,
 )
 from stock_rating.ingest.sec_companyfacts import FundamentalFact, SecCompanyFactsResponseError
 from stock_rating.repository.ratings import RatingRepairState
@@ -464,6 +466,23 @@ def test_execute_stooq_refresh_plan_paces_between_symbols() -> None:
     assert sleeps == [0.5]  # one pause between the two symbols, none after the last
 
 
+def test_execute_stooq_refresh_plan_defers_after_repeated_http_404s() -> None:
+    records = execute_stooq_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=_stooq_tasks("AAA", "BBB", "CCC", "DDD"),
+        database_url="",
+        api_key="stooq-key",
+        fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(StooqResponseError("Stooq request failed with HTTP 404")),
+        persist_fn=lambda database_url, bars: False,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+    )
+
+    assert [record.symbol for record in records] == ["AAA", "BBB", "CCC"]
+    assert all(record.status == "deferred" for record in records)
+    assert all(record.provider_error_code == "stooq_provider_unavailable" for record in records)
+
+
 def test_execute_rating_repair_plan_builds_rating_from_stored_prices() -> None:
     as_of = date(2026, 5, 29)
     tasks = plan_rating_repairs(
@@ -836,6 +855,40 @@ def test_execute_price_refresh_plan_falls_back_to_stooq_after_yahoo_failure() ->
     assert pipeline_status_for(records) == "success"
 
 
+def test_execute_price_refresh_plan_does_not_fall_back_to_stooq_after_yahoo_429() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="ETR:AIXA", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+    stooq_symbols: list[str] = []
+
+    records = execute_price_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        alpha_vantage_api_key="alpha-key",
+        twelve_data_api_key="twelve-key",
+        stooq_api_key="stooq-key",
+        alpha_fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Alpha Vantage should not be called")),
+        twelve_fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Twelve Data should not be called")),
+        yahoo_fetch_fn=lambda symbol: (_ for _ in ()).throw(
+            YahooFinanceResponseError("Yahoo Finance request failed with HTTP 429")
+        ),
+        stooq_fetch_fn=lambda symbol, api_key: stooq_symbols.append(symbol) or _stooq_bars(symbol),
+        persist_fn=lambda database_url, bars: False,
+        mark_refreshed_fn=lambda database_url, symbol, refreshed_at: True,
+        persist_features_fn=lambda database_url, features: False,
+        compute_features_fn=lambda bars: [],
+    )
+
+    assert stooq_symbols == []
+    assert [record.provider for record in records] == ["yahoo"]
+    assert records[0].status == "deferred"
+    assert records[0].provider_error_code == "yahoo_provider_constrained"
+
+
 def test_execute_price_refresh_plan_continues_after_yahoo_first_symbol_failure() -> None:
     as_of = date(2026, 5, 27)
     tasks = plan_price_refreshes(
@@ -969,6 +1022,67 @@ def test_execute_stooq_refresh_plan_skips_unsupported_symbols() -> None:
 
     assert records[0].status == "skipped"
     assert records[0].provider_error_code == "stooq_unsupported_symbol"
+
+
+def test_execute_alpha_vantage_refresh_plan_skips_known_provider_constrained_symbols() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="RAIL.ST", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_alpha_vantage_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        api_key="demo-key",
+        fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Alpha Vantage should not be called")),
+    )
+
+    assert records[0].status == "skipped"
+    assert records[0].provider_error_code == "price_provider_constrained_symbol"
+
+
+def test_execute_twelve_data_refresh_plan_skips_known_provider_constrained_symbols() -> None:
+    as_of = date(2026, 5, 27)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="TEL2-B.ST", refresh_tier=3, last_price_date=date(2026, 5, 20))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_twelve_data_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="",
+        api_key="demo-key",
+        fetch_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Twelve Data should not be called")),
+    )
+
+    assert records[0].status == "skipped"
+    assert records[0].provider_error_code == "price_provider_constrained_symbol"
+
+
+def test_execute_finnhub_analyst_refresh_plan_skips_known_provider_constrained_symbols() -> None:
+    as_of = date(2026, 6, 20)
+    tasks = plan_price_refreshes(
+        [SymbolRefreshState(symbol="RAIL.ST", refresh_tier=1, last_price_date=date(2026, 6, 19))],
+        as_of=as_of,
+        budget=1,
+    )
+
+    records = execute_finnhub_analyst_refresh_plan(
+        run_id="ddda45d6-d8fa-47c6-8aae-91ab5f50752b",
+        tasks=tasks,
+        database_url="postgres://localhost/test",
+        api_key="demo-key",
+        fetch_rec_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Finnhub should not be called")),
+        fetch_pt_fn=lambda symbol, api_key: (_ for _ in ()).throw(AssertionError("Finnhub should not be called")),
+    )
+
+    assert records[0].status == "skipped"
+    assert records[0].provider_error_code == "finnhub_provider_constrained_symbol"
 
 
 def test_execute_price_refresh_plan_caps_twelve_data_and_sends_overflow_to_stooq() -> None:

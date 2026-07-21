@@ -95,7 +95,7 @@ class _FakeSourceSummaryCursor:
     def fetchall(self):
         return [
             ("twelve_data", 3, 1, 1, 1, datetime(2026, 5, 28, 23, 4, 14, tzinfo=UTC)),
-            ("stooq", 2, 2, 0, 0, datetime(2026, 5, 28, 23, 5, 14, tzinfo=UTC)),
+            ("stooq", 2, 0, 0, 2, datetime(2026, 5, 28, 23, 5, 14, tzinfo=UTC)),
         ]
 
 
@@ -321,7 +321,7 @@ def test_fetch_source_refresh_summaries_from_db_aggregates_status() -> None:
     assert cursor.params == ("run-123",)
     assert summaries == [
         SourceRefreshSummary(source="twelve_data", calls=3, succeeded=1, failed=1, status="partial"),
-        SourceRefreshSummary(source="stooq", calls=2, succeeded=2, failed=0, status="succeeded"),
+        SourceRefreshSummary(source="stooq", calls=2, succeeded=0, failed=0, status="skipped"),
     ]
 
 

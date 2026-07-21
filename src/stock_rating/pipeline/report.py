@@ -195,7 +195,7 @@ def fetch_source_refresh_summaries_from_db(cursor: Any, run_id: str) -> list[Sou
                 count(*) as calls,
                 sum(case when status = 'succeeded' then 1 else 0 end) as succeeded,
                 sum(case when status in ('failed', 'rate_limited') then 1 else 0 end) as failed,
-                sum(case when status = 'skipped' then 1 else 0 end) as skipped,
+                sum(case when status in ('skipped', 'deferred') then 1 else 0 end) as skipped,
                 min(attempted_at) as first_attempted_at
             from symbol_refresh_runs
             where run_id = %s

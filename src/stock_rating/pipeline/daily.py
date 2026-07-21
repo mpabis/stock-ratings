@@ -97,6 +97,18 @@ MAX_ANALYST_AGE_BY_TIER = {
     3: 30,
 }
 
+KNOWN_FREE_PRICE_PROVIDER_CONSTRAINTS = {
+    "RAIL.ST": "No configured free daily-price provider currently supports this symbol.",
+    "TEL2-B.ST": "No configured free daily-price provider currently supports this symbol.",
+}
+
+KNOWN_FINNHUB_ANALYST_CONSTRAINTS = {
+    "RAIL.ST": "Configured Finnhub analyst access does not currently cover this symbol.",
+    "TEL2-B.ST": "Configured Finnhub analyst access does not currently cover this symbol.",
+}
+
+STOOQ_HTTP_404_CIRCUIT_BREAKER_THRESHOLD = 3
+
 
 @dataclass(frozen=True)
 class SymbolRefreshState:
@@ -136,6 +148,18 @@ def format_symbol_list(symbols: list[str], limit: int = 40) -> str:
         return ", ".join(symbols)
     shown = ", ".join(symbols[:limit])
     return f"{shown}, ... (+{len(symbols) - limit} more)"
+
+
+def _provider_constraint_message(mapping: dict[str, str], symbol: str) -> str | None:
+    return mapping.get(symbol.upper())
+
+
+def _stooq_error_is_http_404(error: Exception) -> bool:
+    return isinstance(error, StooqResponseError) and "HTTP 404" in str(error)
+
+
+def _yahoo_error_is_http_429(error: Exception) -> bool:
+    return isinstance(error, YahooFinanceResponseError) and "HTTP 429" in str(error)
 
 
 def age_in_days(as_of: date, last_price_date: date) -> int:
@@ -460,7 +484,7 @@ def summarize_symbol_runs(source: str, symbol_runs: list[SymbolRefreshRunRecord]
     calls = len(symbol_runs)
     succeeded = sum(1 for record in symbol_runs if record.status == "succeeded")
     failed = sum(1 for record in symbol_runs if record.status in {"failed", "rate_limited"})
-    skipped = sum(1 for record in symbol_runs if record.status == "skipped")
+    skipped = sum(1 for record in symbol_runs if record.status in {"skipped", "deferred"})
     if calls == 0:
         status = "skipped"
     elif succeeded == calls:
@@ -744,6 +768,23 @@ def execute_finnhub_analyst_refresh_plan(
     symbol_runs: list[SymbolRefreshRunRecord] = []
     for index, task in enumerate(tasks):
         attempted_at = utc_now()
+        provider_constraint = _provider_constraint_message(KNOWN_FINNHUB_ANALYST_CONSTRAINTS, task.symbol)
+        if provider_constraint:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="analyst",
+                    provider="finnhub",
+                    status="skipped",
+                    attempted_at=attempted_at,
+                    completed_at=attempted_at,
+                    error_message=provider_constraint,
+                    fetched_bar_count=0,
+                    provider_error_code="finnhub_provider_constrained_symbol",
+                )
+            )
+            continue
         try:
             rec_payload = fetch_rec_fn(task.symbol, api_key)
             try:
@@ -867,15 +908,17 @@ def execute_yahoo_refresh_plan(
             )
         except Exception as error:
             provider_error_code = "yahoo_error"
-            if isinstance(error, YahooFinanceResponseError):
-                provider_error_code = "yahoo_error"
+            status = "failed"
+            if _yahoo_error_is_http_429(error):
+                provider_error_code = "yahoo_provider_constrained"
+                status = "deferred"
             symbol_runs.append(
                 SymbolRefreshRunRecord(
                     run_id=run_id,
                     symbol=task.symbol,
                     data_type="price",
                     provider="yahoo",
-                    status="failed",
+                    status=status,
                     attempted_at=attempted_at,
                     completed_at=utc_now(),
                     error_message=str(error),
@@ -907,6 +950,7 @@ def execute_stooq_refresh_plan(
 ) -> list[SymbolRefreshRunRecord]:
     symbol_runs: list[SymbolRefreshRunRecord] = []
     requests_made = 0
+    consecutive_http_404s = 0
 
     for index, task in enumerate(tasks):
         attempted_at = utc_now()
@@ -938,6 +982,7 @@ def execute_stooq_refresh_plan(
         try:
             requests_made += 1
             bars = fetch_fn(task.symbol, api_key)
+            consecutive_http_404s = 0
             persisted = persist_fn(database_url, bars)
             if database_url and not persisted:
                 raise RuntimeError(f"Failed to persist price bars for {task.symbol}")
@@ -993,6 +1038,35 @@ def execute_stooq_refresh_plan(
             )
             break
         except Exception as error:
+            if _stooq_error_is_http_404(error):
+                consecutive_http_404s += 1
+                provider_error_code = "stooq_provider_unavailable"
+                error_message = "Stooq returned repeated HTTP 404 responses; remaining symbols were deferred for this run."
+                if consecutive_http_404s < STOOQ_HTTP_404_CIRCUIT_BREAKER_THRESHOLD:
+                    error_message = "Stooq returned HTTP 404; treating this provider path as unavailable for this symbol."
+                symbol_runs.append(
+                    SymbolRefreshRunRecord(
+                        run_id=run_id,
+                        symbol=task.symbol,
+                        data_type="price",
+                        provider="stooq",
+                        status="deferred",
+                        attempted_at=attempted_at,
+                        completed_at=utc_now(),
+                        error_message=error_message,
+                        fetched_bar_count=None,
+                        provider_error_code=provider_error_code,
+                    )
+                )
+                if consecutive_http_404s >= STOOQ_HTTP_404_CIRCUIT_BREAKER_THRESHOLD:
+                    remaining = len([t for t in tasks[index + 1:] if stooq_supports_symbol(t.symbol)])
+                    if remaining:
+                        print(
+                            "Stooq returned repeated HTTP 404 responses; "
+                            f"deferring the remaining {remaining} supported symbol(s) for this run."
+                        )
+                    break
+                continue
             symbol_runs.append(
                 SymbolRefreshRunRecord(
                     run_id=run_id,
@@ -1161,6 +1235,23 @@ def execute_alpha_vantage_refresh_plan(
 
     for index, task in enumerate(tasks):
         attempted_at = utc_now()
+        provider_constraint = _provider_constraint_message(KNOWN_FREE_PRICE_PROVIDER_CONSTRAINTS, task.symbol)
+        if provider_constraint:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="alpha_vantage",
+                    status="skipped",
+                    attempted_at=attempted_at,
+                    completed_at=attempted_at,
+                    error_message=provider_constraint,
+                    fetched_bar_count=0,
+                    provider_error_code="price_provider_constrained_symbol",
+                )
+            )
+            continue
         try:
             bars = fetch_fn(task.symbol, api_key)
             persisted = persist_fn(database_url, bars)
@@ -1255,6 +1346,23 @@ def execute_twelve_data_refresh_plan(
 
     for task in tasks:
         attempted_at = utc_now()
+        provider_constraint = _provider_constraint_message(KNOWN_FREE_PRICE_PROVIDER_CONSTRAINTS, task.symbol)
+        if provider_constraint:
+            symbol_runs.append(
+                SymbolRefreshRunRecord(
+                    run_id=run_id,
+                    symbol=task.symbol,
+                    data_type="price",
+                    provider="twelve_data",
+                    status="skipped",
+                    attempted_at=attempted_at,
+                    completed_at=attempted_at,
+                    error_message=provider_constraint,
+                    fetched_bar_count=0,
+                    provider_error_code="price_provider_constrained_symbol",
+                )
+            )
+            continue
         try:
             bars = fetch_fn(task.symbol, api_key)
             persisted = persist_fn(database_url, bars)
@@ -1672,7 +1780,7 @@ def pipeline_status_for(symbol_runs: list[SymbolRefreshRunRecord], include_ratin
     )
     if has_unresolved_failure:
         return "partial"
-    if all("succeeded" in statuses or statuses == {"skipped"} for statuses in symbol_statuses.values()):
+    if all("succeeded" in statuses or statuses in ({"skipped"}, {"deferred"}, {"skipped", "deferred"}) for statuses in symbol_statuses.values()):
         if not has_success:
             return "planned"
         return "success"

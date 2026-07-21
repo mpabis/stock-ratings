@@ -4,6 +4,16 @@ All notable changes to this project should be recorded here.
 
 This project uses dated entries because it has not adopted public semantic version releases yet. Keep the newest entry first. Use these categories when they fit: `Added`, `Changed`, `Fixed`, `Database`, `Documentation`, and `Tests`.
 
+## 2026-07-21 (provider-constraint-guards)
+
+### Changed
+
+- Reclassified known free-provider dead ends as skipped/deferred work instead of nightly hard failures. The planner now suppresses repeated unsupported free-price attempts for `RAIL.ST` and `TEL2-B.ST`, treats Yahoo Xetra `HTTP 429` responses as deferred provider constraints for the current run, and trips a Stooq circuit breaker after repeated `HTTP 404` responses so the batch stops burning calls on a broken provider path.
+
+### Tests
+
+- Added planner regressions covering the Stooq repeated-404 circuit breaker, Yahoo Xetra defer-without-Stooq-fallback behavior, and constrained-symbol skips for Alpha Vantage, Twelve Data, and Finnhub analyst refreshes.
+
 ## 2026-07-20 (alpha-vantage-exchange-guard)
 
 ### Fixed
